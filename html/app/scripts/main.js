@@ -1,1 +1,4 @@
-console.log('\'Allo \'Allo!');
+$(function(){
+	//same height block
+	$(".row-shiffter .block-shifter").matchHeight();
+});

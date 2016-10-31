@@ -1,7 +1,37 @@
 @import "_spritesheet.less" ;
+
+@import "core/variables.less" ;
+@import "core/mixins" ;
+@import "core/base.less" ;
+
 .browserupgrade {
   margin: 0.2em 0;
   background: #ccc;
   color: #000;
   padding: 0.2em 0;
+}
+
+@media only screen and (max-width : 767px) {
+    #shifter-part{
+    	.block-shifter {
+	        height: auto !important;
+	    } 
+    }
+   
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+	@import "core/tablette";	
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 992px) {
+
+}
+
+/* Responsive: desktop and up */
+@media screen and (min-width: 1200px) {
+	@import "core/desktop";
+	
 }
