@@ -3,6 +3,20 @@
 	padding-bottom: 30px;
 	padding-left: 20px;
 	padding-right: 20px;
+	.titre-part{
+		text-align: center;
+		a{
+			text-transform: uppercase;
+			font-size: 32px;
+			margin-top: 0;
+			margin-bottom: 5px;
+			text-decoration: none;
+		}
+		p{
+			font-size: 18px;
+			line-height: 22px;
+		}
+	}
 	&.rose{
 		.titre-part{
 			a{
@@ -29,20 +43,21 @@
 			}
 		}
 	}
-	.titre-part{
-		text-align: center;
-		a{
-			text-transform: uppercase;
-			font-size: 32px;
-			margin-top: 0;
-			margin-bottom: 5px;
-			text-decoration: none;
-		}
-		p{
-			font-size: 18px;
-			line-height: 22px;
+
+	&.blanc{
+		.titre-part{
+			a{
+				color : @blanc;
+				&:hover{
+					color: @bleu;
+				}
+			}
+			p{
+				color : @bleu;
+			}
 		}
 	}
+	
 }
 
 .bottom-link{
@@ -160,5 +175,98 @@
 			}	
 		}		
 			
+	}
+}
+//section partenair
+#partenair-part{
+	background-color: @rose;
+	.partenair-wrapper{
+		clear: both;
+		padding-top: 70px;
+		padding-bottom: 80px;
+		.slider-part{
+			padding-right: 20px;
+			padding-left: 20px;
+			.block-part{
+				text-align: center;	
+				.part-link{							
+					display: inline-block;
+					position: relative;	
+					height: 120px;
+					img{
+						max-width: 100%;
+					}	
+
+					.passif{
+						position: relative;
+						z-index: 10;
+						opacity : 1;
+						.transition(opacity 0.5s ease);
+						top : 50%;
+						left: 50%;
+						transform : translate(-50%,-50%);
+						width: 100%;
+						max-height : 100%;
+					}
+					.hover{
+						position: absolute;	
+						top : 50%;
+						left: 50%;
+						transform : translate(-50%,-50%);
+						z-index: 1;
+						max-height : 100%;
+						width: 100%;
+					}
+					&:hover{
+						.passif{
+							opacity:0;
+							.transition(opacity 0.5s ease);
+						}
+					}
+				}
+			}
+		}
+		
+	}
+}
+
+.slider-part{
+
+	.slick-prev,.slick-next{
+		&:before{
+			content: "";
+			display: block;
+		}
+	}
+	.slick-prev{
+		left: 0;
+		&:before{
+			.sprite(@left-slide);
+		}
+	}
+	.slick-next{
+		right: 5px;
+		&:before{
+			.sprite(@right-slide);
+		}
+	}
+	.slick-dots{
+		bottom: -50px;
+		button{
+			height: 16px;
+			width: 16px;
+			border: 2px solid @bleu;
+			background-color: @blanc;
+			border-radius: 50%;
+			&:before{
+				display: none;
+			}
+		}
+		.slick-active{
+			button{
+				background-color: @bleu;
+			}
+		}
+
 	}
 }

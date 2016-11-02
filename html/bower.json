@@ -4,6 +4,19 @@
   "dependencies": {
     "jquery": "~2.1.1",
     "modernizr": "~2.8.1",
-    "matchHeight": "^0.7.0"
+    "matchHeight": "^0.7.0",
+    "slick-carousel": "^1.6.0"
+  },
+  "overrides" : {
+  	"slick-carousel" : {
+  		"main": [
+	        "slick/slick.js",
+	        "slick/slick.css",
+	        "slick/slick-theme.css",
+	        "slick/fonts/*",
+	        "slick/ajax-loader.gif"
+    	]
+  	}
+
   }
 }
