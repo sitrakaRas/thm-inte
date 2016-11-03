@@ -14,6 +14,7 @@ $(function(){
 		slidesToShow : 4,
 		dots : true,
 		infinite: true,
+		easing: 'easeOut',
 		responsive : [
 			{
 				breakpoint : 1024,

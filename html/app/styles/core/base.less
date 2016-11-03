@@ -11,10 +11,12 @@
 			margin-top: 0;
 			margin-bottom: 5px;
 			text-decoration: none;
+			font-family: @wesfy_black;
 		}
 		p{
 			font-size: 18px;
 			line-height: 22px;
+			font-family: @wesfy_medium;
 		}
 	}
 	&.rose{
@@ -117,20 +119,24 @@
 
 // shitter-part section
 #shifter-part{
+	font-family: @wesfy_medium;
 	.block-shifter{
 		text-align: center;
 		padding: 15px 4.1665% ;
 		color: @bleu-shifter;
 		h3{
+			font-family: @wesfy_medium;
 			font-size: 26px;
 			margin-top: 15px;
 			margin-bottom: 0px;
 		}
 		p{
+			font-family: @wesfy_medium;
 			font-size: 16px;
 			line-height: 26px;
 		}
 		a:not(.link-offre){
+			font-family: @wesfy_medium;
 			text-transform: uppercase;
 			color: @rose;
 			font-size: 16px;
@@ -268,5 +274,154 @@
 			}
 		}
 
+	}
+}
+
+//last-actu
+#last-actu{
+	.actu-wrapper{
+		padding-top: 25px;
+		clear: both;
+		.actu-bloc{
+			box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.1);
+			width: 100%;
+			margin-bottom: 30px;
+			.img-block{
+				background-size: cover;
+				background-position: center center;
+				background-repeat: no-repeat;
+				height: 210px;
+				width: 100%;
+			}
+			.text-actu{
+				padding: 30px;
+				h3{
+					font-weight: 400;
+					display: inline-block;
+					margin-top: 0;
+					margin-bottom: 20px;
+					&:after{
+						display: block;
+						content: "";
+						height: 2px;
+						width: 100%;
+						background-color: @rose;
+						position: relative;
+						top: 5px;
+					}
+					a{
+						font-size: 18px;
+						color: @rose;
+						text-transform: uppercase;
+						text-decoration: none;
+			
+					}
+					&:hover{
+						&:after{
+							background-color: @bleu;
+						}
+						a{
+							color: @bleu;
+						}
+					}
+				}
+				p{
+					font-size: 15px;
+					color: @bleu;
+					margin-bottom: 0;
+				}
+				& >a {
+					color: @bleu;
+					font-size: 26px;
+					font-family: @wesfy_bold;
+					margin-bottom: 25px;
+					display: inline-block;
+				}
+				.link-more{
+					width: 100%;
+					text-align: right;
+					a{
+						font-family: @wesfy_medium;
+						color: @rose;
+						font-size: 20px;
+						text-decoration: none;
+						text-transform: uppercase;
+						&:after{
+							content:"";
+							.sprite(@br-link-arrow-b-h);
+							display: inline-block;
+							margin-left: 7px;
+						}
+						&:hover{
+							color: @bleu;
+							&:after{
+								.sprite(@br-link-arrow-b);
+							}
+						}
+					}
+
+				}
+			}
+		}
+
+		.twitter-block{
+			padding: 30px;
+			box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.1);
+			width: 100%;
+			h3{
+				font-weight: 400;
+				display: inline-block;
+				margin-top: 0;
+				margin-bottom: 20px;
+				&:after{
+					display: block;
+					content: "";
+					height: 2px;
+					width: 100%;
+					background-color: @rose;
+					position: relative;
+					top: 5px;
+				}
+				a{
+					font-size: 18px;
+					color: @rose;
+					text-transform: uppercase;
+					text-decoration: none;
+		
+				}
+				&:hover{
+					&:after{
+						background-color: @bleu;
+					}
+					a{
+						color: @bleu;
+					}
+				}
+			}
+			.link-more{
+				width: 100%;
+				text-align: right;
+				a{
+					font-family: @wesfy_medium;
+					color: @rose;
+					font-size: 20px;
+					text-decoration: none;
+					text-transform: uppercase;
+					&:after{
+						content:"";
+						.sprite(@br-link-arrow-b-h);
+						display: inline-block;
+						margin-left: 7px;
+					}
+					&:hover{
+						color: @bleu;
+						&:after{
+							.sprite(@br-link-arrow-b);
+						}
+					}
+				}
+
+			}
+		}
 	}
 }
