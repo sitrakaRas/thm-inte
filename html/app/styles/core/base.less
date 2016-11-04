@@ -425,3 +425,55 @@
 		}
 	}
 }
+
+//contact-part
+#contact-part{
+	background-color: @bleu-clair;
+	.contact-wrapper{
+		width: 100%;
+		display: block;
+		text-align: center;
+		.mail-contact{
+			font-size: 32px;
+			line-height: 24px;
+			font-family: @wesfy_black;
+			color: @bleu;
+			margin-top: 20px;
+			margin-bottom: 30px;
+			display: inline-block;
+			width: 100%;
+			&:hover{
+				color: @blanc;
+			}
+		}
+
+		.rs{
+			text-align: center;
+			ul{
+				list-style: none;
+				padding-left: 0;
+				li{
+					display: inline-block;
+					padding-left: 12px;
+					padding-right: 12px;
+					a{
+						&:hover{
+							img{
+								filter : brightness(0) invert(1);
+							}
+							
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// map section
+#map{
+	.map-wrapper{
+		height: 235px;
+		width: 100%;
+	}
+}
