@@ -1,6 +1,9 @@
 var thinkmarket = {
 	slider: function(parent,arg){
 		parent.slick(arg);
+	},
+	headfixe : function(parent,arg){
+		parent.scrollToFixed(arg);
 	}
 }
 
@@ -38,4 +41,17 @@ $(function(){
 
 	};
 	thinkmarket.slider($(".slider-part"),arg);
+	
+	//menu fixe
+	var menu_arg;
+	thinkmarket.headfixe($(".main-nav"),menu_arg);
+
+	$(window).on("scroll",function(){
+		if($(".main-nav").offset().top > 10 ){
+			$(".main-nav").addClass("minimize");
+		}else{
+			$(".main-nav").removeClass("minimize");
+		}
+
+	});
 });
