@@ -9208,3 +9208,7810 @@ if ( typeof noGlobal === strundefined ) {
 return jQuery;
 
 }));
+
+/**
+* jquery-match-height 0.7.0 by @liabru
+* http://brm.io/jquery-match-height/
+* License: MIT
+*/
+
+;(function(factory) { // eslint-disable-line no-extra-semi
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // AMD
+        define(['jquery'], factory);
+    } else if (typeof module !== 'undefined' && module.exports) {
+        // CommonJS
+        module.exports = factory(require('jquery'));
+    } else {
+        // Global
+        factory(jQuery);
+    }
+})(function($) {
+    /*
+    *  internal
+    */
+
+    var _previousResizeWidth = -1,
+        _updateTimeout = -1;
+
+    /*
+    *  _parse
+    *  value parse utility function
+    */
+
+    var _parse = function(value) {
+        // parse value and convert NaN to 0
+        return parseFloat(value) || 0;
+    };
+
+    /*
+    *  _rows
+    *  utility function returns array of jQuery selections representing each row
+    *  (as displayed after float wrapping applied by browser)
+    */
+
+    var _rows = function(elements) {
+        var tolerance = 1,
+            $elements = $(elements),
+            lastTop = null,
+            rows = [];
+
+        // group elements by their top position
+        $elements.each(function(){
+            var $that = $(this),
+                top = $that.offset().top - _parse($that.css('margin-top')),
+                lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+
+            if (lastRow === null) {
+                // first item on the row, so just push it
+                rows.push($that);
+            } else {
+                // if the row top is the same, add to the row group
+                if (Math.floor(Math.abs(lastTop - top)) <= tolerance) {
+                    rows[rows.length - 1] = lastRow.add($that);
+                } else {
+                    // otherwise start a new row group
+                    rows.push($that);
+                }
+            }
+
+            // keep track of the last row top
+            lastTop = top;
+        });
+
+        return rows;
+    };
+
+    /*
+    *  _parseOptions
+    *  handle plugin options
+    */
+
+    var _parseOptions = function(options) {
+        var opts = {
+            byRow: true,
+            property: 'height',
+            target: null,
+            remove: false
+        };
+
+        if (typeof options === 'object') {
+            return $.extend(opts, options);
+        }
+
+        if (typeof options === 'boolean') {
+            opts.byRow = options;
+        } else if (options === 'remove') {
+            opts.remove = true;
+        }
+
+        return opts;
+    };
+
+    /*
+    *  matchHeight
+    *  plugin definition
+    */
+
+    var matchHeight = $.fn.matchHeight = function(options) {
+        var opts = _parseOptions(options);
+
+        // handle remove
+        if (opts.remove) {
+            var that = this;
+
+            // remove fixed height from all selected elements
+            this.css(opts.property, '');
+
+            // remove selected elements from all groups
+            $.each(matchHeight._groups, function(key, group) {
+                group.elements = group.elements.not(that);
+            });
+
+            // TODO: cleanup empty groups
+
+            return this;
+        }
+
+        if (this.length <= 1 && !opts.target) {
+            return this;
+        }
+
+        // keep track of this group so we can re-apply later on load and resize events
+        matchHeight._groups.push({
+            elements: this,
+            options: opts
+        });
+
+        // match each element's height to the tallest element in the selection
+        matchHeight._apply(this, opts);
+
+        return this;
+    };
+
+    /*
+    *  plugin global options
+    */
+
+    matchHeight.version = '0.7.0';
+    matchHeight._groups = [];
+    matchHeight._throttle = 80;
+    matchHeight._maintainScroll = false;
+    matchHeight._beforeUpdate = null;
+    matchHeight._afterUpdate = null;
+    matchHeight._rows = _rows;
+    matchHeight._parse = _parse;
+    matchHeight._parseOptions = _parseOptions;
+
+    /*
+    *  matchHeight._apply
+    *  apply matchHeight to given elements
+    */
+
+    matchHeight._apply = function(elements, options) {
+        var opts = _parseOptions(options),
+            $elements = $(elements),
+            rows = [$elements];
+
+        // take note of scroll position
+        var scrollTop = $(window).scrollTop(),
+            htmlHeight = $('html').outerHeight(true);
+
+        // get hidden parents
+        var $hiddenParents = $elements.parents().filter(':hidden');
+
+        // cache the original inline style
+        $hiddenParents.each(function() {
+            var $that = $(this);
+            $that.data('style-cache', $that.attr('style'));
+        });
+
+        // temporarily must force hidden parents visible
+        $hiddenParents.css('display', 'block');
+
+        // get rows if using byRow, otherwise assume one row
+        if (opts.byRow && !opts.target) {
+
+            // must first force an arbitrary equal height so floating elements break evenly
+            $elements.each(function() {
+                var $that = $(this),
+                    display = $that.css('display');
+
+                // temporarily force a usable display value
+                if (display !== 'inline-block' && display !== 'flex' && display !== 'inline-flex') {
+                    display = 'block';
+                }
+
+                // cache the original inline style
+                $that.data('style-cache', $that.attr('style'));
+
+                $that.css({
+                    'display': display,
+                    'padding-top': '0',
+                    'padding-bottom': '0',
+                    'margin-top': '0',
+                    'margin-bottom': '0',
+                    'border-top-width': '0',
+                    'border-bottom-width': '0',
+                    'height': '100px',
+                    'overflow': 'hidden'
+                });
+            });
+
+            // get the array of rows (based on element top position)
+            rows = _rows($elements);
+
+            // revert original inline styles
+            $elements.each(function() {
+                var $that = $(this);
+                $that.attr('style', $that.data('style-cache') || '');
+            });
+        }
+
+        $.each(rows, function(key, row) {
+            var $row = $(row),
+                targetHeight = 0;
+
+            if (!opts.target) {
+                // skip apply to rows with only one item
+                if (opts.byRow && $row.length <= 1) {
+                    $row.css(opts.property, '');
+                    return;
+                }
+
+                // iterate the row and find the max height
+                $row.each(function(){
+                    var $that = $(this),
+                        style = $that.attr('style'),
+                        display = $that.css('display');
+
+                    // temporarily force a usable display value
+                    if (display !== 'inline-block' && display !== 'flex' && display !== 'inline-flex') {
+                        display = 'block';
+                    }
+
+                    // ensure we get the correct actual height (and not a previously set height value)
+                    var css = { 'display': display };
+                    css[opts.property] = '';
+                    $that.css(css);
+
+                    // find the max height (including padding, but not margin)
+                    if ($that.outerHeight(false) > targetHeight) {
+                        targetHeight = $that.outerHeight(false);
+                    }
+
+                    // revert styles
+                    if (style) {
+                        $that.attr('style', style);
+                    } else {
+                        $that.css('display', '');
+                    }
+                });
+            } else {
+                // if target set, use the height of the target element
+                targetHeight = opts.target.outerHeight(false);
+            }
+
+            // iterate the row and apply the height to all elements
+            $row.each(function(){
+                var $that = $(this),
+                    verticalPadding = 0;
+
+                // don't apply to a target
+                if (opts.target && $that.is(opts.target)) {
+                    return;
+                }
+
+                // handle padding and border correctly (required when not using border-box)
+                if ($that.css('box-sizing') !== 'border-box') {
+                    verticalPadding += _parse($that.css('border-top-width')) + _parse($that.css('border-bottom-width'));
+                    verticalPadding += _parse($that.css('padding-top')) + _parse($that.css('padding-bottom'));
+                }
+
+                // set the height (accounting for padding and border)
+                $that.css(opts.property, (targetHeight - verticalPadding) + 'px');
+            });
+        });
+
+        // revert hidden parents
+        $hiddenParents.each(function() {
+            var $that = $(this);
+            $that.attr('style', $that.data('style-cache') || null);
+        });
+
+        // restore scroll position if enabled
+        if (matchHeight._maintainScroll) {
+            $(window).scrollTop((scrollTop / htmlHeight) * $('html').outerHeight(true));
+        }
+
+        return this;
+    };
+
+    /*
+    *  matchHeight._applyDataApi
+    *  applies matchHeight to all elements with a data-match-height attribute
+    */
+
+    matchHeight._applyDataApi = function() {
+        var groups = {};
+
+        // generate groups by their groupId set by elements using data-match-height
+        $('[data-match-height], [data-mh]').each(function() {
+            var $this = $(this),
+                groupId = $this.attr('data-mh') || $this.attr('data-match-height');
+
+            if (groupId in groups) {
+                groups[groupId] = groups[groupId].add($this);
+            } else {
+                groups[groupId] = $this;
+            }
+        });
+
+        // apply matchHeight to each group
+        $.each(groups, function() {
+            this.matchHeight(true);
+        });
+    };
+
+    /*
+    *  matchHeight._update
+    *  updates matchHeight on all current groups with their correct options
+    */
+
+    var _update = function(event) {
+        if (matchHeight._beforeUpdate) {
+            matchHeight._beforeUpdate(event, matchHeight._groups);
+        }
+
+        $.each(matchHeight._groups, function() {
+            matchHeight._apply(this.elements, this.options);
+        });
+
+        if (matchHeight._afterUpdate) {
+            matchHeight._afterUpdate(event, matchHeight._groups);
+        }
+    };
+
+    matchHeight._update = function(throttle, event) {
+        // prevent update if fired from a resize event
+        // where the viewport width hasn't actually changed
+        // fixes an event looping bug in IE8
+        if (event && event.type === 'resize') {
+            var windowWidth = $(window).width();
+            if (windowWidth === _previousResizeWidth) {
+                return;
+            }
+            _previousResizeWidth = windowWidth;
+        }
+
+        // throttle updates
+        if (!throttle) {
+            _update(event);
+        } else if (_updateTimeout === -1) {
+            _updateTimeout = setTimeout(function() {
+                _update(event);
+                _updateTimeout = -1;
+            }, matchHeight._throttle);
+        }
+    };
+
+    /*
+    *  bind events
+    */
+
+    // apply on DOM ready event
+    $(matchHeight._applyDataApi);
+
+    // update heights on load and resize events
+    $(window).bind('load', function(event) {
+        matchHeight._update(false, event);
+    });
+
+    // throttled update heights on resize events
+    $(window).bind('resize orientationchange', function(event) {
+        matchHeight._update(true, event);
+    });
+
+});
+
+/*
+     _ _      _       _
+ ___| (_) ___| | __  (_)___
+/ __| | |/ __| |/ /  | / __|
+\__ \ | | (__|   < _ | \__ \
+|___/_|_|\___|_|\_(_)/ |___/
+                   |__/
+
+ Version: 1.6.0
+  Author: Ken Wheeler
+ Website: http://kenwheeler.github.io
+    Docs: http://kenwheeler.github.io/slick
+    Repo: http://github.com/kenwheeler/slick
+  Issues: http://github.com/kenwheeler/slick/issues
+
+ */
+/* global window, document, define, jQuery, setInterval, clearInterval */
+(function(factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], factory);
+    } else if (typeof exports !== 'undefined') {
+        module.exports = factory(require('jquery'));
+    } else {
+        factory(jQuery);
+    }
+
+}(function($) {
+    'use strict';
+    var Slick = window.Slick || {};
+
+    Slick = (function() {
+
+        var instanceUid = 0;
+
+        function Slick(element, settings) {
+
+            var _ = this, dataSettings;
+
+            _.defaults = {
+                accessibility: true,
+                adaptiveHeight: false,
+                appendArrows: $(element),
+                appendDots: $(element),
+                arrows: true,
+                asNavFor: null,
+                prevArrow: '<button type="button" data-role="none" class="slick-prev" aria-label="Previous" tabindex="0" role="button">Previous</button>',
+                nextArrow: '<button type="button" data-role="none" class="slick-next" aria-label="Next" tabindex="0" role="button">Next</button>',
+                autoplay: false,
+                autoplaySpeed: 3000,
+                centerMode: false,
+                centerPadding: '50px',
+                cssEase: 'ease',
+                customPaging: function(slider, i) {
+                    return $('<button type="button" data-role="none" role="button" tabindex="0" />').text(i + 1);
+                },
+                dots: false,
+                dotsClass: 'slick-dots',
+                draggable: true,
+                easing: 'linear',
+                edgeFriction: 0.35,
+                fade: false,
+                focusOnSelect: false,
+                infinite: true,
+                initialSlide: 0,
+                lazyLoad: 'ondemand',
+                mobileFirst: false,
+                pauseOnHover: true,
+                pauseOnFocus: true,
+                pauseOnDotsHover: false,
+                respondTo: 'window',
+                responsive: null,
+                rows: 1,
+                rtl: false,
+                slide: '',
+                slidesPerRow: 1,
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                speed: 500,
+                swipe: true,
+                swipeToSlide: false,
+                touchMove: true,
+                touchThreshold: 5,
+                useCSS: true,
+                useTransform: true,
+                variableWidth: false,
+                vertical: false,
+                verticalSwiping: false,
+                waitForAnimate: true,
+                zIndex: 1000
+            };
+
+            _.initials = {
+                animating: false,
+                dragging: false,
+                autoPlayTimer: null,
+                currentDirection: 0,
+                currentLeft: null,
+                currentSlide: 0,
+                direction: 1,
+                $dots: null,
+                listWidth: null,
+                listHeight: null,
+                loadIndex: 0,
+                $nextArrow: null,
+                $prevArrow: null,
+                slideCount: null,
+                slideWidth: null,
+                $slideTrack: null,
+                $slides: null,
+                sliding: false,
+                slideOffset: 0,
+                swipeLeft: null,
+                $list: null,
+                touchObject: {},
+                transformsEnabled: false,
+                unslicked: false
+            };
+
+            $.extend(_, _.initials);
+
+            _.activeBreakpoint = null;
+            _.animType = null;
+            _.animProp = null;
+            _.breakpoints = [];
+            _.breakpointSettings = [];
+            _.cssTransitions = false;
+            _.focussed = false;
+            _.interrupted = false;
+            _.hidden = 'hidden';
+            _.paused = true;
+            _.positionProp = null;
+            _.respondTo = null;
+            _.rowCount = 1;
+            _.shouldClick = true;
+            _.$slider = $(element);
+            _.$slidesCache = null;
+            _.transformType = null;
+            _.transitionType = null;
+            _.visibilityChange = 'visibilitychange';
+            _.windowWidth = 0;
+            _.windowTimer = null;
+
+            dataSettings = $(element).data('slick') || {};
+
+            _.options = $.extend({}, _.defaults, settings, dataSettings);
+
+            _.currentSlide = _.options.initialSlide;
+
+            _.originalSettings = _.options;
+
+            if (typeof document.mozHidden !== 'undefined') {
+                _.hidden = 'mozHidden';
+                _.visibilityChange = 'mozvisibilitychange';
+            } else if (typeof document.webkitHidden !== 'undefined') {
+                _.hidden = 'webkitHidden';
+                _.visibilityChange = 'webkitvisibilitychange';
+            }
+
+            _.autoPlay = $.proxy(_.autoPlay, _);
+            _.autoPlayClear = $.proxy(_.autoPlayClear, _);
+            _.autoPlayIterator = $.proxy(_.autoPlayIterator, _);
+            _.changeSlide = $.proxy(_.changeSlide, _);
+            _.clickHandler = $.proxy(_.clickHandler, _);
+            _.selectHandler = $.proxy(_.selectHandler, _);
+            _.setPosition = $.proxy(_.setPosition, _);
+            _.swipeHandler = $.proxy(_.swipeHandler, _);
+            _.dragHandler = $.proxy(_.dragHandler, _);
+            _.keyHandler = $.proxy(_.keyHandler, _);
+
+            _.instanceUid = instanceUid++;
+
+            // A simple way to check for HTML strings
+            // Strict HTML recognition (must start with <)
+            // Extracted from jQuery v1.11 source
+            _.htmlExpr = /^(?:\s*(<[\w\W]+>)[^>]*)$/;
+
+
+            _.registerBreakpoints();
+            _.init(true);
+
+        }
+
+        return Slick;
+
+    }());
+
+    Slick.prototype.activateADA = function() {
+        var _ = this;
+
+        _.$slideTrack.find('.slick-active').attr({
+            'aria-hidden': 'false'
+        }).find('a, input, button, select').attr({
+            'tabindex': '0'
+        });
+
+    };
+
+    Slick.prototype.addSlide = Slick.prototype.slickAdd = function(markup, index, addBefore) {
+
+        var _ = this;
+
+        if (typeof(index) === 'boolean') {
+            addBefore = index;
+            index = null;
+        } else if (index < 0 || (index >= _.slideCount)) {
+            return false;
+        }
+
+        _.unload();
+
+        if (typeof(index) === 'number') {
+            if (index === 0 && _.$slides.length === 0) {
+                $(markup).appendTo(_.$slideTrack);
+            } else if (addBefore) {
+                $(markup).insertBefore(_.$slides.eq(index));
+            } else {
+                $(markup).insertAfter(_.$slides.eq(index));
+            }
+        } else {
+            if (addBefore === true) {
+                $(markup).prependTo(_.$slideTrack);
+            } else {
+                $(markup).appendTo(_.$slideTrack);
+            }
+        }
+
+        _.$slides = _.$slideTrack.children(this.options.slide);
+
+        _.$slideTrack.children(this.options.slide).detach();
+
+        _.$slideTrack.append(_.$slides);
+
+        _.$slides.each(function(index, element) {
+            $(element).attr('data-slick-index', index);
+        });
+
+        _.$slidesCache = _.$slides;
+
+        _.reinit();
+
+    };
+
+    Slick.prototype.animateHeight = function() {
+        var _ = this;
+        if (_.options.slidesToShow === 1 && _.options.adaptiveHeight === true && _.options.vertical === false) {
+            var targetHeight = _.$slides.eq(_.currentSlide).outerHeight(true);
+            _.$list.animate({
+                height: targetHeight
+            }, _.options.speed);
+        }
+    };
+
+    Slick.prototype.animateSlide = function(targetLeft, callback) {
+
+        var animProps = {},
+            _ = this;
+
+        _.animateHeight();
+
+        if (_.options.rtl === true && _.options.vertical === false) {
+            targetLeft = -targetLeft;
+        }
+        if (_.transformsEnabled === false) {
+            if (_.options.vertical === false) {
+                _.$slideTrack.animate({
+                    left: targetLeft
+                }, _.options.speed, _.options.easing, callback);
+            } else {
+                _.$slideTrack.animate({
+                    top: targetLeft
+                }, _.options.speed, _.options.easing, callback);
+            }
+
+        } else {
+
+            if (_.cssTransitions === false) {
+                if (_.options.rtl === true) {
+                    _.currentLeft = -(_.currentLeft);
+                }
+                $({
+                    animStart: _.currentLeft
+                }).animate({
+                    animStart: targetLeft
+                }, {
+                    duration: _.options.speed,
+                    easing: _.options.easing,
+                    step: function(now) {
+                        now = Math.ceil(now);
+                        if (_.options.vertical === false) {
+                            animProps[_.animType] = 'translate(' +
+                                now + 'px, 0px)';
+                            _.$slideTrack.css(animProps);
+                        } else {
+                            animProps[_.animType] = 'translate(0px,' +
+                                now + 'px)';
+                            _.$slideTrack.css(animProps);
+                        }
+                    },
+                    complete: function() {
+                        if (callback) {
+                            callback.call();
+                        }
+                    }
+                });
+
+            } else {
+
+                _.applyTransition();
+                targetLeft = Math.ceil(targetLeft);
+
+                if (_.options.vertical === false) {
+                    animProps[_.animType] = 'translate3d(' + targetLeft + 'px, 0px, 0px)';
+                } else {
+                    animProps[_.animType] = 'translate3d(0px,' + targetLeft + 'px, 0px)';
+                }
+                _.$slideTrack.css(animProps);
+
+                if (callback) {
+                    setTimeout(function() {
+
+                        _.disableTransition();
+
+                        callback.call();
+                    }, _.options.speed);
+                }
+
+            }
+
+        }
+
+    };
+
+    Slick.prototype.getNavTarget = function() {
+
+        var _ = this,
+            asNavFor = _.options.asNavFor;
+
+        if ( asNavFor && asNavFor !== null ) {
+            asNavFor = $(asNavFor).not(_.$slider);
+        }
+
+        return asNavFor;
+
+    };
+
+    Slick.prototype.asNavFor = function(index) {
+
+        var _ = this,
+            asNavFor = _.getNavTarget();
+
+        if ( asNavFor !== null && typeof asNavFor === 'object' ) {
+            asNavFor.each(function() {
+                var target = $(this).slick('getSlick');
+                if(!target.unslicked) {
+                    target.slideHandler(index, true);
+                }
+            });
+        }
+
+    };
+
+    Slick.prototype.applyTransition = function(slide) {
+
+        var _ = this,
+            transition = {};
+
+        if (_.options.fade === false) {
+            transition[_.transitionType] = _.transformType + ' ' + _.options.speed + 'ms ' + _.options.cssEase;
+        } else {
+            transition[_.transitionType] = 'opacity ' + _.options.speed + 'ms ' + _.options.cssEase;
+        }
+
+        if (_.options.fade === false) {
+            _.$slideTrack.css(transition);
+        } else {
+            _.$slides.eq(slide).css(transition);
+        }
+
+    };
+
+    Slick.prototype.autoPlay = function() {
+
+        var _ = this;
+
+        _.autoPlayClear();
+
+        if ( _.slideCount > _.options.slidesToShow ) {
+            _.autoPlayTimer = setInterval( _.autoPlayIterator, _.options.autoplaySpeed );
+        }
+
+    };
+
+    Slick.prototype.autoPlayClear = function() {
+
+        var _ = this;
+
+        if (_.autoPlayTimer) {
+            clearInterval(_.autoPlayTimer);
+        }
+
+    };
+
+    Slick.prototype.autoPlayIterator = function() {
+
+        var _ = this,
+            slideTo = _.currentSlide + _.options.slidesToScroll;
+
+        if ( !_.paused && !_.interrupted && !_.focussed ) {
+
+            if ( _.options.infinite === false ) {
+
+                if ( _.direction === 1 && ( _.currentSlide + 1 ) === ( _.slideCount - 1 )) {
+                    _.direction = 0;
+                }
+
+                else if ( _.direction === 0 ) {
+
+                    slideTo = _.currentSlide - _.options.slidesToScroll;
+
+                    if ( _.currentSlide - 1 === 0 ) {
+                        _.direction = 1;
+                    }
+
+                }
+
+            }
+
+            _.slideHandler( slideTo );
+
+        }
+
+    };
+
+    Slick.prototype.buildArrows = function() {
+
+        var _ = this;
+
+        if (_.options.arrows === true ) {
+
+            _.$prevArrow = $(_.options.prevArrow).addClass('slick-arrow');
+            _.$nextArrow = $(_.options.nextArrow).addClass('slick-arrow');
+
+            if( _.slideCount > _.options.slidesToShow ) {
+
+                _.$prevArrow.removeClass('slick-hidden').removeAttr('aria-hidden tabindex');
+                _.$nextArrow.removeClass('slick-hidden').removeAttr('aria-hidden tabindex');
+
+                if (_.htmlExpr.test(_.options.prevArrow)) {
+                    _.$prevArrow.prependTo(_.options.appendArrows);
+                }
+
+                if (_.htmlExpr.test(_.options.nextArrow)) {
+                    _.$nextArrow.appendTo(_.options.appendArrows);
+                }
+
+                if (_.options.infinite !== true) {
+                    _.$prevArrow
+                        .addClass('slick-disabled')
+                        .attr('aria-disabled', 'true');
+                }
+
+            } else {
+
+                _.$prevArrow.add( _.$nextArrow )
+
+                    .addClass('slick-hidden')
+                    .attr({
+                        'aria-disabled': 'true',
+                        'tabindex': '-1'
+                    });
+
+            }
+
+        }
+
+    };
+
+    Slick.prototype.buildDots = function() {
+
+        var _ = this,
+            i, dot;
+
+        if (_.options.dots === true && _.slideCount > _.options.slidesToShow) {
+
+            _.$slider.addClass('slick-dotted');
+
+            dot = $('<ul />').addClass(_.options.dotsClass);
+
+            for (i = 0; i <= _.getDotCount(); i += 1) {
+                dot.append($('<li />').append(_.options.customPaging.call(this, _, i)));
+            }
+
+            _.$dots = dot.appendTo(_.options.appendDots);
+
+            _.$dots.find('li').first().addClass('slick-active').attr('aria-hidden', 'false');
+
+        }
+
+    };
+
+    Slick.prototype.buildOut = function() {
+
+        var _ = this;
+
+        _.$slides =
+            _.$slider
+                .children( _.options.slide + ':not(.slick-cloned)')
+                .addClass('slick-slide');
+
+        _.slideCount = _.$slides.length;
+
+        _.$slides.each(function(index, element) {
+            $(element)
+                .attr('data-slick-index', index)
+                .data('originalStyling', $(element).attr('style') || '');
+        });
+
+        _.$slider.addClass('slick-slider');
+
+        _.$slideTrack = (_.slideCount === 0) ?
+            $('<div class="slick-track"/>').appendTo(_.$slider) :
+            _.$slides.wrapAll('<div class="slick-track"/>').parent();
+
+        _.$list = _.$slideTrack.wrap(
+            '<div aria-live="polite" class="slick-list"/>').parent();
+        _.$slideTrack.css('opacity', 0);
+
+        if (_.options.centerMode === true || _.options.swipeToSlide === true) {
+            _.options.slidesToScroll = 1;
+        }
+
+        $('img[data-lazy]', _.$slider).not('[src]').addClass('slick-loading');
+
+        _.setupInfinite();
+
+        _.buildArrows();
+
+        _.buildDots();
+
+        _.updateDots();
+
+
+        _.setSlideClasses(typeof _.currentSlide === 'number' ? _.currentSlide : 0);
+
+        if (_.options.draggable === true) {
+            _.$list.addClass('draggable');
+        }
+
+    };
+
+    Slick.prototype.buildRows = function() {
+
+        var _ = this, a, b, c, newSlides, numOfSlides, originalSlides,slidesPerSection;
+
+        newSlides = document.createDocumentFragment();
+        originalSlides = _.$slider.children();
+
+        if(_.options.rows > 1) {
+
+            slidesPerSection = _.options.slidesPerRow * _.options.rows;
+            numOfSlides = Math.ceil(
+                originalSlides.length / slidesPerSection
+            );
+
+            for(a = 0; a < numOfSlides; a++){
+                var slide = document.createElement('div');
+                for(b = 0; b < _.options.rows; b++) {
+                    var row = document.createElement('div');
+                    for(c = 0; c < _.options.slidesPerRow; c++) {
+                        var target = (a * slidesPerSection + ((b * _.options.slidesPerRow) + c));
+                        if (originalSlides.get(target)) {
+                            row.appendChild(originalSlides.get(target));
+                        }
+                    }
+                    slide.appendChild(row);
+                }
+                newSlides.appendChild(slide);
+            }
+
+            _.$slider.empty().append(newSlides);
+            _.$slider.children().children().children()
+                .css({
+                    'width':(100 / _.options.slidesPerRow) + '%',
+                    'display': 'inline-block'
+                });
+
+        }
+
+    };
+
+    Slick.prototype.checkResponsive = function(initial, forceUpdate) {
+
+        var _ = this,
+            breakpoint, targetBreakpoint, respondToWidth, triggerBreakpoint = false;
+        var sliderWidth = _.$slider.width();
+        var windowWidth = window.innerWidth || $(window).width();
+
+        if (_.respondTo === 'window') {
+            respondToWidth = windowWidth;
+        } else if (_.respondTo === 'slider') {
+            respondToWidth = sliderWidth;
+        } else if (_.respondTo === 'min') {
+            respondToWidth = Math.min(windowWidth, sliderWidth);
+        }
+
+        if ( _.options.responsive &&
+            _.options.responsive.length &&
+            _.options.responsive !== null) {
+
+            targetBreakpoint = null;
+
+            for (breakpoint in _.breakpoints) {
+                if (_.breakpoints.hasOwnProperty(breakpoint)) {
+                    if (_.originalSettings.mobileFirst === false) {
+                        if (respondToWidth < _.breakpoints[breakpoint]) {
+                            targetBreakpoint = _.breakpoints[breakpoint];
+                        }
+                    } else {
+                        if (respondToWidth > _.breakpoints[breakpoint]) {
+                            targetBreakpoint = _.breakpoints[breakpoint];
+                        }
+                    }
+                }
+            }
+
+            if (targetBreakpoint !== null) {
+                if (_.activeBreakpoint !== null) {
+                    if (targetBreakpoint !== _.activeBreakpoint || forceUpdate) {
+                        _.activeBreakpoint =
+                            targetBreakpoint;
+                        if (_.breakpointSettings[targetBreakpoint] === 'unslick') {
+                            _.unslick(targetBreakpoint);
+                        } else {
+                            _.options = $.extend({}, _.originalSettings,
+                                _.breakpointSettings[
+                                    targetBreakpoint]);
+                            if (initial === true) {
+                                _.currentSlide = _.options.initialSlide;
+                            }
+                            _.refresh(initial);
+                        }
+                        triggerBreakpoint = targetBreakpoint;
+                    }
+                } else {
+                    _.activeBreakpoint = targetBreakpoint;
+                    if (_.breakpointSettings[targetBreakpoint] === 'unslick') {
+                        _.unslick(targetBreakpoint);
+                    } else {
+                        _.options = $.extend({}, _.originalSettings,
+                            _.breakpointSettings[
+                                targetBreakpoint]);
+                        if (initial === true) {
+                            _.currentSlide = _.options.initialSlide;
+                        }
+                        _.refresh(initial);
+                    }
+                    triggerBreakpoint = targetBreakpoint;
+                }
+            } else {
+                if (_.activeBreakpoint !== null) {
+                    _.activeBreakpoint = null;
+                    _.options = _.originalSettings;
+                    if (initial === true) {
+                        _.currentSlide = _.options.initialSlide;
+                    }
+                    _.refresh(initial);
+                    triggerBreakpoint = targetBreakpoint;
+                }
+            }
+
+            // only trigger breakpoints during an actual break. not on initialize.
+            if( !initial && triggerBreakpoint !== false ) {
+                _.$slider.trigger('breakpoint', [_, triggerBreakpoint]);
+            }
+        }
+
+    };
+
+    Slick.prototype.changeSlide = function(event, dontAnimate) {
+
+        var _ = this,
+            $target = $(event.currentTarget),
+            indexOffset, slideOffset, unevenOffset;
+
+        // If target is a link, prevent default action.
+        if($target.is('a')) {
+            event.preventDefault();
+        }
+
+        // If target is not the <li> element (ie: a child), find the <li>.
+        if(!$target.is('li')) {
+            $target = $target.closest('li');
+        }
+
+        unevenOffset = (_.slideCount % _.options.slidesToScroll !== 0);
+        indexOffset = unevenOffset ? 0 : (_.slideCount - _.currentSlide) % _.options.slidesToScroll;
+
+        switch (event.data.message) {
+
+            case 'previous':
+                slideOffset = indexOffset === 0 ? _.options.slidesToScroll : _.options.slidesToShow - indexOffset;
+                if (_.slideCount > _.options.slidesToShow) {
+                    _.slideHandler(_.currentSlide - slideOffset, false, dontAnimate);
+                }
+                break;
+
+            case 'next':
+                slideOffset = indexOffset === 0 ? _.options.slidesToScroll : indexOffset;
+                if (_.slideCount > _.options.slidesToShow) {
+                    _.slideHandler(_.currentSlide + slideOffset, false, dontAnimate);
+                }
+                break;
+
+            case 'index':
+                var index = event.data.index === 0 ? 0 :
+                    event.data.index || $target.index() * _.options.slidesToScroll;
+
+                _.slideHandler(_.checkNavigable(index), false, dontAnimate);
+                $target.children().trigger('focus');
+                break;
+
+            default:
+                return;
+        }
+
+    };
+
+    Slick.prototype.checkNavigable = function(index) {
+
+        var _ = this,
+            navigables, prevNavigable;
+
+        navigables = _.getNavigableIndexes();
+        prevNavigable = 0;
+        if (index > navigables[navigables.length - 1]) {
+            index = navigables[navigables.length - 1];
+        } else {
+            for (var n in navigables) {
+                if (index < navigables[n]) {
+                    index = prevNavigable;
+                    break;
+                }
+                prevNavigable = navigables[n];
+            }
+        }
+
+        return index;
+    };
+
+    Slick.prototype.cleanUpEvents = function() {
+
+        var _ = this;
+
+        if (_.options.dots && _.$dots !== null) {
+
+            $('li', _.$dots)
+                .off('click.slick', _.changeSlide)
+                .off('mouseenter.slick', $.proxy(_.interrupt, _, true))
+                .off('mouseleave.slick', $.proxy(_.interrupt, _, false));
+
+        }
+
+        _.$slider.off('focus.slick blur.slick');
+
+        if (_.options.arrows === true && _.slideCount > _.options.slidesToShow) {
+            _.$prevArrow && _.$prevArrow.off('click.slick', _.changeSlide);
+            _.$nextArrow && _.$nextArrow.off('click.slick', _.changeSlide);
+        }
+
+        _.$list.off('touchstart.slick mousedown.slick', _.swipeHandler);
+        _.$list.off('touchmove.slick mousemove.slick', _.swipeHandler);
+        _.$list.off('touchend.slick mouseup.slick', _.swipeHandler);
+        _.$list.off('touchcancel.slick mouseleave.slick', _.swipeHandler);
+
+        _.$list.off('click.slick', _.clickHandler);
+
+        $(document).off(_.visibilityChange, _.visibility);
+
+        _.cleanUpSlideEvents();
+
+        if (_.options.accessibility === true) {
+            _.$list.off('keydown.slick', _.keyHandler);
+        }
+
+        if (_.options.focusOnSelect === true) {
+            $(_.$slideTrack).children().off('click.slick', _.selectHandler);
+        }
+
+        $(window).off('orientationchange.slick.slick-' + _.instanceUid, _.orientationChange);
+
+        $(window).off('resize.slick.slick-' + _.instanceUid, _.resize);
+
+        $('[draggable!=true]', _.$slideTrack).off('dragstart', _.preventDefault);
+
+        $(window).off('load.slick.slick-' + _.instanceUid, _.setPosition);
+        $(document).off('ready.slick.slick-' + _.instanceUid, _.setPosition);
+
+    };
+
+    Slick.prototype.cleanUpSlideEvents = function() {
+
+        var _ = this;
+
+        _.$list.off('mouseenter.slick', $.proxy(_.interrupt, _, true));
+        _.$list.off('mouseleave.slick', $.proxy(_.interrupt, _, false));
+
+    };
+
+    Slick.prototype.cleanUpRows = function() {
+
+        var _ = this, originalSlides;
+
+        if(_.options.rows > 1) {
+            originalSlides = _.$slides.children().children();
+            originalSlides.removeAttr('style');
+            _.$slider.empty().append(originalSlides);
+        }
+
+    };
+
+    Slick.prototype.clickHandler = function(event) {
+
+        var _ = this;
+
+        if (_.shouldClick === false) {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+    };
+
+    Slick.prototype.destroy = function(refresh) {
+
+        var _ = this;
+
+        _.autoPlayClear();
+
+        _.touchObject = {};
+
+        _.cleanUpEvents();
+
+        $('.slick-cloned', _.$slider).detach();
+
+        if (_.$dots) {
+            _.$dots.remove();
+        }
+
+
+        if ( _.$prevArrow && _.$prevArrow.length ) {
+
+            _.$prevArrow
+                .removeClass('slick-disabled slick-arrow slick-hidden')
+                .removeAttr('aria-hidden aria-disabled tabindex')
+                .css('display','');
+
+            if ( _.htmlExpr.test( _.options.prevArrow )) {
+                _.$prevArrow.remove();
+            }
+        }
+
+        if ( _.$nextArrow && _.$nextArrow.length ) {
+
+            _.$nextArrow
+                .removeClass('slick-disabled slick-arrow slick-hidden')
+                .removeAttr('aria-hidden aria-disabled tabindex')
+                .css('display','');
+
+            if ( _.htmlExpr.test( _.options.nextArrow )) {
+                _.$nextArrow.remove();
+            }
+
+        }
+
+
+        if (_.$slides) {
+
+            _.$slides
+                .removeClass('slick-slide slick-active slick-center slick-visible slick-current')
+                .removeAttr('aria-hidden')
+                .removeAttr('data-slick-index')
+                .each(function(){
+                    $(this).attr('style', $(this).data('originalStyling'));
+                });
+
+            _.$slideTrack.children(this.options.slide).detach();
+
+            _.$slideTrack.detach();
+
+            _.$list.detach();
+
+            _.$slider.append(_.$slides);
+        }
+
+        _.cleanUpRows();
+
+        _.$slider.removeClass('slick-slider');
+        _.$slider.removeClass('slick-initialized');
+        _.$slider.removeClass('slick-dotted');
+
+        _.unslicked = true;
+
+        if(!refresh) {
+            _.$slider.trigger('destroy', [_]);
+        }
+
+    };
+
+    Slick.prototype.disableTransition = function(slide) {
+
+        var _ = this,
+            transition = {};
+
+        transition[_.transitionType] = '';
+
+        if (_.options.fade === false) {
+            _.$slideTrack.css(transition);
+        } else {
+            _.$slides.eq(slide).css(transition);
+        }
+
+    };
+
+    Slick.prototype.fadeSlide = function(slideIndex, callback) {
+
+        var _ = this;
+
+        if (_.cssTransitions === false) {
+
+            _.$slides.eq(slideIndex).css({
+                zIndex: _.options.zIndex
+            });
+
+            _.$slides.eq(slideIndex).animate({
+                opacity: 1
+            }, _.options.speed, _.options.easing, callback);
+
+        } else {
+
+            _.applyTransition(slideIndex);
+
+            _.$slides.eq(slideIndex).css({
+                opacity: 1,
+                zIndex: _.options.zIndex
+            });
+
+            if (callback) {
+                setTimeout(function() {
+
+                    _.disableTransition(slideIndex);
+
+                    callback.call();
+                }, _.options.speed);
+            }
+
+        }
+
+    };
+
+    Slick.prototype.fadeSlideOut = function(slideIndex) {
+
+        var _ = this;
+
+        if (_.cssTransitions === false) {
+
+            _.$slides.eq(slideIndex).animate({
+                opacity: 0,
+                zIndex: _.options.zIndex - 2
+            }, _.options.speed, _.options.easing);
+
+        } else {
+
+            _.applyTransition(slideIndex);
+
+            _.$slides.eq(slideIndex).css({
+                opacity: 0,
+                zIndex: _.options.zIndex - 2
+            });
+
+        }
+
+    };
+
+    Slick.prototype.filterSlides = Slick.prototype.slickFilter = function(filter) {
+
+        var _ = this;
+
+        if (filter !== null) {
+
+            _.$slidesCache = _.$slides;
+
+            _.unload();
+
+            _.$slideTrack.children(this.options.slide).detach();
+
+            _.$slidesCache.filter(filter).appendTo(_.$slideTrack);
+
+            _.reinit();
+
+        }
+
+    };
+
+    Slick.prototype.focusHandler = function() {
+
+        var _ = this;
+
+        _.$slider
+            .off('focus.slick blur.slick')
+            .on('focus.slick blur.slick',
+                '*:not(.slick-arrow)', function(event) {
+
+            event.stopImmediatePropagation();
+            var $sf = $(this);
+
+            setTimeout(function() {
+
+                if( _.options.pauseOnFocus ) {
+                    _.focussed = $sf.is(':focus');
+                    _.autoPlay();
+                }
+
+            }, 0);
+
+        });
+    };
+
+    Slick.prototype.getCurrent = Slick.prototype.slickCurrentSlide = function() {
+
+        var _ = this;
+        return _.currentSlide;
+
+    };
+
+    Slick.prototype.getDotCount = function() {
+
+        var _ = this;
+
+        var breakPoint = 0;
+        var counter = 0;
+        var pagerQty = 0;
+
+        if (_.options.infinite === true) {
+            while (breakPoint < _.slideCount) {
+                ++pagerQty;
+                breakPoint = counter + _.options.slidesToScroll;
+                counter += _.options.slidesToScroll <= _.options.slidesToShow ? _.options.slidesToScroll : _.options.slidesToShow;
+            }
+        } else if (_.options.centerMode === true) {
+            pagerQty = _.slideCount;
+        } else if(!_.options.asNavFor) {
+            pagerQty = 1 + Math.ceil((_.slideCount - _.options.slidesToShow) / _.options.slidesToScroll);
+        }else {
+            while (breakPoint < _.slideCount) {
+                ++pagerQty;
+                breakPoint = counter + _.options.slidesToScroll;
+                counter += _.options.slidesToScroll <= _.options.slidesToShow ? _.options.slidesToScroll : _.options.slidesToShow;
+            }
+        }
+
+        return pagerQty - 1;
+
+    };
+
+    Slick.prototype.getLeft = function(slideIndex) {
+
+        var _ = this,
+            targetLeft,
+            verticalHeight,
+            verticalOffset = 0,
+            targetSlide;
+
+        _.slideOffset = 0;
+        verticalHeight = _.$slides.first().outerHeight(true);
+
+        if (_.options.infinite === true) {
+            if (_.slideCount > _.options.slidesToShow) {
+                _.slideOffset = (_.slideWidth * _.options.slidesToShow) * -1;
+                verticalOffset = (verticalHeight * _.options.slidesToShow) * -1;
+            }
+            if (_.slideCount % _.options.slidesToScroll !== 0) {
+                if (slideIndex + _.options.slidesToScroll > _.slideCount && _.slideCount > _.options.slidesToShow) {
+                    if (slideIndex > _.slideCount) {
+                        _.slideOffset = ((_.options.slidesToShow - (slideIndex - _.slideCount)) * _.slideWidth) * -1;
+                        verticalOffset = ((_.options.slidesToShow - (slideIndex - _.slideCount)) * verticalHeight) * -1;
+                    } else {
+                        _.slideOffset = ((_.slideCount % _.options.slidesToScroll) * _.slideWidth) * -1;
+                        verticalOffset = ((_.slideCount % _.options.slidesToScroll) * verticalHeight) * -1;
+                    }
+                }
+            }
+        } else {
+            if (slideIndex + _.options.slidesToShow > _.slideCount) {
+                _.slideOffset = ((slideIndex + _.options.slidesToShow) - _.slideCount) * _.slideWidth;
+                verticalOffset = ((slideIndex + _.options.slidesToShow) - _.slideCount) * verticalHeight;
+            }
+        }
+
+        if (_.slideCount <= _.options.slidesToShow) {
+            _.slideOffset = 0;
+            verticalOffset = 0;
+        }
+
+        if (_.options.centerMode === true && _.options.infinite === true) {
+            _.slideOffset += _.slideWidth * Math.floor(_.options.slidesToShow / 2) - _.slideWidth;
+        } else if (_.options.centerMode === true) {
+            _.slideOffset = 0;
+            _.slideOffset += _.slideWidth * Math.floor(_.options.slidesToShow / 2);
+        }
+
+        if (_.options.vertical === false) {
+            targetLeft = ((slideIndex * _.slideWidth) * -1) + _.slideOffset;
+        } else {
+            targetLeft = ((slideIndex * verticalHeight) * -1) + verticalOffset;
+        }
+
+        if (_.options.variableWidth === true) {
+
+            if (_.slideCount <= _.options.slidesToShow || _.options.infinite === false) {
+                targetSlide = _.$slideTrack.children('.slick-slide').eq(slideIndex);
+            } else {
+                targetSlide = _.$slideTrack.children('.slick-slide').eq(slideIndex + _.options.slidesToShow);
+            }
+
+            if (_.options.rtl === true) {
+                if (targetSlide[0]) {
+                    targetLeft = (_.$slideTrack.width() - targetSlide[0].offsetLeft - targetSlide.width()) * -1;
+                } else {
+                    targetLeft =  0;
+                }
+            } else {
+                targetLeft = targetSlide[0] ? targetSlide[0].offsetLeft * -1 : 0;
+            }
+
+            if (_.options.centerMode === true) {
+                if (_.slideCount <= _.options.slidesToShow || _.options.infinite === false) {
+                    targetSlide = _.$slideTrack.children('.slick-slide').eq(slideIndex);
+                } else {
+                    targetSlide = _.$slideTrack.children('.slick-slide').eq(slideIndex + _.options.slidesToShow + 1);
+                }
+
+                if (_.options.rtl === true) {
+                    if (targetSlide[0]) {
+                        targetLeft = (_.$slideTrack.width() - targetSlide[0].offsetLeft - targetSlide.width()) * -1;
+                    } else {
+                        targetLeft =  0;
+                    }
+                } else {
+                    targetLeft = targetSlide[0] ? targetSlide[0].offsetLeft * -1 : 0;
+                }
+
+                targetLeft += (_.$list.width() - targetSlide.outerWidth()) / 2;
+            }
+        }
+
+        return targetLeft;
+
+    };
+
+    Slick.prototype.getOption = Slick.prototype.slickGetOption = function(option) {
+
+        var _ = this;
+
+        return _.options[option];
+
+    };
+
+    Slick.prototype.getNavigableIndexes = function() {
+
+        var _ = this,
+            breakPoint = 0,
+            counter = 0,
+            indexes = [],
+            max;
+
+        if (_.options.infinite === false) {
+            max = _.slideCount;
+        } else {
+            breakPoint = _.options.slidesToScroll * -1;
+            counter = _.options.slidesToScroll * -1;
+            max = _.slideCount * 2;
+        }
+
+        while (breakPoint < max) {
+            indexes.push(breakPoint);
+            breakPoint = counter + _.options.slidesToScroll;
+            counter += _.options.slidesToScroll <= _.options.slidesToShow ? _.options.slidesToScroll : _.options.slidesToShow;
+        }
+
+        return indexes;
+
+    };
+
+    Slick.prototype.getSlick = function() {
+
+        return this;
+
+    };
+
+    Slick.prototype.getSlideCount = function() {
+
+        var _ = this,
+            slidesTraversed, swipedSlide, centerOffset;
+
+        centerOffset = _.options.centerMode === true ? _.slideWidth * Math.floor(_.options.slidesToShow / 2) : 0;
+
+        if (_.options.swipeToSlide === true) {
+            _.$slideTrack.find('.slick-slide').each(function(index, slide) {
+                if (slide.offsetLeft - centerOffset + ($(slide).outerWidth() / 2) > (_.swipeLeft * -1)) {
+                    swipedSlide = slide;
+                    return false;
+                }
+            });
+
+            slidesTraversed = Math.abs($(swipedSlide).attr('data-slick-index') - _.currentSlide) || 1;
+
+            return slidesTraversed;
+
+        } else {
+            return _.options.slidesToScroll;
+        }
+
+    };
+
+    Slick.prototype.goTo = Slick.prototype.slickGoTo = function(slide, dontAnimate) {
+
+        var _ = this;
+
+        _.changeSlide({
+            data: {
+                message: 'index',
+                index: parseInt(slide)
+            }
+        }, dontAnimate);
+
+    };
+
+    Slick.prototype.init = function(creation) {
+
+        var _ = this;
+
+        if (!$(_.$slider).hasClass('slick-initialized')) {
+
+            $(_.$slider).addClass('slick-initialized');
+
+            _.buildRows();
+            _.buildOut();
+            _.setProps();
+            _.startLoad();
+            _.loadSlider();
+            _.initializeEvents();
+            _.updateArrows();
+            _.updateDots();
+            _.checkResponsive(true);
+            _.focusHandler();
+
+        }
+
+        if (creation) {
+            _.$slider.trigger('init', [_]);
+        }
+
+        if (_.options.accessibility === true) {
+            _.initADA();
+        }
+
+        if ( _.options.autoplay ) {
+
+            _.paused = false;
+            _.autoPlay();
+
+        }
+
+    };
+
+    Slick.prototype.initADA = function() {
+        var _ = this;
+        _.$slides.add(_.$slideTrack.find('.slick-cloned')).attr({
+            'aria-hidden': 'true',
+            'tabindex': '-1'
+        }).find('a, input, button, select').attr({
+            'tabindex': '-1'
+        });
+
+        _.$slideTrack.attr('role', 'listbox');
+
+        _.$slides.not(_.$slideTrack.find('.slick-cloned')).each(function(i) {
+            $(this).attr({
+                'role': 'option',
+                'aria-describedby': 'slick-slide' + _.instanceUid + i + ''
+            });
+        });
+
+        if (_.$dots !== null) {
+            _.$dots.attr('role', 'tablist').find('li').each(function(i) {
+                $(this).attr({
+                    'role': 'presentation',
+                    'aria-selected': 'false',
+                    'aria-controls': 'navigation' + _.instanceUid + i + '',
+                    'id': 'slick-slide' + _.instanceUid + i + ''
+                });
+            })
+                .first().attr('aria-selected', 'true').end()
+                .find('button').attr('role', 'button').end()
+                .closest('div').attr('role', 'toolbar');
+        }
+        _.activateADA();
+
+    };
+
+    Slick.prototype.initArrowEvents = function() {
+
+        var _ = this;
+
+        if (_.options.arrows === true && _.slideCount > _.options.slidesToShow) {
+            _.$prevArrow
+               .off('click.slick')
+               .on('click.slick', {
+                    message: 'previous'
+               }, _.changeSlide);
+            _.$nextArrow
+               .off('click.slick')
+               .on('click.slick', {
+                    message: 'next'
+               }, _.changeSlide);
+        }
+
+    };
+
+    Slick.prototype.initDotEvents = function() {
+
+        var _ = this;
+
+        if (_.options.dots === true && _.slideCount > _.options.slidesToShow) {
+            $('li', _.$dots).on('click.slick', {
+                message: 'index'
+            }, _.changeSlide);
+        }
+
+        if ( _.options.dots === true && _.options.pauseOnDotsHover === true ) {
+
+            $('li', _.$dots)
+                .on('mouseenter.slick', $.proxy(_.interrupt, _, true))
+                .on('mouseleave.slick', $.proxy(_.interrupt, _, false));
+
+        }
+
+    };
+
+    Slick.prototype.initSlideEvents = function() {
+
+        var _ = this;
+
+        if ( _.options.pauseOnHover ) {
+
+            _.$list.on('mouseenter.slick', $.proxy(_.interrupt, _, true));
+            _.$list.on('mouseleave.slick', $.proxy(_.interrupt, _, false));
+
+        }
+
+    };
+
+    Slick.prototype.initializeEvents = function() {
+
+        var _ = this;
+
+        _.initArrowEvents();
+
+        _.initDotEvents();
+        _.initSlideEvents();
+
+        _.$list.on('touchstart.slick mousedown.slick', {
+            action: 'start'
+        }, _.swipeHandler);
+        _.$list.on('touchmove.slick mousemove.slick', {
+            action: 'move'
+        }, _.swipeHandler);
+        _.$list.on('touchend.slick mouseup.slick', {
+            action: 'end'
+        }, _.swipeHandler);
+        _.$list.on('touchcancel.slick mouseleave.slick', {
+            action: 'end'
+        }, _.swipeHandler);
+
+        _.$list.on('click.slick', _.clickHandler);
+
+        $(document).on(_.visibilityChange, $.proxy(_.visibility, _));
+
+        if (_.options.accessibility === true) {
+            _.$list.on('keydown.slick', _.keyHandler);
+        }
+
+        if (_.options.focusOnSelect === true) {
+            $(_.$slideTrack).children().on('click.slick', _.selectHandler);
+        }
+
+        $(window).on('orientationchange.slick.slick-' + _.instanceUid, $.proxy(_.orientationChange, _));
+
+        $(window).on('resize.slick.slick-' + _.instanceUid, $.proxy(_.resize, _));
+
+        $('[draggable!=true]', _.$slideTrack).on('dragstart', _.preventDefault);
+
+        $(window).on('load.slick.slick-' + _.instanceUid, _.setPosition);
+        $(document).on('ready.slick.slick-' + _.instanceUid, _.setPosition);
+
+    };
+
+    Slick.prototype.initUI = function() {
+
+        var _ = this;
+
+        if (_.options.arrows === true && _.slideCount > _.options.slidesToShow) {
+
+            _.$prevArrow.show();
+            _.$nextArrow.show();
+
+        }
+
+        if (_.options.dots === true && _.slideCount > _.options.slidesToShow) {
+
+            _.$dots.show();
+
+        }
+
+    };
+
+    Slick.prototype.keyHandler = function(event) {
+
+        var _ = this;
+         //Dont slide if the cursor is inside the form fields and arrow keys are pressed
+        if(!event.target.tagName.match('TEXTAREA|INPUT|SELECT')) {
+            if (event.keyCode === 37 && _.options.accessibility === true) {
+                _.changeSlide({
+                    data: {
+                        message: _.options.rtl === true ? 'next' :  'previous'
+                    }
+                });
+            } else if (event.keyCode === 39 && _.options.accessibility === true) {
+                _.changeSlide({
+                    data: {
+                        message: _.options.rtl === true ? 'previous' : 'next'
+                    }
+                });
+            }
+        }
+
+    };
+
+    Slick.prototype.lazyLoad = function() {
+
+        var _ = this,
+            loadRange, cloneRange, rangeStart, rangeEnd;
+
+        function loadImages(imagesScope) {
+
+            $('img[data-lazy]', imagesScope).each(function() {
+
+                var image = $(this),
+                    imageSource = $(this).attr('data-lazy'),
+                    imageToLoad = document.createElement('img');
+
+                imageToLoad.onload = function() {
+
+                    image
+                        .animate({ opacity: 0 }, 100, function() {
+                            image
+                                .attr('src', imageSource)
+                                .animate({ opacity: 1 }, 200, function() {
+                                    image
+                                        .removeAttr('data-lazy')
+                                        .removeClass('slick-loading');
+                                });
+                            _.$slider.trigger('lazyLoaded', [_, image, imageSource]);
+                        });
+
+                };
+
+                imageToLoad.onerror = function() {
+
+                    image
+                        .removeAttr( 'data-lazy' )
+                        .removeClass( 'slick-loading' )
+                        .addClass( 'slick-lazyload-error' );
+
+                    _.$slider.trigger('lazyLoadError', [ _, image, imageSource ]);
+
+                };
+
+                imageToLoad.src = imageSource;
+
+            });
+
+        }
+
+        if (_.options.centerMode === true) {
+            if (_.options.infinite === true) {
+                rangeStart = _.currentSlide + (_.options.slidesToShow / 2 + 1);
+                rangeEnd = rangeStart + _.options.slidesToShow + 2;
+            } else {
+                rangeStart = Math.max(0, _.currentSlide - (_.options.slidesToShow / 2 + 1));
+                rangeEnd = 2 + (_.options.slidesToShow / 2 + 1) + _.currentSlide;
+            }
+        } else {
+            rangeStart = _.options.infinite ? _.options.slidesToShow + _.currentSlide : _.currentSlide;
+            rangeEnd = Math.ceil(rangeStart + _.options.slidesToShow);
+            if (_.options.fade === true) {
+                if (rangeStart > 0) rangeStart--;
+                if (rangeEnd <= _.slideCount) rangeEnd++;
+            }
+        }
+
+        loadRange = _.$slider.find('.slick-slide').slice(rangeStart, rangeEnd);
+        loadImages(loadRange);
+
+        if (_.slideCount <= _.options.slidesToShow) {
+            cloneRange = _.$slider.find('.slick-slide');
+            loadImages(cloneRange);
+        } else
+        if (_.currentSlide >= _.slideCount - _.options.slidesToShow) {
+            cloneRange = _.$slider.find('.slick-cloned').slice(0, _.options.slidesToShow);
+            loadImages(cloneRange);
+        } else if (_.currentSlide === 0) {
+            cloneRange = _.$slider.find('.slick-cloned').slice(_.options.slidesToShow * -1);
+            loadImages(cloneRange);
+        }
+
+    };
+
+    Slick.prototype.loadSlider = function() {
+
+        var _ = this;
+
+        _.setPosition();
+
+        _.$slideTrack.css({
+            opacity: 1
+        });
+
+        _.$slider.removeClass('slick-loading');
+
+        _.initUI();
+
+        if (_.options.lazyLoad === 'progressive') {
+            _.progressiveLazyLoad();
+        }
+
+    };
+
+    Slick.prototype.next = Slick.prototype.slickNext = function() {
+
+        var _ = this;
+
+        _.changeSlide({
+            data: {
+                message: 'next'
+            }
+        });
+
+    };
+
+    Slick.prototype.orientationChange = function() {
+
+        var _ = this;
+
+        _.checkResponsive();
+        _.setPosition();
+
+    };
+
+    Slick.prototype.pause = Slick.prototype.slickPause = function() {
+
+        var _ = this;
+
+        _.autoPlayClear();
+        _.paused = true;
+
+    };
+
+    Slick.prototype.play = Slick.prototype.slickPlay = function() {
+
+        var _ = this;
+
+        _.autoPlay();
+        _.options.autoplay = true;
+        _.paused = false;
+        _.focussed = false;
+        _.interrupted = false;
+
+    };
+
+    Slick.prototype.postSlide = function(index) {
+
+        var _ = this;
+
+        if( !_.unslicked ) {
+
+            _.$slider.trigger('afterChange', [_, index]);
+
+            _.animating = false;
+
+            _.setPosition();
+
+            _.swipeLeft = null;
+
+            if ( _.options.autoplay ) {
+                _.autoPlay();
+            }
+
+            if (_.options.accessibility === true) {
+                _.initADA();
+            }
+
+        }
+
+    };
+
+    Slick.prototype.prev = Slick.prototype.slickPrev = function() {
+
+        var _ = this;
+
+        _.changeSlide({
+            data: {
+                message: 'previous'
+            }
+        });
+
+    };
+
+    Slick.prototype.preventDefault = function(event) {
+
+        event.preventDefault();
+
+    };
+
+    Slick.prototype.progressiveLazyLoad = function( tryCount ) {
+
+        tryCount = tryCount || 1;
+
+        var _ = this,
+            $imgsToLoad = $( 'img[data-lazy]', _.$slider ),
+            image,
+            imageSource,
+            imageToLoad;
+
+        if ( $imgsToLoad.length ) {
+
+            image = $imgsToLoad.first();
+            imageSource = image.attr('data-lazy');
+            imageToLoad = document.createElement('img');
+
+            imageToLoad.onload = function() {
+
+                image
+                    .attr( 'src', imageSource )
+                    .removeAttr('data-lazy')
+                    .removeClass('slick-loading');
+
+                if ( _.options.adaptiveHeight === true ) {
+                    _.setPosition();
+                }
+
+                _.$slider.trigger('lazyLoaded', [ _, image, imageSource ]);
+                _.progressiveLazyLoad();
+
+            };
+
+            imageToLoad.onerror = function() {
+
+                if ( tryCount < 3 ) {
+
+                    /**
+                     * try to load the image 3 times,
+                     * leave a slight delay so we don't get
+                     * servers blocking the request.
+                     */
+                    setTimeout( function() {
+                        _.progressiveLazyLoad( tryCount + 1 );
+                    }, 500 );
+
+                } else {
+
+                    image
+                        .removeAttr( 'data-lazy' )
+                        .removeClass( 'slick-loading' )
+                        .addClass( 'slick-lazyload-error' );
+
+                    _.$slider.trigger('lazyLoadError', [ _, image, imageSource ]);
+
+                    _.progressiveLazyLoad();
+
+                }
+
+            };
+
+            imageToLoad.src = imageSource;
+
+        } else {
+
+            _.$slider.trigger('allImagesLoaded', [ _ ]);
+
+        }
+
+    };
+
+    Slick.prototype.refresh = function( initializing ) {
+
+        var _ = this, currentSlide, lastVisibleIndex;
+
+        lastVisibleIndex = _.slideCount - _.options.slidesToShow;
+
+        // in non-infinite sliders, we don't want to go past the
+        // last visible index.
+        if( !_.options.infinite && ( _.currentSlide > lastVisibleIndex )) {
+            _.currentSlide = lastVisibleIndex;
+        }
+
+        // if less slides than to show, go to start.
+        if ( _.slideCount <= _.options.slidesToShow ) {
+            _.currentSlide = 0;
+
+        }
+
+        currentSlide = _.currentSlide;
+
+        _.destroy(true);
+
+        $.extend(_, _.initials, { currentSlide: currentSlide });
+
+        _.init();
+
+        if( !initializing ) {
+
+            _.changeSlide({
+                data: {
+                    message: 'index',
+                    index: currentSlide
+                }
+            }, false);
+
+        }
+
+    };
+
+    Slick.prototype.registerBreakpoints = function() {
+
+        var _ = this, breakpoint, currentBreakpoint, l,
+            responsiveSettings = _.options.responsive || null;
+
+        if ( $.type(responsiveSettings) === 'array' && responsiveSettings.length ) {
+
+            _.respondTo = _.options.respondTo || 'window';
+
+            for ( breakpoint in responsiveSettings ) {
+
+                l = _.breakpoints.length-1;
+                currentBreakpoint = responsiveSettings[breakpoint].breakpoint;
+
+                if (responsiveSettings.hasOwnProperty(breakpoint)) {
+
+                    // loop through the breakpoints and cut out any existing
+                    // ones with the same breakpoint number, we don't want dupes.
+                    while( l >= 0 ) {
+                        if( _.breakpoints[l] && _.breakpoints[l] === currentBreakpoint ) {
+                            _.breakpoints.splice(l,1);
+                        }
+                        l--;
+                    }
+
+                    _.breakpoints.push(currentBreakpoint);
+                    _.breakpointSettings[currentBreakpoint] = responsiveSettings[breakpoint].settings;
+
+                }
+
+            }
+
+            _.breakpoints.sort(function(a, b) {
+                return ( _.options.mobileFirst ) ? a-b : b-a;
+            });
+
+        }
+
+    };
+
+    Slick.prototype.reinit = function() {
+
+        var _ = this;
+
+        _.$slides =
+            _.$slideTrack
+                .children(_.options.slide)
+                .addClass('slick-slide');
+
+        _.slideCount = _.$slides.length;
+
+        if (_.currentSlide >= _.slideCount && _.currentSlide !== 0) {
+            _.currentSlide = _.currentSlide - _.options.slidesToScroll;
+        }
+
+        if (_.slideCount <= _.options.slidesToShow) {
+            _.currentSlide = 0;
+        }
+
+        _.registerBreakpoints();
+
+        _.setProps();
+        _.setupInfinite();
+        _.buildArrows();
+        _.updateArrows();
+        _.initArrowEvents();
+        _.buildDots();
+        _.updateDots();
+        _.initDotEvents();
+        _.cleanUpSlideEvents();
+        _.initSlideEvents();
+
+        _.checkResponsive(false, true);
+
+        if (_.options.focusOnSelect === true) {
+            $(_.$slideTrack).children().on('click.slick', _.selectHandler);
+        }
+
+        _.setSlideClasses(typeof _.currentSlide === 'number' ? _.currentSlide : 0);
+
+        _.setPosition();
+        _.focusHandler();
+
+        _.paused = !_.options.autoplay;
+        _.autoPlay();
+
+        _.$slider.trigger('reInit', [_]);
+
+    };
+
+    Slick.prototype.resize = function() {
+
+        var _ = this;
+
+        if ($(window).width() !== _.windowWidth) {
+            clearTimeout(_.windowDelay);
+            _.windowDelay = window.setTimeout(function() {
+                _.windowWidth = $(window).width();
+                _.checkResponsive();
+                if( !_.unslicked ) { _.setPosition(); }
+            }, 50);
+        }
+    };
+
+    Slick.prototype.removeSlide = Slick.prototype.slickRemove = function(index, removeBefore, removeAll) {
+
+        var _ = this;
+
+        if (typeof(index) === 'boolean') {
+            removeBefore = index;
+            index = removeBefore === true ? 0 : _.slideCount - 1;
+        } else {
+            index = removeBefore === true ? --index : index;
+        }
+
+        if (_.slideCount < 1 || index < 0 || index > _.slideCount - 1) {
+            return false;
+        }
+
+        _.unload();
+
+        if (removeAll === true) {
+            _.$slideTrack.children().remove();
+        } else {
+            _.$slideTrack.children(this.options.slide).eq(index).remove();
+        }
+
+        _.$slides = _.$slideTrack.children(this.options.slide);
+
+        _.$slideTrack.children(this.options.slide).detach();
+
+        _.$slideTrack.append(_.$slides);
+
+        _.$slidesCache = _.$slides;
+
+        _.reinit();
+
+    };
+
+    Slick.prototype.setCSS = function(position) {
+
+        var _ = this,
+            positionProps = {},
+            x, y;
+
+        if (_.options.rtl === true) {
+            position = -position;
+        }
+        x = _.positionProp == 'left' ? Math.ceil(position) + 'px' : '0px';
+        y = _.positionProp == 'top' ? Math.ceil(position) + 'px' : '0px';
+
+        positionProps[_.positionProp] = position;
+
+        if (_.transformsEnabled === false) {
+            _.$slideTrack.css(positionProps);
+        } else {
+            positionProps = {};
+            if (_.cssTransitions === false) {
+                positionProps[_.animType] = 'translate(' + x + ', ' + y + ')';
+                _.$slideTrack.css(positionProps);
+            } else {
+                positionProps[_.animType] = 'translate3d(' + x + ', ' + y + ', 0px)';
+                _.$slideTrack.css(positionProps);
+            }
+        }
+
+    };
+
+    Slick.prototype.setDimensions = function() {
+
+        var _ = this;
+
+        if (_.options.vertical === false) {
+            if (_.options.centerMode === true) {
+                _.$list.css({
+                    padding: ('0px ' + _.options.centerPadding)
+                });
+            }
+        } else {
+            _.$list.height(_.$slides.first().outerHeight(true) * _.options.slidesToShow);
+            if (_.options.centerMode === true) {
+                _.$list.css({
+                    padding: (_.options.centerPadding + ' 0px')
+                });
+            }
+        }
+
+        _.listWidth = _.$list.width();
+        _.listHeight = _.$list.height();
+
+
+        if (_.options.vertical === false && _.options.variableWidth === false) {
+            _.slideWidth = Math.ceil(_.listWidth / _.options.slidesToShow);
+            _.$slideTrack.width(Math.ceil((_.slideWidth * _.$slideTrack.children('.slick-slide').length)));
+
+        } else if (_.options.variableWidth === true) {
+            _.$slideTrack.width(5000 * _.slideCount);
+        } else {
+            _.slideWidth = Math.ceil(_.listWidth);
+            _.$slideTrack.height(Math.ceil((_.$slides.first().outerHeight(true) * _.$slideTrack.children('.slick-slide').length)));
+        }
+
+        var offset = _.$slides.first().outerWidth(true) - _.$slides.first().width();
+        if (_.options.variableWidth === false) _.$slideTrack.children('.slick-slide').width(_.slideWidth - offset);
+
+    };
+
+    Slick.prototype.setFade = function() {
+
+        var _ = this,
+            targetLeft;
+
+        _.$slides.each(function(index, element) {
+            targetLeft = (_.slideWidth * index) * -1;
+            if (_.options.rtl === true) {
+                $(element).css({
+                    position: 'relative',
+                    right: targetLeft,
+                    top: 0,
+                    zIndex: _.options.zIndex - 2,
+                    opacity: 0
+                });
+            } else {
+                $(element).css({
+                    position: 'relative',
+                    left: targetLeft,
+                    top: 0,
+                    zIndex: _.options.zIndex - 2,
+                    opacity: 0
+                });
+            }
+        });
+
+        _.$slides.eq(_.currentSlide).css({
+            zIndex: _.options.zIndex - 1,
+            opacity: 1
+        });
+
+    };
+
+    Slick.prototype.setHeight = function() {
+
+        var _ = this;
+
+        if (_.options.slidesToShow === 1 && _.options.adaptiveHeight === true && _.options.vertical === false) {
+            var targetHeight = _.$slides.eq(_.currentSlide).outerHeight(true);
+            _.$list.css('height', targetHeight);
+        }
+
+    };
+
+    Slick.prototype.setOption =
+    Slick.prototype.slickSetOption = function() {
+
+        /**
+         * accepts arguments in format of:
+         *
+         *  - for changing a single option's value:
+         *     .slick("setOption", option, value, refresh )
+         *
+         *  - for changing a set of responsive options:
+         *     .slick("setOption", 'responsive', [{}, ...], refresh )
+         *
+         *  - for updating multiple values at once (not responsive)
+         *     .slick("setOption", { 'option': value, ... }, refresh )
+         */
+
+        var _ = this, l, item, option, value, refresh = false, type;
+
+        if( $.type( arguments[0] ) === 'object' ) {
+
+            option =  arguments[0];
+            refresh = arguments[1];
+            type = 'multiple';
+
+        } else if ( $.type( arguments[0] ) === 'string' ) {
+
+            option =  arguments[0];
+            value = arguments[1];
+            refresh = arguments[2];
+
+            if ( arguments[0] === 'responsive' && $.type( arguments[1] ) === 'array' ) {
+
+                type = 'responsive';
+
+            } else if ( typeof arguments[1] !== 'undefined' ) {
+
+                type = 'single';
+
+            }
+
+        }
+
+        if ( type === 'single' ) {
+
+            _.options[option] = value;
+
+
+        } else if ( type === 'multiple' ) {
+
+            $.each( option , function( opt, val ) {
+
+                _.options[opt] = val;
+
+            });
+
+
+        } else if ( type === 'responsive' ) {
+
+            for ( item in value ) {
+
+                if( $.type( _.options.responsive ) !== 'array' ) {
+
+                    _.options.responsive = [ value[item] ];
+
+                } else {
+
+                    l = _.options.responsive.length-1;
+
+                    // loop through the responsive object and splice out duplicates.
+                    while( l >= 0 ) {
+
+                        if( _.options.responsive[l].breakpoint === value[item].breakpoint ) {
+
+                            _.options.responsive.splice(l,1);
+
+                        }
+
+                        l--;
+
+                    }
+
+                    _.options.responsive.push( value[item] );
+
+                }
+
+            }
+
+        }
+
+        if ( refresh ) {
+
+            _.unload();
+            _.reinit();
+
+        }
+
+    };
+
+    Slick.prototype.setPosition = function() {
+
+        var _ = this;
+
+        _.setDimensions();
+
+        _.setHeight();
+
+        if (_.options.fade === false) {
+            _.setCSS(_.getLeft(_.currentSlide));
+        } else {
+            _.setFade();
+        }
+
+        _.$slider.trigger('setPosition', [_]);
+
+    };
+
+    Slick.prototype.setProps = function() {
+
+        var _ = this,
+            bodyStyle = document.body.style;
+
+        _.positionProp = _.options.vertical === true ? 'top' : 'left';
+
+        if (_.positionProp === 'top') {
+            _.$slider.addClass('slick-vertical');
+        } else {
+            _.$slider.removeClass('slick-vertical');
+        }
+
+        if (bodyStyle.WebkitTransition !== undefined ||
+            bodyStyle.MozTransition !== undefined ||
+            bodyStyle.msTransition !== undefined) {
+            if (_.options.useCSS === true) {
+                _.cssTransitions = true;
+            }
+        }
+
+        if ( _.options.fade ) {
+            if ( typeof _.options.zIndex === 'number' ) {
+                if( _.options.zIndex < 3 ) {
+                    _.options.zIndex = 3;
+                }
+            } else {
+                _.options.zIndex = _.defaults.zIndex;
+            }
+        }
+
+        if (bodyStyle.OTransform !== undefined) {
+            _.animType = 'OTransform';
+            _.transformType = '-o-transform';
+            _.transitionType = 'OTransition';
+            if (bodyStyle.perspectiveProperty === undefined && bodyStyle.webkitPerspective === undefined) _.animType = false;
+        }
+        if (bodyStyle.MozTransform !== undefined) {
+            _.animType = 'MozTransform';
+            _.transformType = '-moz-transform';
+            _.transitionType = 'MozTransition';
+            if (bodyStyle.perspectiveProperty === undefined && bodyStyle.MozPerspective === undefined) _.animType = false;
+        }
+        if (bodyStyle.webkitTransform !== undefined) {
+            _.animType = 'webkitTransform';
+            _.transformType = '-webkit-transform';
+            _.transitionType = 'webkitTransition';
+            if (bodyStyle.perspectiveProperty === undefined && bodyStyle.webkitPerspective === undefined) _.animType = false;
+        }
+        if (bodyStyle.msTransform !== undefined) {
+            _.animType = 'msTransform';
+            _.transformType = '-ms-transform';
+            _.transitionType = 'msTransition';
+            if (bodyStyle.msTransform === undefined) _.animType = false;
+        }
+        if (bodyStyle.transform !== undefined && _.animType !== false) {
+            _.animType = 'transform';
+            _.transformType = 'transform';
+            _.transitionType = 'transition';
+        }
+        _.transformsEnabled = _.options.useTransform && (_.animType !== null && _.animType !== false);
+    };
+
+
+    Slick.prototype.setSlideClasses = function(index) {
+
+        var _ = this,
+            centerOffset, allSlides, indexOffset, remainder;
+
+        allSlides = _.$slider
+            .find('.slick-slide')
+            .removeClass('slick-active slick-center slick-current')
+            .attr('aria-hidden', 'true');
+
+        _.$slides
+            .eq(index)
+            .addClass('slick-current');
+
+        if (_.options.centerMode === true) {
+
+            centerOffset = Math.floor(_.options.slidesToShow / 2);
+
+            if (_.options.infinite === true) {
+
+                if (index >= centerOffset && index <= (_.slideCount - 1) - centerOffset) {
+
+                    _.$slides
+                        .slice(index - centerOffset, index + centerOffset + 1)
+                        .addClass('slick-active')
+                        .attr('aria-hidden', 'false');
+
+                } else {
+
+                    indexOffset = _.options.slidesToShow + index;
+                    allSlides
+                        .slice(indexOffset - centerOffset + 1, indexOffset + centerOffset + 2)
+                        .addClass('slick-active')
+                        .attr('aria-hidden', 'false');
+
+                }
+
+                if (index === 0) {
+
+                    allSlides
+                        .eq(allSlides.length - 1 - _.options.slidesToShow)
+                        .addClass('slick-center');
+
+                } else if (index === _.slideCount - 1) {
+
+                    allSlides
+                        .eq(_.options.slidesToShow)
+                        .addClass('slick-center');
+
+                }
+
+            }
+
+            _.$slides
+                .eq(index)
+                .addClass('slick-center');
+
+        } else {
+
+            if (index >= 0 && index <= (_.slideCount - _.options.slidesToShow)) {
+
+                _.$slides
+                    .slice(index, index + _.options.slidesToShow)
+                    .addClass('slick-active')
+                    .attr('aria-hidden', 'false');
+
+            } else if (allSlides.length <= _.options.slidesToShow) {
+
+                allSlides
+                    .addClass('slick-active')
+                    .attr('aria-hidden', 'false');
+
+            } else {
+
+                remainder = _.slideCount % _.options.slidesToShow;
+                indexOffset = _.options.infinite === true ? _.options.slidesToShow + index : index;
+
+                if (_.options.slidesToShow == _.options.slidesToScroll && (_.slideCount - index) < _.options.slidesToShow) {
+
+                    allSlides
+                        .slice(indexOffset - (_.options.slidesToShow - remainder), indexOffset + remainder)
+                        .addClass('slick-active')
+                        .attr('aria-hidden', 'false');
+
+                } else {
+
+                    allSlides
+                        .slice(indexOffset, indexOffset + _.options.slidesToShow)
+                        .addClass('slick-active')
+                        .attr('aria-hidden', 'false');
+
+                }
+
+            }
+
+        }
+
+        if (_.options.lazyLoad === 'ondemand') {
+            _.lazyLoad();
+        }
+
+    };
+
+    Slick.prototype.setupInfinite = function() {
+
+        var _ = this,
+            i, slideIndex, infiniteCount;
+
+        if (_.options.fade === true) {
+            _.options.centerMode = false;
+        }
+
+        if (_.options.infinite === true && _.options.fade === false) {
+
+            slideIndex = null;
+
+            if (_.slideCount > _.options.slidesToShow) {
+
+                if (_.options.centerMode === true) {
+                    infiniteCount = _.options.slidesToShow + 1;
+                } else {
+                    infiniteCount = _.options.slidesToShow;
+                }
+
+                for (i = _.slideCount; i > (_.slideCount -
+                        infiniteCount); i -= 1) {
+                    slideIndex = i - 1;
+                    $(_.$slides[slideIndex]).clone(true).attr('id', '')
+                        .attr('data-slick-index', slideIndex - _.slideCount)
+                        .prependTo(_.$slideTrack).addClass('slick-cloned');
+                }
+                for (i = 0; i < infiniteCount; i += 1) {
+                    slideIndex = i;
+                    $(_.$slides[slideIndex]).clone(true).attr('id', '')
+                        .attr('data-slick-index', slideIndex + _.slideCount)
+                        .appendTo(_.$slideTrack).addClass('slick-cloned');
+                }
+                _.$slideTrack.find('.slick-cloned').find('[id]').each(function() {
+                    $(this).attr('id', '');
+                });
+
+            }
+
+        }
+
+    };
+
+    Slick.prototype.interrupt = function( toggle ) {
+
+        var _ = this;
+
+        if( !toggle ) {
+            _.autoPlay();
+        }
+        _.interrupted = toggle;
+
+    };
+
+    Slick.prototype.selectHandler = function(event) {
+
+        var _ = this;
+
+        var targetElement =
+            $(event.target).is('.slick-slide') ?
+                $(event.target) :
+                $(event.target).parents('.slick-slide');
+
+        var index = parseInt(targetElement.attr('data-slick-index'));
+
+        if (!index) index = 0;
+
+        if (_.slideCount <= _.options.slidesToShow) {
+
+            _.setSlideClasses(index);
+            _.asNavFor(index);
+            return;
+
+        }
+
+        _.slideHandler(index);
+
+    };
+
+    Slick.prototype.slideHandler = function(index, sync, dontAnimate) {
+
+        var targetSlide, animSlide, oldSlide, slideLeft, targetLeft = null,
+            _ = this, navTarget;
+
+        sync = sync || false;
+
+        if (_.animating === true && _.options.waitForAnimate === true) {
+            return;
+        }
+
+        if (_.options.fade === true && _.currentSlide === index) {
+            return;
+        }
+
+        if (_.slideCount <= _.options.slidesToShow) {
+            return;
+        }
+
+        if (sync === false) {
+            _.asNavFor(index);
+        }
+
+        targetSlide = index;
+        targetLeft = _.getLeft(targetSlide);
+        slideLeft = _.getLeft(_.currentSlide);
+
+        _.currentLeft = _.swipeLeft === null ? slideLeft : _.swipeLeft;
+
+        if (_.options.infinite === false && _.options.centerMode === false && (index < 0 || index > _.getDotCount() * _.options.slidesToScroll)) {
+            if (_.options.fade === false) {
+                targetSlide = _.currentSlide;
+                if (dontAnimate !== true) {
+                    _.animateSlide(slideLeft, function() {
+                        _.postSlide(targetSlide);
+                    });
+                } else {
+                    _.postSlide(targetSlide);
+                }
+            }
+            return;
+        } else if (_.options.infinite === false && _.options.centerMode === true && (index < 0 || index > (_.slideCount - _.options.slidesToScroll))) {
+            if (_.options.fade === false) {
+                targetSlide = _.currentSlide;
+                if (dontAnimate !== true) {
+                    _.animateSlide(slideLeft, function() {
+                        _.postSlide(targetSlide);
+                    });
+                } else {
+                    _.postSlide(targetSlide);
+                }
+            }
+            return;
+        }
+
+        if ( _.options.autoplay ) {
+            clearInterval(_.autoPlayTimer);
+        }
+
+        if (targetSlide < 0) {
+            if (_.slideCount % _.options.slidesToScroll !== 0) {
+                animSlide = _.slideCount - (_.slideCount % _.options.slidesToScroll);
+            } else {
+                animSlide = _.slideCount + targetSlide;
+            }
+        } else if (targetSlide >= _.slideCount) {
+            if (_.slideCount % _.options.slidesToScroll !== 0) {
+                animSlide = 0;
+            } else {
+                animSlide = targetSlide - _.slideCount;
+            }
+        } else {
+            animSlide = targetSlide;
+        }
+
+        _.animating = true;
+
+        _.$slider.trigger('beforeChange', [_, _.currentSlide, animSlide]);
+
+        oldSlide = _.currentSlide;
+        _.currentSlide = animSlide;
+
+        _.setSlideClasses(_.currentSlide);
+
+        if ( _.options.asNavFor ) {
+
+            navTarget = _.getNavTarget();
+            navTarget = navTarget.slick('getSlick');
+
+            if ( navTarget.slideCount <= navTarget.options.slidesToShow ) {
+                navTarget.setSlideClasses(_.currentSlide);
+            }
+
+        }
+
+        _.updateDots();
+        _.updateArrows();
+
+        if (_.options.fade === true) {
+            if (dontAnimate !== true) {
+
+                _.fadeSlideOut(oldSlide);
+
+                _.fadeSlide(animSlide, function() {
+                    _.postSlide(animSlide);
+                });
+
+            } else {
+                _.postSlide(animSlide);
+            }
+            _.animateHeight();
+            return;
+        }
+
+        if (dontAnimate !== true) {
+            _.animateSlide(targetLeft, function() {
+                _.postSlide(animSlide);
+            });
+        } else {
+            _.postSlide(animSlide);
+        }
+
+    };
+
+    Slick.prototype.startLoad = function() {
+
+        var _ = this;
+
+        if (_.options.arrows === true && _.slideCount > _.options.slidesToShow) {
+
+            _.$prevArrow.hide();
+            _.$nextArrow.hide();
+
+        }
+
+        if (_.options.dots === true && _.slideCount > _.options.slidesToShow) {
+
+            _.$dots.hide();
+
+        }
+
+        _.$slider.addClass('slick-loading');
+
+    };
+
+    Slick.prototype.swipeDirection = function() {
+
+        var xDist, yDist, r, swipeAngle, _ = this;
+
+        xDist = _.touchObject.startX - _.touchObject.curX;
+        yDist = _.touchObject.startY - _.touchObject.curY;
+        r = Math.atan2(yDist, xDist);
+
+        swipeAngle = Math.round(r * 180 / Math.PI);
+        if (swipeAngle < 0) {
+            swipeAngle = 360 - Math.abs(swipeAngle);
+        }
+
+        if ((swipeAngle <= 45) && (swipeAngle >= 0)) {
+            return (_.options.rtl === false ? 'left' : 'right');
+        }
+        if ((swipeAngle <= 360) && (swipeAngle >= 315)) {
+            return (_.options.rtl === false ? 'left' : 'right');
+        }
+        if ((swipeAngle >= 135) && (swipeAngle <= 225)) {
+            return (_.options.rtl === false ? 'right' : 'left');
+        }
+        if (_.options.verticalSwiping === true) {
+            if ((swipeAngle >= 35) && (swipeAngle <= 135)) {
+                return 'down';
+            } else {
+                return 'up';
+            }
+        }
+
+        return 'vertical';
+
+    };
+
+    Slick.prototype.swipeEnd = function(event) {
+
+        var _ = this,
+            slideCount,
+            direction;
+
+        _.dragging = false;
+        _.interrupted = false;
+        _.shouldClick = ( _.touchObject.swipeLength > 10 ) ? false : true;
+
+        if ( _.touchObject.curX === undefined ) {
+            return false;
+        }
+
+        if ( _.touchObject.edgeHit === true ) {
+            _.$slider.trigger('edge', [_, _.swipeDirection() ]);
+        }
+
+        if ( _.touchObject.swipeLength >= _.touchObject.minSwipe ) {
+
+            direction = _.swipeDirection();
+
+            switch ( direction ) {
+
+                case 'left':
+                case 'down':
+
+                    slideCount =
+                        _.options.swipeToSlide ?
+                            _.checkNavigable( _.currentSlide + _.getSlideCount() ) :
+                            _.currentSlide + _.getSlideCount();
+
+                    _.currentDirection = 0;
+
+                    break;
+
+                case 'right':
+                case 'up':
+
+                    slideCount =
+                        _.options.swipeToSlide ?
+                            _.checkNavigable( _.currentSlide - _.getSlideCount() ) :
+                            _.currentSlide - _.getSlideCount();
+
+                    _.currentDirection = 1;
+
+                    break;
+
+                default:
+
+
+            }
+
+            if( direction != 'vertical' ) {
+
+                _.slideHandler( slideCount );
+                _.touchObject = {};
+                _.$slider.trigger('swipe', [_, direction ]);
+
+            }
+
+        } else {
+
+            if ( _.touchObject.startX !== _.touchObject.curX ) {
+
+                _.slideHandler( _.currentSlide );
+                _.touchObject = {};
+
+            }
+
+        }
+
+    };
+
+    Slick.prototype.swipeHandler = function(event) {
+
+        var _ = this;
+
+        if ((_.options.swipe === false) || ('ontouchend' in document && _.options.swipe === false)) {
+            return;
+        } else if (_.options.draggable === false && event.type.indexOf('mouse') !== -1) {
+            return;
+        }
+
+        _.touchObject.fingerCount = event.originalEvent && event.originalEvent.touches !== undefined ?
+            event.originalEvent.touches.length : 1;
+
+        _.touchObject.minSwipe = _.listWidth / _.options
+            .touchThreshold;
+
+        if (_.options.verticalSwiping === true) {
+            _.touchObject.minSwipe = _.listHeight / _.options
+                .touchThreshold;
+        }
+
+        switch (event.data.action) {
+
+            case 'start':
+                _.swipeStart(event);
+                break;
+
+            case 'move':
+                _.swipeMove(event);
+                break;
+
+            case 'end':
+                _.swipeEnd(event);
+                break;
+
+        }
+
+    };
+
+    Slick.prototype.swipeMove = function(event) {
+
+        var _ = this,
+            edgeWasHit = false,
+            curLeft, swipeDirection, swipeLength, positionOffset, touches;
+
+        touches = event.originalEvent !== undefined ? event.originalEvent.touches : null;
+
+        if (!_.dragging || touches && touches.length !== 1) {
+            return false;
+        }
+
+        curLeft = _.getLeft(_.currentSlide);
+
+        _.touchObject.curX = touches !== undefined ? touches[0].pageX : event.clientX;
+        _.touchObject.curY = touches !== undefined ? touches[0].pageY : event.clientY;
+
+        _.touchObject.swipeLength = Math.round(Math.sqrt(
+            Math.pow(_.touchObject.curX - _.touchObject.startX, 2)));
+
+        if (_.options.verticalSwiping === true) {
+            _.touchObject.swipeLength = Math.round(Math.sqrt(
+                Math.pow(_.touchObject.curY - _.touchObject.startY, 2)));
+        }
+
+        swipeDirection = _.swipeDirection();
+
+        if (swipeDirection === 'vertical') {
+            return;
+        }
+
+        if (event.originalEvent !== undefined && _.touchObject.swipeLength > 4) {
+            event.preventDefault();
+        }
+
+        positionOffset = (_.options.rtl === false ? 1 : -1) * (_.touchObject.curX > _.touchObject.startX ? 1 : -1);
+        if (_.options.verticalSwiping === true) {
+            positionOffset = _.touchObject.curY > _.touchObject.startY ? 1 : -1;
+        }
+
+
+        swipeLength = _.touchObject.swipeLength;
+
+        _.touchObject.edgeHit = false;
+
+        if (_.options.infinite === false) {
+            if ((_.currentSlide === 0 && swipeDirection === 'right') || (_.currentSlide >= _.getDotCount() && swipeDirection === 'left')) {
+                swipeLength = _.touchObject.swipeLength * _.options.edgeFriction;
+                _.touchObject.edgeHit = true;
+            }
+        }
+
+        if (_.options.vertical === false) {
+            _.swipeLeft = curLeft + swipeLength * positionOffset;
+        } else {
+            _.swipeLeft = curLeft + (swipeLength * (_.$list.height() / _.listWidth)) * positionOffset;
+        }
+        if (_.options.verticalSwiping === true) {
+            _.swipeLeft = curLeft + swipeLength * positionOffset;
+        }
+
+        if (_.options.fade === true || _.options.touchMove === false) {
+            return false;
+        }
+
+        if (_.animating === true) {
+            _.swipeLeft = null;
+            return false;
+        }
+
+        _.setCSS(_.swipeLeft);
+
+    };
+
+    Slick.prototype.swipeStart = function(event) {
+
+        var _ = this,
+            touches;
+
+        _.interrupted = true;
+
+        if (_.touchObject.fingerCount !== 1 || _.slideCount <= _.options.slidesToShow) {
+            _.touchObject = {};
+            return false;
+        }
+
+        if (event.originalEvent !== undefined && event.originalEvent.touches !== undefined) {
+            touches = event.originalEvent.touches[0];
+        }
+
+        _.touchObject.startX = _.touchObject.curX = touches !== undefined ? touches.pageX : event.clientX;
+        _.touchObject.startY = _.touchObject.curY = touches !== undefined ? touches.pageY : event.clientY;
+
+        _.dragging = true;
+
+    };
+
+    Slick.prototype.unfilterSlides = Slick.prototype.slickUnfilter = function() {
+
+        var _ = this;
+
+        if (_.$slidesCache !== null) {
+
+            _.unload();
+
+            _.$slideTrack.children(this.options.slide).detach();
+
+            _.$slidesCache.appendTo(_.$slideTrack);
+
+            _.reinit();
+
+        }
+
+    };
+
+    Slick.prototype.unload = function() {
+
+        var _ = this;
+
+        $('.slick-cloned', _.$slider).remove();
+
+        if (_.$dots) {
+            _.$dots.remove();
+        }
+
+        if (_.$prevArrow && _.htmlExpr.test(_.options.prevArrow)) {
+            _.$prevArrow.remove();
+        }
+
+        if (_.$nextArrow && _.htmlExpr.test(_.options.nextArrow)) {
+            _.$nextArrow.remove();
+        }
+
+        _.$slides
+            .removeClass('slick-slide slick-active slick-visible slick-current')
+            .attr('aria-hidden', 'true')
+            .css('width', '');
+
+    };
+
+    Slick.prototype.unslick = function(fromBreakpoint) {
+
+        var _ = this;
+        _.$slider.trigger('unslick', [_, fromBreakpoint]);
+        _.destroy();
+
+    };
+
+    Slick.prototype.updateArrows = function() {
+
+        var _ = this,
+            centerOffset;
+
+        centerOffset = Math.floor(_.options.slidesToShow / 2);
+
+        if ( _.options.arrows === true &&
+            _.slideCount > _.options.slidesToShow &&
+            !_.options.infinite ) {
+
+            _.$prevArrow.removeClass('slick-disabled').attr('aria-disabled', 'false');
+            _.$nextArrow.removeClass('slick-disabled').attr('aria-disabled', 'false');
+
+            if (_.currentSlide === 0) {
+
+                _.$prevArrow.addClass('slick-disabled').attr('aria-disabled', 'true');
+                _.$nextArrow.removeClass('slick-disabled').attr('aria-disabled', 'false');
+
+            } else if (_.currentSlide >= _.slideCount - _.options.slidesToShow && _.options.centerMode === false) {
+
+                _.$nextArrow.addClass('slick-disabled').attr('aria-disabled', 'true');
+                _.$prevArrow.removeClass('slick-disabled').attr('aria-disabled', 'false');
+
+            } else if (_.currentSlide >= _.slideCount - 1 && _.options.centerMode === true) {
+
+                _.$nextArrow.addClass('slick-disabled').attr('aria-disabled', 'true');
+                _.$prevArrow.removeClass('slick-disabled').attr('aria-disabled', 'false');
+
+            }
+
+        }
+
+    };
+
+    Slick.prototype.updateDots = function() {
+
+        var _ = this;
+
+        if (_.$dots !== null) {
+
+            _.$dots
+                .find('li')
+                .removeClass('slick-active')
+                .attr('aria-hidden', 'true');
+
+            _.$dots
+                .find('li')
+                .eq(Math.floor(_.currentSlide / _.options.slidesToScroll))
+                .addClass('slick-active')
+                .attr('aria-hidden', 'false');
+
+        }
+
+    };
+
+    Slick.prototype.visibility = function() {
+
+        var _ = this;
+
+        if ( _.options.autoplay ) {
+
+            if ( document[_.hidden] ) {
+
+                _.interrupted = true;
+
+            } else {
+
+                _.interrupted = false;
+
+            }
+
+        }
+
+    };
+
+    $.fn.slick = function() {
+        var _ = this,
+            opt = arguments[0],
+            args = Array.prototype.slice.call(arguments, 1),
+            l = _.length,
+            i,
+            ret;
+        for (i = 0; i < l; i++) {
+            if (typeof opt == 'object' || typeof opt == 'undefined')
+                _[i].slick = new Slick(_[i], opt);
+            else
+                ret = _[i].slick[opt].apply(_[i].slick, args);
+            if (typeof ret != 'undefined') return ret;
+        }
+        return _;
+    };
+
+}));
+
+/*
+ * ScrollToFixed
+ * https://github.com/bigspotteddog/ScrollToFixed
+ *
+ * Copyright (c) 2011 Joseph Cava-Lynch
+ * MIT license
+ */
+(function($) {
+    $.isScrollToFixed = function(el) {
+        return !!$(el).data('ScrollToFixed');
+    };
+
+    $.ScrollToFixed = function(el, options) {
+        // To avoid scope issues, use 'base' instead of 'this' to reference this
+        // class from internal events and functions.
+        var base = this;
+
+        // Access to jQuery and DOM versions of element.
+        base.$el = $(el);
+        base.el = el;
+
+        // Add a reverse reference to the DOM object.
+        base.$el.data('ScrollToFixed', base);
+
+        // A flag so we know if the scroll has been reset.
+        var isReset = false;
+
+        // The element that was given to us to fix if scrolled above the top of
+        // the page.
+        var target = base.$el;
+
+        var position;
+        var originalPosition;
+        var originalFloat;
+        var originalOffsetTop;
+        var originalZIndex;
+
+        // The offset top of the element when resetScroll was called. This is
+        // used to determine if we have scrolled past the top of the element.
+        var offsetTop = 0;
+
+        // The offset left of the element when resetScroll was called. This is
+        // used to move the element left or right relative to the horizontal
+        // scroll.
+        var offsetLeft = 0;
+        var originalOffsetLeft = -1;
+
+        // This last offset used to move the element horizontally. This is used
+        // to determine if we need to move the element because we would not want
+        // to do that for no reason.
+        var lastOffsetLeft = -1;
+
+        // This is the element used to fill the void left by the target element
+        // when it goes fixed; otherwise, everything below it moves up the page.
+        var spacer = null;
+
+        var spacerClass;
+
+        var className;
+
+        // Capture the original offsets for the target element. This needs to be
+        // called whenever the page size changes or when the page is first
+        // scrolled. For some reason, calling this before the page is first
+        // scrolled causes the element to become fixed too late.
+        function resetScroll() {
+            // Set the element to it original positioning.
+            target.trigger('preUnfixed.ScrollToFixed');
+            setUnfixed();
+            target.trigger('unfixed.ScrollToFixed');
+
+            // Reset the last offset used to determine if the page has moved
+            // horizontally.
+            lastOffsetLeft = -1;
+
+            // Capture the offset top of the target element.
+            offsetTop = target.offset().top;
+
+            // Capture the offset left of the target element.
+            offsetLeft = target.offset().left;
+
+            // If the offsets option is on, alter the left offset.
+            if (base.options.offsets) {
+                offsetLeft += (target.offset().left - target.position().left);
+            }
+
+            if (originalOffsetLeft == -1) {
+                originalOffsetLeft = offsetLeft;
+            }
+
+            position = target.css('position');
+
+            // Set that this has been called at least once.
+            isReset = true;
+
+            if (base.options.bottom != -1) {
+                target.trigger('preFixed.ScrollToFixed');
+                setFixed();
+                target.trigger('fixed.ScrollToFixed');
+            }
+        }
+
+        function getLimit() {
+            var limit = base.options.limit;
+            if (!limit) return 0;
+
+            if (typeof(limit) === 'function') {
+                return limit.apply(target);
+            }
+            return limit;
+        }
+
+        // Returns whether the target element is fixed or not.
+        function isFixed() {
+            return position === 'fixed';
+        }
+
+        // Returns whether the target element is absolute or not.
+        function isAbsolute() {
+            return position === 'absolute';
+        }
+
+        function isUnfixed() {
+            return !(isFixed() || isAbsolute());
+        }
+
+        // Sets the target element to fixed. Also, sets the spacer to fill the
+        // void left by the target element.
+        function setFixed() {
+            // Only fix the target element and the spacer if we need to.
+            if (!isFixed()) {
+                //get REAL dimensions (decimal fix)
+                //Ref. http://stackoverflow.com/questions/3603065/how-to-make-jquery-to-not-round-value-returned-by-width
+                var dimensions = target[0].getBoundingClientRect();
+
+                // Set the spacer to fill the height and width of the target
+                // element, then display it.
+                spacer.css({
+                    'display' : target.css('display'),
+                    'width' : dimensions.width,
+                    'height' : dimensions.height,
+                    'float' : target.css('float')
+                });
+
+                // Set the target element to fixed and set its width so it does
+                // not fill the rest of the page horizontally. Also, set its top
+                // to the margin top specified in the options.
+
+                cssOptions={
+                    'z-index' : base.options.zIndex,
+                    'position' : 'fixed',
+                    'top' : base.options.bottom == -1?getMarginTop():'',
+                    'bottom' : base.options.bottom == -1?'':base.options.bottom,
+                    'margin-left' : '0px'
+                }
+                if (!base.options.dontSetWidth){ cssOptions['width']=target.css('width'); };
+
+                target.css(cssOptions);
+
+                target.addClass(base.options.baseClassName);
+
+                if (base.options.className) {
+                    target.addClass(base.options.className);
+                }
+
+                position = 'fixed';
+            }
+        }
+
+        function setAbsolute() {
+
+            var top = getLimit();
+            var left = offsetLeft;
+
+            if (base.options.removeOffsets) {
+                left = '';
+                top = top - offsetTop;
+            }
+
+            cssOptions={
+              'position' : 'absolute',
+              'top' : top,
+              'left' : left,
+              'margin-left' : '0px',
+              'bottom' : ''
+            }
+            if (!base.options.dontSetWidth){ cssOptions['width']=target.css('width'); };
+
+            target.css(cssOptions);
+
+            position = 'absolute';
+        }
+
+        // Sets the target element back to unfixed. Also, hides the spacer.
+        function setUnfixed() {
+            // Only unfix the target element and the spacer if we need to.
+            if (!isUnfixed()) {
+                lastOffsetLeft = -1;
+
+                // Hide the spacer now that the target element will fill the
+                // space.
+                spacer.css('display', 'none');
+
+                // Remove the style attributes that were added to the target.
+                // This will reverse the target back to the its original style.
+                target.css({
+                    'z-index' : originalZIndex,
+                    'width' : '',
+                    'position' : originalPosition,
+                    'left' : '',
+                    'top' : originalOffsetTop,
+                    'margin-left' : ''
+                });
+
+                target.removeClass('scroll-to-fixed-fixed');
+
+                if (base.options.className) {
+                    target.removeClass(base.options.className);
+                }
+
+                position = null;
+            }
+        }
+
+        // Moves the target element left or right relative to the horizontal
+        // scroll position.
+        function setLeft(x) {
+            // Only if the scroll is not what it was last time we did this.
+            if (x != lastOffsetLeft) {
+                // Move the target element horizontally relative to its original
+                // horizontal position.
+                target.css('left', offsetLeft - x);
+
+                // Hold the last horizontal position set.
+                lastOffsetLeft = x;
+            }
+        }
+
+        function getMarginTop() {
+            var marginTop = base.options.marginTop;
+            if (!marginTop) return 0;
+
+            if (typeof(marginTop) === 'function') {
+                return marginTop.apply(target);
+            }
+            return marginTop;
+        }
+
+        // Checks to see if we need to do something based on new scroll position
+        // of the page.
+        function checkScroll() {
+            if (!$.isScrollToFixed(target) || target.is(':hidden')) return;
+            var wasReset = isReset;
+            var wasUnfixed = isUnfixed();
+
+            // If resetScroll has not yet been called, call it. This only
+            // happens once.
+            if (!isReset) {
+                resetScroll();
+            } else if (isUnfixed()) {
+                // if the offset has changed since the last scroll,
+                // we need to get it again.
+
+                // Capture the offset top of the target element.
+                offsetTop = target.offset().top;
+
+                // Capture the offset left of the target element.
+                offsetLeft = target.offset().left;
+            }
+
+            // Grab the current horizontal scroll position.
+            var x = $(window).scrollLeft();
+
+            // Grab the current vertical scroll position.
+            var y = $(window).scrollTop();
+
+            // Get the limit, if there is one.
+            var limit = getLimit();
+
+            // If the vertical scroll position, plus the optional margin, would
+            // put the target element at the specified limit, set the target
+            // element to absolute.
+            if (base.options.minWidth && $(window).width() < base.options.minWidth) {
+                if (!isUnfixed() || !wasReset) {
+                    postPosition();
+                    target.trigger('preUnfixed.ScrollToFixed');
+                    setUnfixed();
+                    target.trigger('unfixed.ScrollToFixed');
+                }
+            } else if (base.options.maxWidth && $(window).width() > base.options.maxWidth) {
+                if (!isUnfixed() || !wasReset) {
+                    postPosition();
+                    target.trigger('preUnfixed.ScrollToFixed');
+                    setUnfixed();
+                    target.trigger('unfixed.ScrollToFixed');
+                }
+            } else if (base.options.bottom == -1) {
+                // If the vertical scroll position, plus the optional margin, would
+                // put the target element at the specified limit, set the target
+                // element to absolute.
+                if (limit > 0 && y >= limit - getMarginTop()) {
+                    if (!wasUnfixed && (!isAbsolute() || !wasReset)) {
+                        postPosition();
+                        target.trigger('preAbsolute.ScrollToFixed');
+                        setAbsolute();
+                        target.trigger('unfixed.ScrollToFixed');
+                    }
+                // If the vertical scroll position, plus the optional margin, would
+                // put the target element above the top of the page, set the target
+                // element to fixed.
+                } else if (y >= offsetTop - getMarginTop()) {
+                    if (!isFixed() || !wasReset) {
+                        postPosition();
+                        target.trigger('preFixed.ScrollToFixed');
+
+                        // Set the target element to fixed.
+                        setFixed();
+
+                        // Reset the last offset left because we just went fixed.
+                        lastOffsetLeft = -1;
+
+                        target.trigger('fixed.ScrollToFixed');
+                    }
+                    // If the page has been scrolled horizontally as well, move the
+                    // target element accordingly.
+                    setLeft(x);
+                } else {
+                    // Set the target element to unfixed, placing it where it was
+                    // before.
+                    if (!isUnfixed() || !wasReset) {
+                        postPosition();
+                        target.trigger('preUnfixed.ScrollToFixed');
+                        setUnfixed();
+                        target.trigger('unfixed.ScrollToFixed');
+                    }
+                }
+            } else {
+                if (limit > 0) {
+                    if (y + $(window).height() - target.outerHeight(true) >= limit - (getMarginTop() || -getBottom())) {
+                        if (isFixed()) {
+                            postPosition();
+                            target.trigger('preUnfixed.ScrollToFixed');
+
+                            if (originalPosition === 'absolute') {
+                                setAbsolute();
+                            } else {
+                                setUnfixed();
+                            }
+
+                            target.trigger('unfixed.ScrollToFixed');
+                        }
+                    } else {
+                        if (!isFixed()) {
+                            postPosition();
+                            target.trigger('preFixed.ScrollToFixed');
+                            setFixed();
+                        }
+                        setLeft(x);
+                        target.trigger('fixed.ScrollToFixed');
+                    }
+                } else {
+                    setLeft(x);
+                }
+            }
+        }
+
+        function getBottom() {
+            if (!base.options.bottom) return 0;
+            return base.options.bottom;
+        }
+
+        function postPosition() {
+            var position = target.css('position');
+
+            if (position == 'absolute') {
+                target.trigger('postAbsolute.ScrollToFixed');
+            } else if (position == 'fixed') {
+                target.trigger('postFixed.ScrollToFixed');
+            } else {
+                target.trigger('postUnfixed.ScrollToFixed');
+            }
+        }
+
+        var windowResize = function(event) {
+            // Check if the element is visible before updating it's position, which
+            // improves behavior with responsive designs where this element is hidden.
+            if(target.is(':visible')) {
+                isReset = false;
+                checkScroll();
+            } else {
+              // Ensure the spacer is hidden
+              setUnfixed();
+            }
+        }
+
+        var windowScroll = function(event) {
+            (!!window.requestAnimationFrame) ? requestAnimationFrame(checkScroll) : checkScroll();
+        }
+
+        // From: http://kangax.github.com/cft/#IS_POSITION_FIXED_SUPPORTED
+        var isPositionFixedSupported = function() {
+            var container = document.body;
+
+            if (document.createElement && container && container.appendChild && container.removeChild) {
+                var el = document.createElement('div');
+
+                if (!el.getBoundingClientRect) return null;
+
+                el.innerHTML = 'x';
+                el.style.cssText = 'position:fixed;top:100px;';
+                container.appendChild(el);
+
+                var originalHeight = container.style.height,
+                originalScrollTop = container.scrollTop;
+
+                container.style.height = '3000px';
+                container.scrollTop = 500;
+
+                var elementTop = el.getBoundingClientRect().top;
+                container.style.height = originalHeight;
+
+                var isSupported = (elementTop === 100);
+                container.removeChild(el);
+                container.scrollTop = originalScrollTop;
+
+                return isSupported;
+            }
+
+            return null;
+        }
+
+        var preventDefault = function(e) {
+            e = e || window.event;
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.returnValue = false;
+        }
+
+        // Initializes this plugin. Captures the options passed in, turns this
+        // off for devices that do not support fixed position, adds the spacer,
+        // and binds to the window scroll and resize events.
+        base.init = function() {
+            // Capture the options for this plugin.
+            base.options = $.extend({}, $.ScrollToFixed.defaultOptions, options);
+
+            originalZIndex = target.css('z-index')
+
+            // Turn off this functionality for devices that do not support it.
+            // if (!(base.options && base.options.dontCheckForPositionFixedSupport)) {
+            //     var fixedSupported = isPositionFixedSupported();
+            //     if (!fixedSupported) return;
+            // }
+
+            // Put the target element on top of everything that could be below
+            // it. This reduces flicker when the target element is transitioning
+            // to fixed.
+            base.$el.css('z-index', base.options.zIndex);
+
+            // Create a spacer element to fill the void left by the target
+            // element when it goes fixed.
+            spacer = $('<div />');
+
+            position = target.css('position');
+            originalPosition = target.css('position');
+            originalFloat = target.css('float');
+            originalOffsetTop = target.css('top');
+
+            // Place the spacer right after the target element.
+            if (isUnfixed()) base.$el.after(spacer);
+
+            // Reset the target element offsets when the window is resized, then
+            // check to see if we need to fix or unfix the target element.
+            $(window).bind('resize.ScrollToFixed', windowResize);
+
+            // When the window scrolls, check to see if we need to fix or unfix
+            // the target element.
+            $(window).bind('scroll.ScrollToFixed', windowScroll);
+
+            // For touch devices, call checkScroll directlly rather than
+            // rAF wrapped windowScroll to animate the element
+            if ('ontouchmove' in window) {
+              $(window).bind('touchmove.ScrollToFixed', checkScroll);
+            }
+
+            if (base.options.preFixed) {
+                target.bind('preFixed.ScrollToFixed', base.options.preFixed);
+            }
+            if (base.options.postFixed) {
+                target.bind('postFixed.ScrollToFixed', base.options.postFixed);
+            }
+            if (base.options.preUnfixed) {
+                target.bind('preUnfixed.ScrollToFixed', base.options.preUnfixed);
+            }
+            if (base.options.postUnfixed) {
+                target.bind('postUnfixed.ScrollToFixed', base.options.postUnfixed);
+            }
+            if (base.options.preAbsolute) {
+                target.bind('preAbsolute.ScrollToFixed', base.options.preAbsolute);
+            }
+            if (base.options.postAbsolute) {
+                target.bind('postAbsolute.ScrollToFixed', base.options.postAbsolute);
+            }
+            if (base.options.fixed) {
+                target.bind('fixed.ScrollToFixed', base.options.fixed);
+            }
+            if (base.options.unfixed) {
+                target.bind('unfixed.ScrollToFixed', base.options.unfixed);
+            }
+
+            if (base.options.spacerClass) {
+                spacer.addClass(base.options.spacerClass);
+            }
+
+            target.bind('resize.ScrollToFixed', function() {
+                spacer.height(target.height());
+            });
+
+            target.bind('scroll.ScrollToFixed', function() {
+                target.trigger('preUnfixed.ScrollToFixed');
+                setUnfixed();
+                target.trigger('unfixed.ScrollToFixed');
+                checkScroll();
+            });
+
+            target.bind('detach.ScrollToFixed', function(ev) {
+                preventDefault(ev);
+
+                target.trigger('preUnfixed.ScrollToFixed');
+                setUnfixed();
+                target.trigger('unfixed.ScrollToFixed');
+
+                $(window).unbind('resize.ScrollToFixed', windowResize);
+                $(window).unbind('scroll.ScrollToFixed', windowScroll);
+
+                target.unbind('.ScrollToFixed');
+
+                //remove spacer from dom
+                spacer.remove();
+
+                base.$el.removeData('ScrollToFixed');
+            });
+
+            // Reset everything.
+            windowResize();
+        };
+
+        // Initialize the plugin.
+        base.init();
+    };
+
+    // Sets the option defaults.
+    $.ScrollToFixed.defaultOptions = {
+        marginTop : 0,
+        limit : 0,
+        bottom : -1,
+        zIndex : 1000,
+        baseClassName: 'scroll-to-fixed-fixed'
+    };
+
+    // Returns enhanced elements that will fix to the top of the page when the
+    // page is scrolled.
+    $.fn.scrollToFixed = function(options) {
+        return this.each(function() {
+            (new $.ScrollToFixed(this, options));
+        });
+    };
+})(jQuery);
+
+/*!
+ * skrollr core
+ *
+ * Alexander Prinzhorn - https://github.com/Prinzhorn/skrollr
+ *
+ * Free to use under terms of MIT license
+ */
+(function(window, document, undefined) {
+	'use strict';
+
+	/*
+	 * Global api.
+	 */
+	var skrollr = {
+		get: function() {
+			return _instance;
+		},
+		//Main entry point.
+		init: function(options) {
+			return _instance || new Skrollr(options);
+		},
+		VERSION: '0.6.29'
+	};
+
+	//Minify optimization.
+	var hasProp = Object.prototype.hasOwnProperty;
+	var Math = window.Math;
+	var getStyle = window.getComputedStyle;
+
+	//They will be filled when skrollr gets initialized.
+	var documentElement;
+	var body;
+
+	var EVENT_TOUCHSTART = 'touchstart';
+	var EVENT_TOUCHMOVE = 'touchmove';
+	var EVENT_TOUCHCANCEL = 'touchcancel';
+	var EVENT_TOUCHEND = 'touchend';
+
+	var SKROLLABLE_CLASS = 'skrollable';
+	var SKROLLABLE_BEFORE_CLASS = SKROLLABLE_CLASS + '-before';
+	var SKROLLABLE_BETWEEN_CLASS = SKROLLABLE_CLASS + '-between';
+	var SKROLLABLE_AFTER_CLASS = SKROLLABLE_CLASS + '-after';
+
+	var SKROLLR_CLASS = 'skrollr';
+	var NO_SKROLLR_CLASS = 'no-' + SKROLLR_CLASS;
+	var SKROLLR_DESKTOP_CLASS = SKROLLR_CLASS + '-desktop';
+	var SKROLLR_MOBILE_CLASS = SKROLLR_CLASS + '-mobile';
+
+	var DEFAULT_EASING = 'linear';
+	var DEFAULT_DURATION = 1000;//ms
+	var DEFAULT_MOBILE_DECELERATION = 0.004;//pixel/ms²
+
+	var DEFAULT_SKROLLRBODY = 'skrollr-body';
+
+	var DEFAULT_SMOOTH_SCROLLING_DURATION = 200;//ms
+
+	var ANCHOR_START = 'start';
+	var ANCHOR_END = 'end';
+	var ANCHOR_CENTER = 'center';
+	var ANCHOR_BOTTOM = 'bottom';
+
+	//The property which will be added to the DOM element to hold the ID of the skrollable.
+	var SKROLLABLE_ID_DOM_PROPERTY = '___skrollable_id';
+
+	var rxTouchIgnoreTags = /^(?:input|textarea|button|select)$/i;
+
+	var rxTrim = /^\s+|\s+$/g;
+
+	//Find all data-attributes. data-[_constant]-[offset]-[anchor]-[anchor].
+	var rxKeyframeAttribute = /^data(?:-(_\w+))?(?:-?(-?\d*\.?\d+p?))?(?:-?(start|end|top|center|bottom))?(?:-?(top|center|bottom))?$/;
+
+	var rxPropValue = /\s*(@?[\w\-\[\]]+)\s*:\s*(.+?)\s*(?:;|$)/gi;
+
+	//Easing function names follow the property in square brackets.
+	var rxPropEasing = /^(@?[a-z\-]+)\[(\w+)\]$/;
+
+	var rxCamelCase = /-([a-z0-9_])/g;
+	var rxCamelCaseFn = function(str, letter) {
+		return letter.toUpperCase();
+	};
+
+	//Numeric values with optional sign.
+	var rxNumericValue = /[\-+]?[\d]*\.?[\d]+/g;
+
+	//Used to replace occurences of {?} with a number.
+	var rxInterpolateString = /\{\?\}/g;
+
+	//Finds rgb(a) colors, which don't use the percentage notation.
+	var rxRGBAIntegerColor = /rgba?\(\s*-?\d+\s*,\s*-?\d+\s*,\s*-?\d+/g;
+
+	//Finds all gradients.
+	var rxGradient = /[a-z\-]+-gradient/g;
+
+	//Vendor prefix. Will be set once skrollr gets initialized.
+	var theCSSPrefix = '';
+	var theDashedCSSPrefix = '';
+
+	//Will be called once (when skrollr gets initialized).
+	var detectCSSPrefix = function() {
+		//Only relevant prefixes. May be extended.
+		//Could be dangerous if there will ever be a CSS property which actually starts with "ms". Don't hope so.
+		var rxPrefixes = /^(?:O|Moz|webkit|ms)|(?:-(?:o|moz|webkit|ms)-)/;
+
+		//Detect prefix for current browser by finding the first property using a prefix.
+		if(!getStyle) {
+			return;
+		}
+
+		var style = getStyle(body, null);
+
+		for(var k in style) {
+			//We check the key and if the key is a number, we check the value as well, because safari's getComputedStyle returns some weird array-like thingy.
+			theCSSPrefix = (k.match(rxPrefixes) || (+k == k && style[k].match(rxPrefixes)));
+
+			if(theCSSPrefix) {
+				break;
+			}
+		}
+
+		//Did we even detect a prefix?
+		if(!theCSSPrefix) {
+			theCSSPrefix = theDashedCSSPrefix = '';
+
+			return;
+		}
+
+		theCSSPrefix = theCSSPrefix[0];
+
+		//We could have detected either a dashed prefix or this camelCaseish-inconsistent stuff.
+		if(theCSSPrefix.slice(0,1) === '-') {
+			theDashedCSSPrefix = theCSSPrefix;
+
+			//There's no logic behind these. Need a look up.
+			theCSSPrefix = ({
+				'-webkit-': 'webkit',
+				'-moz-': 'Moz',
+				'-ms-': 'ms',
+				'-o-': 'O'
+			})[theCSSPrefix];
+		} else {
+			theDashedCSSPrefix = '-' + theCSSPrefix.toLowerCase() + '-';
+		}
+	};
+
+	var polyfillRAF = function() {
+		var requestAnimFrame = window.requestAnimationFrame || window[theCSSPrefix.toLowerCase() + 'RequestAnimationFrame'];
+
+		var lastTime = _now();
+
+		if(_isMobile || !requestAnimFrame) {
+			requestAnimFrame = function(callback) {
+				//How long did it take to render?
+				var deltaTime = _now() - lastTime;
+				var delay = Math.max(0, 1000 / 60 - deltaTime);
+
+				return window.setTimeout(function() {
+					lastTime = _now();
+					callback();
+				}, delay);
+			};
+		}
+
+		return requestAnimFrame;
+	};
+
+	var polyfillCAF = function() {
+		var cancelAnimFrame = window.cancelAnimationFrame || window[theCSSPrefix.toLowerCase() + 'CancelAnimationFrame'];
+
+		if(_isMobile || !cancelAnimFrame) {
+			cancelAnimFrame = function(timeout) {
+				return window.clearTimeout(timeout);
+			};
+		}
+
+		return cancelAnimFrame;
+	};
+
+	//Built-in easing functions.
+	var easings = {
+		begin: function() {
+			return 0;
+		},
+		end: function() {
+			return 1;
+		},
+		linear: function(p) {
+			return p;
+		},
+		quadratic: function(p) {
+			return p * p;
+		},
+		cubic: function(p) {
+			return p * p * p;
+		},
+		swing: function(p) {
+			return (-Math.cos(p * Math.PI) / 2) + 0.5;
+		},
+		sqrt: function(p) {
+			return Math.sqrt(p);
+		},
+		outCubic: function(p) {
+			return (Math.pow((p - 1), 3) + 1);
+		},
+		//see https://www.desmos.com/calculator/tbr20s8vd2 for how I did this
+		bounce: function(p) {
+			var a;
+
+			if(p <= 0.5083) {
+				a = 3;
+			} else if(p <= 0.8489) {
+				a = 9;
+			} else if(p <= 0.96208) {
+				a = 27;
+			} else if(p <= 0.99981) {
+				a = 91;
+			} else {
+				return 1;
+			}
+
+			return 1 - Math.abs(3 * Math.cos(p * a * 1.028) / a);
+		}
+	};
+
+	/**
+	 * Constructor.
+	 */
+	function Skrollr(options) {
+		documentElement = document.documentElement;
+		body = document.body;
+
+		detectCSSPrefix();
+
+		_instance = this;
+
+		options = options || {};
+
+		_constants = options.constants || {};
+
+		//We allow defining custom easings or overwrite existing.
+		if(options.easing) {
+			for(var e in options.easing) {
+				easings[e] = options.easing[e];
+			}
+		}
+
+		_edgeStrategy = options.edgeStrategy || 'set';
+
+		_listeners = {
+			//Function to be called right before rendering.
+			beforerender: options.beforerender,
+
+			//Function to be called right after finishing rendering.
+			render: options.render,
+
+			//Function to be called whenever an element with the `data-emit-events` attribute passes a keyframe.
+			keyframe: options.keyframe
+		};
+
+		//forceHeight is true by default
+		_forceHeight = options.forceHeight !== false;
+
+		if(_forceHeight) {
+			_scale = options.scale || 1;
+		}
+
+		_mobileDeceleration = options.mobileDeceleration || DEFAULT_MOBILE_DECELERATION;
+
+		_smoothScrollingEnabled = options.smoothScrolling !== false;
+		_smoothScrollingDuration = options.smoothScrollingDuration || DEFAULT_SMOOTH_SCROLLING_DURATION;
+
+		//Dummy object. Will be overwritten in the _render method when smooth scrolling is calculated.
+		_smoothScrolling = {
+			targetTop: _instance.getScrollTop()
+		};
+
+		//A custom check function may be passed.
+		_isMobile = ((options.mobileCheck || function() {
+			return (/Android|iPhone|iPad|iPod|BlackBerry/i).test(navigator.userAgent || navigator.vendor || window.opera);
+		})());
+
+		if(_isMobile) {
+			_skrollrBody = document.getElementById(options.skrollrBody || DEFAULT_SKROLLRBODY);
+
+			//Detect 3d transform if there's a skrollr-body (only needed for #skrollr-body).
+			if(_skrollrBody) {
+				_detect3DTransforms();
+			}
+
+			_initMobile();
+			_updateClass(documentElement, [SKROLLR_CLASS, SKROLLR_MOBILE_CLASS], [NO_SKROLLR_CLASS]);
+		} else {
+			_updateClass(documentElement, [SKROLLR_CLASS, SKROLLR_DESKTOP_CLASS], [NO_SKROLLR_CLASS]);
+		}
+
+		//Triggers parsing of elements and a first reflow.
+		_instance.refresh();
+
+		_addEvent(window, 'resize orientationchange', function() {
+			var width = documentElement.clientWidth;
+			var height = documentElement.clientHeight;
+
+			//Only reflow if the size actually changed (#271).
+			if(height !== _lastViewportHeight || width !== _lastViewportWidth) {
+				_lastViewportHeight = height;
+				_lastViewportWidth = width;
+
+				_requestReflow = true;
+			}
+		});
+
+		var requestAnimFrame = polyfillRAF();
+
+		//Let's go.
+		(function animloop(){
+			_render();
+			_animFrame = requestAnimFrame(animloop);
+		}());
+
+		return _instance;
+	}
+
+	/**
+	 * (Re)parses some or all elements.
+	 */
+	Skrollr.prototype.refresh = function(elements) {
+		var elementIndex;
+		var elementsLength;
+		var ignoreID = false;
+
+		//Completely reparse anything without argument.
+		if(elements === undefined) {
+			//Ignore that some elements may already have a skrollable ID.
+			ignoreID = true;
+
+			_skrollables = [];
+			_skrollableIdCounter = 0;
+
+			elements = document.getElementsByTagName('*');
+		} else if(elements.length === undefined) {
+			//We also accept a single element as parameter.
+			elements = [elements];
+		}
+
+		elementIndex = 0;
+		elementsLength = elements.length;
+
+		for(; elementIndex < elementsLength; elementIndex++) {
+			var el = elements[elementIndex];
+			var anchorTarget = el;
+			var keyFrames = [];
+
+			//If this particular element should be smooth scrolled.
+			var smoothScrollThis = _smoothScrollingEnabled;
+
+			//The edge strategy for this particular element.
+			var edgeStrategy = _edgeStrategy;
+
+			//If this particular element should emit keyframe events.
+			var emitEvents = false;
+
+			//If we're reseting the counter, remove any old element ids that may be hanging around.
+			if(ignoreID && SKROLLABLE_ID_DOM_PROPERTY in el) {
+				delete el[SKROLLABLE_ID_DOM_PROPERTY];
+			}
+
+			if(!el.attributes) {
+				continue;
+			}
+
+			//Iterate over all attributes and search for key frame attributes.
+			var attributeIndex = 0;
+			var attributesLength = el.attributes.length;
+
+			for (; attributeIndex < attributesLength; attributeIndex++) {
+				var attr = el.attributes[attributeIndex];
+
+				if(attr.name === 'data-anchor-target') {
+					anchorTarget = document.querySelector(attr.value);
+
+					if(anchorTarget === null) {
+						throw 'Unable to find anchor target "' + attr.value + '"';
+					}
+
+					continue;
+				}
+
+				//Global smooth scrolling can be overridden by the element attribute.
+				if(attr.name === 'data-smooth-scrolling') {
+					smoothScrollThis = attr.value !== 'off';
+
+					continue;
+				}
+
+				//Global edge strategy can be overridden by the element attribute.
+				if(attr.name === 'data-edge-strategy') {
+					edgeStrategy = attr.value;
+
+					continue;
+				}
+
+				//Is this element tagged with the `data-emit-events` attribute?
+				if(attr.name === 'data-emit-events') {
+					emitEvents = true;
+
+					continue;
+				}
+
+				var match = attr.name.match(rxKeyframeAttribute);
+
+				if(match === null) {
+					continue;
+				}
+
+				var kf = {
+					props: attr.value,
+					//Point back to the element as well.
+					element: el,
+					//The name of the event which this keyframe will fire, if emitEvents is
+					eventType: attr.name.replace(rxCamelCase, rxCamelCaseFn)
+				};
+
+				keyFrames.push(kf);
+
+				var constant = match[1];
+
+				if(constant) {
+					//Strip the underscore prefix.
+					kf.constant = constant.substr(1);
+				}
+
+				//Get the key frame offset.
+				var offset = match[2];
+
+				//Is it a percentage offset?
+				if(/p$/.test(offset)) {
+					kf.isPercentage = true;
+					kf.offset = (offset.slice(0, -1) | 0) / 100;
+				} else {
+					kf.offset = (offset | 0);
+				}
+
+				var anchor1 = match[3];
+
+				//If second anchor is not set, the first will be taken for both.
+				var anchor2 = match[4] || anchor1;
+
+				//"absolute" (or "classic") mode, where numbers mean absolute scroll offset.
+				if(!anchor1 || anchor1 === ANCHOR_START || anchor1 === ANCHOR_END) {
+					kf.mode = 'absolute';
+
+					//data-end needs to be calculated after all key frames are known.
+					if(anchor1 === ANCHOR_END) {
+						kf.isEnd = true;
+					} else if(!kf.isPercentage) {
+						//For data-start we can already set the key frame w/o calculations.
+						//#59: "scale" options should only affect absolute mode.
+						kf.offset = kf.offset * _scale;
+					}
+				}
+				//"relative" mode, where numbers are relative to anchors.
+				else {
+					kf.mode = 'relative';
+					kf.anchors = [anchor1, anchor2];
+				}
+			}
+
+			//Does this element have key frames?
+			if(!keyFrames.length) {
+				continue;
+			}
+
+			//Will hold the original style and class attributes before we controlled the element (see #80).
+			var styleAttr, classAttr;
+
+			var id;
+
+			if(!ignoreID && SKROLLABLE_ID_DOM_PROPERTY in el) {
+				//We already have this element under control. Grab the corresponding skrollable id.
+				id = el[SKROLLABLE_ID_DOM_PROPERTY];
+				styleAttr = _skrollables[id].styleAttr;
+				classAttr = _skrollables[id].classAttr;
+			} else {
+				//It's an unknown element. Asign it a new skrollable id.
+				id = (el[SKROLLABLE_ID_DOM_PROPERTY] = _skrollableIdCounter++);
+				styleAttr = el.style.cssText;
+				classAttr = _getClass(el);
+			}
+
+			_skrollables[id] = {
+				element: el,
+				styleAttr: styleAttr,
+				classAttr: classAttr,
+				anchorTarget: anchorTarget,
+				keyFrames: keyFrames,
+				smoothScrolling: smoothScrollThis,
+				edgeStrategy: edgeStrategy,
+				emitEvents: emitEvents,
+				lastFrameIndex: -1
+			};
+
+			_updateClass(el, [SKROLLABLE_CLASS], []);
+		}
+
+		//Reflow for the first time.
+		_reflow();
+
+		//Now that we got all key frame numbers right, actually parse the properties.
+		elementIndex = 0;
+		elementsLength = elements.length;
+
+		for(; elementIndex < elementsLength; elementIndex++) {
+			var sk = _skrollables[elements[elementIndex][SKROLLABLE_ID_DOM_PROPERTY]];
+
+			if(sk === undefined) {
+				continue;
+			}
+
+			//Parse the property string to objects
+			_parseProps(sk);
+
+			//Fill key frames with missing properties from left and right
+			_fillProps(sk);
+		}
+
+		return _instance;
+	};
+
+	/**
+	 * Transform "relative" mode to "absolute" mode.
+	 * That is, calculate anchor position and offset of element.
+	 */
+	Skrollr.prototype.relativeToAbsolute = function(element, viewportAnchor, elementAnchor) {
+		var viewportHeight = documentElement.clientHeight;
+		var box = element.getBoundingClientRect();
+		var absolute = box.top;
+
+		//#100: IE doesn't supply "height" with getBoundingClientRect.
+		var boxHeight = box.bottom - box.top;
+
+		if(viewportAnchor === ANCHOR_BOTTOM) {
+			absolute -= viewportHeight;
+		} else if(viewportAnchor === ANCHOR_CENTER) {
+			absolute -= viewportHeight / 2;
+		}
+
+		if(elementAnchor === ANCHOR_BOTTOM) {
+			absolute += boxHeight;
+		} else if(elementAnchor === ANCHOR_CENTER) {
+			absolute += boxHeight / 2;
+		}
+
+		//Compensate scrolling since getBoundingClientRect is relative to viewport.
+		absolute += _instance.getScrollTop();
+
+		return (absolute + 0.5) | 0;
+	};
+
+	/**
+	 * Animates scroll top to new position.
+	 */
+	Skrollr.prototype.animateTo = function(top, options) {
+		options = options || {};
+
+		var now = _now();
+		var scrollTop = _instance.getScrollTop();
+		var duration = options.duration === undefined ? DEFAULT_DURATION : options.duration;
+
+		//Setting this to a new value will automatically cause the current animation to stop, if any.
+		_scrollAnimation = {
+			startTop: scrollTop,
+			topDiff: top - scrollTop,
+			targetTop: top,
+			duration: duration,
+			startTime: now,
+			endTime: now + duration,
+			easing: easings[options.easing || DEFAULT_EASING],
+			done: options.done
+		};
+
+		//Don't queue the animation if there's nothing to animate.
+		if(!_scrollAnimation.topDiff) {
+			if(_scrollAnimation.done) {
+				_scrollAnimation.done.call(_instance, false);
+			}
+
+			_scrollAnimation = undefined;
+		}
+
+		return _instance;
+	};
+
+	/**
+	 * Stops animateTo animation.
+	 */
+	Skrollr.prototype.stopAnimateTo = function() {
+		if(_scrollAnimation && _scrollAnimation.done) {
+			_scrollAnimation.done.call(_instance, true);
+		}
+
+		_scrollAnimation = undefined;
+	};
+
+	/**
+	 * Returns if an animation caused by animateTo is currently running.
+	 */
+	Skrollr.prototype.isAnimatingTo = function() {
+		return !!_scrollAnimation;
+	};
+
+	Skrollr.prototype.isMobile = function() {
+		return _isMobile;
+	};
+
+	Skrollr.prototype.setScrollTop = function(top, force) {
+		_forceRender = (force === true);
+
+		if(_isMobile) {
+			_mobileOffset = Math.min(Math.max(top, 0), _maxKeyFrame);
+		} else {
+			window.scrollTo(0, top);
+		}
+
+		return _instance;
+	};
+
+	Skrollr.prototype.getScrollTop = function() {
+		if(_isMobile) {
+			return _mobileOffset;
+		} else {
+			return window.pageYOffset || documentElement.scrollTop || body.scrollTop || 0;
+		}
+	};
+
+	Skrollr.prototype.getMaxScrollTop = function() {
+		return _maxKeyFrame;
+	};
+
+	Skrollr.prototype.on = function(name, fn) {
+		_listeners[name] = fn;
+
+		return _instance;
+	};
+
+	Skrollr.prototype.off = function(name) {
+		delete _listeners[name];
+
+		return _instance;
+	};
+
+	Skrollr.prototype.destroy = function() {
+		var cancelAnimFrame = polyfillCAF();
+		cancelAnimFrame(_animFrame);
+		_removeAllEvents();
+
+		_updateClass(documentElement, [NO_SKROLLR_CLASS], [SKROLLR_CLASS, SKROLLR_DESKTOP_CLASS, SKROLLR_MOBILE_CLASS]);
+
+		var skrollableIndex = 0;
+		var skrollablesLength = _skrollables.length;
+
+		for(; skrollableIndex < skrollablesLength; skrollableIndex++) {
+			_reset(_skrollables[skrollableIndex].element);
+		}
+
+		documentElement.style.overflow = body.style.overflow = '';
+		documentElement.style.height = body.style.height = '';
+
+		if(_skrollrBody) {
+			skrollr.setStyle(_skrollrBody, 'transform', 'none');
+		}
+
+		_instance = undefined;
+		_skrollrBody = undefined;
+		_listeners = undefined;
+		_forceHeight = undefined;
+		_maxKeyFrame = 0;
+		_scale = 1;
+		_constants = undefined;
+		_mobileDeceleration = undefined;
+		_direction = 'down';
+		_lastTop = -1;
+		_lastViewportWidth = 0;
+		_lastViewportHeight = 0;
+		_requestReflow = false;
+		_scrollAnimation = undefined;
+		_smoothScrollingEnabled = undefined;
+		_smoothScrollingDuration = undefined;
+		_smoothScrolling = undefined;
+		_forceRender = undefined;
+		_skrollableIdCounter = 0;
+		_edgeStrategy = undefined;
+		_isMobile = false;
+		_mobileOffset = 0;
+		_translateZ = undefined;
+	};
+
+	/*
+		Private methods.
+	*/
+
+	var _initMobile = function() {
+		var initialElement;
+		var initialTouchY;
+		var initialTouchX;
+		var currentElement;
+		var currentTouchY;
+		var currentTouchX;
+		var lastTouchY;
+		var deltaY;
+
+		var initialTouchTime;
+		var currentTouchTime;
+		var lastTouchTime;
+		var deltaTime;
+
+		_addEvent(documentElement, [EVENT_TOUCHSTART, EVENT_TOUCHMOVE, EVENT_TOUCHCANCEL, EVENT_TOUCHEND].join(' '), function(e) {
+			var touch = e.changedTouches[0];
+
+			currentElement = e.target;
+
+			//We don't want text nodes.
+			while(currentElement.nodeType === 3) {
+				currentElement = currentElement.parentNode;
+			}
+
+			currentTouchY = touch.clientY;
+			currentTouchX = touch.clientX;
+			currentTouchTime = e.timeStamp;
+
+			if(!rxTouchIgnoreTags.test(currentElement.tagName)) {
+				e.preventDefault();
+			}
+
+			switch(e.type) {
+				case EVENT_TOUCHSTART:
+					//The last element we tapped on.
+					if(initialElement) {
+						initialElement.blur();
+					}
+
+					_instance.stopAnimateTo();
+
+					initialElement = currentElement;
+
+					initialTouchY = lastTouchY = currentTouchY;
+					initialTouchX = currentTouchX;
+					initialTouchTime = currentTouchTime;
+
+					break;
+				case EVENT_TOUCHMOVE:
+					//Prevent default event on touchIgnore elements in case they don't have focus yet.
+					if(rxTouchIgnoreTags.test(currentElement.tagName) && document.activeElement !== currentElement) {
+						e.preventDefault();
+					}
+
+					deltaY = currentTouchY - lastTouchY;
+					deltaTime = currentTouchTime - lastTouchTime;
+
+					_instance.setScrollTop(_mobileOffset - deltaY, true);
+
+					lastTouchY = currentTouchY;
+					lastTouchTime = currentTouchTime;
+					break;
+				default:
+				case EVENT_TOUCHCANCEL:
+				case EVENT_TOUCHEND:
+					var distanceY = initialTouchY - currentTouchY;
+					var distanceX = initialTouchX - currentTouchX;
+					var distance2 = distanceX * distanceX + distanceY * distanceY;
+
+					//Check if it was more like a tap (moved less than 7px).
+					if(distance2 < 49) {
+						if(!rxTouchIgnoreTags.test(initialElement.tagName)) {
+							initialElement.focus();
+
+							//It was a tap, click the element.
+							var clickEvent = document.createEvent('MouseEvents');
+							clickEvent.initMouseEvent('click', true, true, e.view, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey, 0, null);
+							initialElement.dispatchEvent(clickEvent);
+						}
+
+						return;
+					}
+
+					initialElement = undefined;
+
+					var speed = deltaY / deltaTime;
+
+					//Cap speed at 3 pixel/ms.
+					speed = Math.max(Math.min(speed, 3), -3);
+
+					var duration = Math.abs(speed / _mobileDeceleration);
+					var targetOffset = speed * duration + 0.5 * _mobileDeceleration * duration * duration;
+					var targetTop = _instance.getScrollTop() - targetOffset;
+
+					//Relative duration change for when scrolling above bounds.
+					var targetRatio = 0;
+
+					//Change duration proportionally when scrolling would leave bounds.
+					if(targetTop > _maxKeyFrame) {
+						targetRatio = (_maxKeyFrame - targetTop) / targetOffset;
+
+						targetTop = _maxKeyFrame;
+					} else if(targetTop < 0) {
+						targetRatio = -targetTop / targetOffset;
+
+						targetTop = 0;
+					}
+
+					duration = duration * (1 - targetRatio);
+
+					_instance.animateTo((targetTop + 0.5) | 0, {easing: 'outCubic', duration: duration});
+					break;
+			}
+		});
+
+		//Just in case there has already been some native scrolling, reset it.
+		window.scrollTo(0, 0);
+		documentElement.style.overflow = body.style.overflow = 'hidden';
+	};
+
+	/**
+	 * Updates key frames which depend on others / need to be updated on resize.
+	 * That is "end" in "absolute" mode and all key frames in "relative" mode.
+	 * Also handles constants, because they may change on resize.
+	 */
+	var _updateDependentKeyFrames = function() {
+		var viewportHeight = documentElement.clientHeight;
+		var processedConstants = _processConstants();
+		var skrollable;
+		var element;
+		var anchorTarget;
+		var keyFrames;
+		var keyFrameIndex;
+		var keyFramesLength;
+		var kf;
+		var skrollableIndex;
+		var skrollablesLength;
+		var offset;
+		var constantValue;
+
+		//First process all relative-mode elements and find the max key frame.
+		skrollableIndex = 0;
+		skrollablesLength = _skrollables.length;
+
+		for(; skrollableIndex < skrollablesLength; skrollableIndex++) {
+			skrollable = _skrollables[skrollableIndex];
+			element = skrollable.element;
+			anchorTarget = skrollable.anchorTarget;
+			keyFrames = skrollable.keyFrames;
+
+			keyFrameIndex = 0;
+			keyFramesLength = keyFrames.length;
+
+			for(; keyFrameIndex < keyFramesLength; keyFrameIndex++) {
+				kf = keyFrames[keyFrameIndex];
+
+				offset = kf.offset;
+				constantValue = processedConstants[kf.constant] || 0;
+
+				kf.frame = offset;
+
+				if(kf.isPercentage) {
+					//Convert the offset to percentage of the viewport height.
+					offset = offset * viewportHeight;
+
+					//Absolute + percentage mode.
+					kf.frame = offset;
+				}
+
+				if(kf.mode === 'relative') {
+					_reset(element);
+
+					kf.frame = _instance.relativeToAbsolute(anchorTarget, kf.anchors[0], kf.anchors[1]) - offset;
+
+					_reset(element, true);
+				}
+
+				kf.frame += constantValue;
+
+				//Only search for max key frame when forceHeight is enabled.
+				if(_forceHeight) {
+					//Find the max key frame, but don't use one of the data-end ones for comparison.
+					if(!kf.isEnd && kf.frame > _maxKeyFrame) {
+						_maxKeyFrame = kf.frame;
+					}
+				}
+			}
+		}
+
+		//#133: The document can be larger than the maxKeyFrame we found.
+		_maxKeyFrame = Math.max(_maxKeyFrame, _getDocumentHeight());
+
+		//Now process all data-end keyframes.
+		skrollableIndex = 0;
+		skrollablesLength = _skrollables.length;
+
+		for(; skrollableIndex < skrollablesLength; skrollableIndex++) {
+			skrollable = _skrollables[skrollableIndex];
+			keyFrames = skrollable.keyFrames;
+
+			keyFrameIndex = 0;
+			keyFramesLength = keyFrames.length;
+
+			for(; keyFrameIndex < keyFramesLength; keyFrameIndex++) {
+				kf = keyFrames[keyFrameIndex];
+
+				constantValue = processedConstants[kf.constant] || 0;
+
+				if(kf.isEnd) {
+					kf.frame = _maxKeyFrame - kf.offset + constantValue;
+				}
+			}
+
+			skrollable.keyFrames.sort(_keyFrameComparator);
+		}
+	};
+
+	/**
+	 * Calculates and sets the style properties for the element at the given frame.
+	 * @param fakeFrame The frame to render at when smooth scrolling is enabled.
+	 * @param actualFrame The actual frame we are at.
+	 */
+	var _calcSteps = function(fakeFrame, actualFrame) {
+		//Iterate over all skrollables.
+		var skrollableIndex = 0;
+		var skrollablesLength = _skrollables.length;
+
+		for(; skrollableIndex < skrollablesLength; skrollableIndex++) {
+			var skrollable = _skrollables[skrollableIndex];
+			var element = skrollable.element;
+			var frame = skrollable.smoothScrolling ? fakeFrame : actualFrame;
+			var frames = skrollable.keyFrames;
+			var framesLength = frames.length;
+			var firstFrame = frames[0];
+			var lastFrame = frames[frames.length - 1];
+			var beforeFirst = frame < firstFrame.frame;
+			var afterLast = frame > lastFrame.frame;
+			var firstOrLastFrame = beforeFirst ? firstFrame : lastFrame;
+			var emitEvents = skrollable.emitEvents;
+			var lastFrameIndex = skrollable.lastFrameIndex;
+			var key;
+			var value;
+
+			//If we are before/after the first/last frame, set the styles according to the given edge strategy.
+			if(beforeFirst || afterLast) {
+				//Check if we already handled this edge case last time.
+				//Note: using setScrollTop it's possible that we jumped from one edge to the other.
+				if(beforeFirst && skrollable.edge === -1 || afterLast && skrollable.edge === 1) {
+					continue;
+				}
+
+				//Add the skrollr-before or -after class.
+				if(beforeFirst) {
+					_updateClass(element, [SKROLLABLE_BEFORE_CLASS], [SKROLLABLE_AFTER_CLASS, SKROLLABLE_BETWEEN_CLASS]);
+
+					//This handles the special case where we exit the first keyframe.
+					if(emitEvents && lastFrameIndex > -1) {
+						_emitEvent(element, firstFrame.eventType, _direction);
+						skrollable.lastFrameIndex = -1;
+					}
+				} else {
+					_updateClass(element, [SKROLLABLE_AFTER_CLASS], [SKROLLABLE_BEFORE_CLASS, SKROLLABLE_BETWEEN_CLASS]);
+
+					//This handles the special case where we exit the last keyframe.
+					if(emitEvents && lastFrameIndex < framesLength) {
+						_emitEvent(element, lastFrame.eventType, _direction);
+						skrollable.lastFrameIndex = framesLength;
+					}
+				}
+
+				//Remember that we handled the edge case (before/after the first/last keyframe).
+				skrollable.edge = beforeFirst ? -1 : 1;
+
+				switch(skrollable.edgeStrategy) {
+					case 'reset':
+						_reset(element);
+						continue;
+					case 'ease':
+						//Handle this case like it would be exactly at first/last keyframe and just pass it on.
+						frame = firstOrLastFrame.frame;
+						break;
+					default:
+					case 'set':
+						var props = firstOrLastFrame.props;
+
+						for(key in props) {
+							if(hasProp.call(props, key)) {
+								value = _interpolateString(props[key].value);
+
+								//Set style or attribute.
+								if(key.indexOf('@') === 0) {
+									element.setAttribute(key.substr(1), value);
+								} else {
+									skrollr.setStyle(element, key, value);
+								}
+							}
+						}
+
+						continue;
+				}
+			} else {
+				//Did we handle an edge last time?
+				if(skrollable.edge !== 0) {
+					_updateClass(element, [SKROLLABLE_CLASS, SKROLLABLE_BETWEEN_CLASS], [SKROLLABLE_BEFORE_CLASS, SKROLLABLE_AFTER_CLASS]);
+					skrollable.edge = 0;
+				}
+			}
+
+			//Find out between which two key frames we are right now.
+			var keyFrameIndex = 0;
+
+			for(; keyFrameIndex < framesLength - 1; keyFrameIndex++) {
+				if(frame >= frames[keyFrameIndex].frame && frame <= frames[keyFrameIndex + 1].frame) {
+					var left = frames[keyFrameIndex];
+					var right = frames[keyFrameIndex + 1];
+
+					for(key in left.props) {
+						if(hasProp.call(left.props, key)) {
+							var progress = (frame - left.frame) / (right.frame - left.frame);
+
+							//Transform the current progress using the given easing function.
+							progress = left.props[key].easing(progress);
+
+							//Interpolate between the two values
+							value = _calcInterpolation(left.props[key].value, right.props[key].value, progress);
+
+							value = _interpolateString(value);
+
+							//Set style or attribute.
+							if(key.indexOf('@') === 0) {
+								element.setAttribute(key.substr(1), value);
+							} else {
+								skrollr.setStyle(element, key, value);
+							}
+						}
+					}
+
+					//Are events enabled on this element?
+					//This code handles the usual cases of scrolling through different keyframes.
+					//The special cases of before first and after last keyframe are handled above.
+					if(emitEvents) {
+						//Did we pass a new keyframe?
+						if(lastFrameIndex !== keyFrameIndex) {
+							if(_direction === 'down') {
+								_emitEvent(element, left.eventType, _direction);
+							} else {
+								_emitEvent(element, right.eventType, _direction);
+							}
+
+							skrollable.lastFrameIndex = keyFrameIndex;
+						}
+					}
+
+					break;
+				}
+			}
+		}
+	};
+
+	/**
+	 * Renders all elements.
+	 */
+	var _render = function() {
+		if(_requestReflow) {
+			_requestReflow = false;
+			_reflow();
+		}
+
+		//We may render something else than the actual scrollbar position.
+		var renderTop = _instance.getScrollTop();
+
+		//If there's an animation, which ends in current render call, call the callback after rendering.
+		var afterAnimationCallback;
+		var now = _now();
+		var progress;
+
+		//Before actually rendering handle the scroll animation, if any.
+		if(_scrollAnimation) {
+			//It's over
+			if(now >= _scrollAnimation.endTime) {
+				renderTop = _scrollAnimation.targetTop;
+				afterAnimationCallback = _scrollAnimation.done;
+				_scrollAnimation = undefined;
+			} else {
+				//Map the current progress to the new progress using given easing function.
+				progress = _scrollAnimation.easing((now - _scrollAnimation.startTime) / _scrollAnimation.duration);
+
+				renderTop = (_scrollAnimation.startTop + progress * _scrollAnimation.topDiff) | 0;
+			}
+
+			_instance.setScrollTop(renderTop, true);
+		}
+		//Smooth scrolling only if there's no animation running and if we're not forcing the rendering.
+		else if(!_forceRender) {
+			var smoothScrollingDiff = _smoothScrolling.targetTop - renderTop;
+
+			//The user scrolled, start new smooth scrolling.
+			if(smoothScrollingDiff) {
+				_smoothScrolling = {
+					startTop: _lastTop,
+					topDiff: renderTop - _lastTop,
+					targetTop: renderTop,
+					startTime: _lastRenderCall,
+					endTime: _lastRenderCall + _smoothScrollingDuration
+				};
+			}
+
+			//Interpolate the internal scroll position (not the actual scrollbar).
+			if(now <= _smoothScrolling.endTime) {
+				//Map the current progress to the new progress using easing function.
+				progress = easings.sqrt((now - _smoothScrolling.startTime) / _smoothScrollingDuration);
+
+				renderTop = (_smoothScrolling.startTop + progress * _smoothScrolling.topDiff) | 0;
+			}
+		}
+
+		//Did the scroll position even change?
+		if(_forceRender || _lastTop !== renderTop) {
+			//Remember in which direction are we scrolling?
+			_direction = (renderTop > _lastTop) ? 'down' : (renderTop < _lastTop ? 'up' : _direction);
+
+			_forceRender = false;
+
+			var listenerParams = {
+				curTop: renderTop,
+				lastTop: _lastTop,
+				maxTop: _maxKeyFrame,
+				direction: _direction
+			};
+
+			//Tell the listener we are about to render.
+			var continueRendering = _listeners.beforerender && _listeners.beforerender.call(_instance, listenerParams);
+
+			//The beforerender listener function is able the cancel rendering.
+			if(continueRendering !== false) {
+				//Now actually interpolate all the styles.
+				_calcSteps(renderTop, _instance.getScrollTop());
+
+				//That's were we actually "scroll" on mobile.
+				if(_isMobile && _skrollrBody) {
+					//Set the transform ("scroll it").
+					skrollr.setStyle(_skrollrBody, 'transform', 'translate(0, ' + -(_mobileOffset) + 'px) ' + _translateZ);
+				}
+
+				//Remember when we last rendered.
+				_lastTop = renderTop;
+
+				if(_listeners.render) {
+					_listeners.render.call(_instance, listenerParams);
+				}
+			}
+
+			if(afterAnimationCallback) {
+				afterAnimationCallback.call(_instance, false);
+			}
+		}
+
+		_lastRenderCall = now;
+	};
+
+	/**
+	 * Parses the properties for each key frame of the given skrollable.
+	 */
+	var _parseProps = function(skrollable) {
+		//Iterate over all key frames
+		var keyFrameIndex = 0;
+		var keyFramesLength = skrollable.keyFrames.length;
+
+		for(; keyFrameIndex < keyFramesLength; keyFrameIndex++) {
+			var frame = skrollable.keyFrames[keyFrameIndex];
+			var easing;
+			var value;
+			var prop;
+			var props = {};
+
+			var match;
+
+			while((match = rxPropValue.exec(frame.props)) !== null) {
+				prop = match[1];
+				value = match[2];
+
+				easing = prop.match(rxPropEasing);
+
+				//Is there an easing specified for this prop?
+				if(easing !== null) {
+					prop = easing[1];
+					easing = easing[2];
+				} else {
+					easing = DEFAULT_EASING;
+				}
+
+				//Exclamation point at first position forces the value to be taken literal.
+				value = value.indexOf('!') ? _parseProp(value) : [value.slice(1)];
+
+				//Save the prop for this key frame with his value and easing function
+				props[prop] = {
+					value: value,
+					easing: easings[easing]
+				};
+			}
+
+			frame.props = props;
+		}
+	};
+
+	/**
+	 * Parses a value extracting numeric values and generating a format string
+	 * for later interpolation of the new values in old string.
+	 *
+	 * @param val The CSS value to be parsed.
+	 * @return Something like ["rgba(?%,?%, ?%,?)", 100, 50, 0, .7]
+	 * where the first element is the format string later used
+	 * and all following elements are the numeric value.
+	 */
+	var _parseProp = function(val) {
+		var numbers = [];
+
+		//One special case, where floats don't work.
+		//We replace all occurences of rgba colors
+		//which don't use percentage notation with the percentage notation.
+		rxRGBAIntegerColor.lastIndex = 0;
+		val = val.replace(rxRGBAIntegerColor, function(rgba) {
+			return rgba.replace(rxNumericValue, function(n) {
+				return n / 255 * 100 + '%';
+			});
+		});
+
+		//Handle prefixing of "gradient" values.
+		//For now only the prefixed value will be set. Unprefixed isn't supported anyway.
+		if(theDashedCSSPrefix) {
+			rxGradient.lastIndex = 0;
+			val = val.replace(rxGradient, function(s) {
+				return theDashedCSSPrefix + s;
+			});
+		}
+
+		//Now parse ANY number inside this string and create a format string.
+		val = val.replace(rxNumericValue, function(n) {
+			numbers.push(+n);
+			return '{?}';
+		});
+
+		//Add the formatstring as first value.
+		numbers.unshift(val);
+
+		return numbers;
+	};
+
+	/**
+	 * Fills the key frames with missing left and right hand properties.
+	 * If key frame 1 has property X and key frame 2 is missing X,
+	 * but key frame 3 has X again, then we need to assign X to key frame 2 too.
+	 *
+	 * @param sk A skrollable.
+	 */
+	var _fillProps = function(sk) {
+		//Will collect the properties key frame by key frame
+		var propList = {};
+		var keyFrameIndex;
+		var keyFramesLength;
+
+		//Iterate over all key frames from left to right
+		keyFrameIndex = 0;
+		keyFramesLength = sk.keyFrames.length;
+
+		for(; keyFrameIndex < keyFramesLength; keyFrameIndex++) {
+			_fillPropForFrame(sk.keyFrames[keyFrameIndex], propList);
+		}
+
+		//Now do the same from right to fill the last gaps
+
+		propList = {};
+
+		//Iterate over all key frames from right to left
+		keyFrameIndex = sk.keyFrames.length - 1;
+
+		for(; keyFrameIndex >= 0; keyFrameIndex--) {
+			_fillPropForFrame(sk.keyFrames[keyFrameIndex], propList);
+		}
+	};
+
+	var _fillPropForFrame = function(frame, propList) {
+		var key;
+
+		//For each key frame iterate over all right hand properties and assign them,
+		//but only if the current key frame doesn't have the property by itself
+		for(key in propList) {
+			//The current frame misses this property, so assign it.
+			if(!hasProp.call(frame.props, key)) {
+				frame.props[key] = propList[key];
+			}
+		}
+
+		//Iterate over all props of the current frame and collect them
+		for(key in frame.props) {
+			propList[key] = frame.props[key];
+		}
+	};
+
+	/**
+	 * Calculates the new values for two given values array.
+	 */
+	var _calcInterpolation = function(val1, val2, progress) {
+		var valueIndex;
+		var val1Length = val1.length;
+
+		//They both need to have the same length
+		if(val1Length !== val2.length) {
+			throw 'Can\'t interpolate between "' + val1[0] + '" and "' + val2[0] + '"';
+		}
+
+		//Add the format string as first element.
+		var interpolated = [val1[0]];
+
+		valueIndex = 1;
+
+		for(; valueIndex < val1Length; valueIndex++) {
+			//That's the line where the two numbers are actually interpolated.
+			interpolated[valueIndex] = val1[valueIndex] + ((val2[valueIndex] - val1[valueIndex]) * progress);
+		}
+
+		return interpolated;
+	};
+
+	/**
+	 * Interpolates the numeric values into the format string.
+	 */
+	var _interpolateString = function(val) {
+		var valueIndex = 1;
+
+		rxInterpolateString.lastIndex = 0;
+
+		return val[0].replace(rxInterpolateString, function() {
+			return val[valueIndex++];
+		});
+	};
+
+	/**
+	 * Resets the class and style attribute to what it was before skrollr manipulated the element.
+	 * Also remembers the values it had before reseting, in order to undo the reset.
+	 */
+	var _reset = function(elements, undo) {
+		//We accept a single element or an array of elements.
+		elements = [].concat(elements);
+
+		var skrollable;
+		var element;
+		var elementsIndex = 0;
+		var elementsLength = elements.length;
+
+		for(; elementsIndex < elementsLength; elementsIndex++) {
+			element = elements[elementsIndex];
+			skrollable = _skrollables[element[SKROLLABLE_ID_DOM_PROPERTY]];
+
+			//Couldn't find the skrollable for this DOM element.
+			if(!skrollable) {
+				continue;
+			}
+
+			if(undo) {
+				//Reset class and style to the "dirty" (set by skrollr) values.
+				element.style.cssText = skrollable.dirtyStyleAttr;
+				_updateClass(element, skrollable.dirtyClassAttr);
+			} else {
+				//Remember the "dirty" (set by skrollr) class and style.
+				skrollable.dirtyStyleAttr = element.style.cssText;
+				skrollable.dirtyClassAttr = _getClass(element);
+
+				//Reset class and style to what it originally was.
+				element.style.cssText = skrollable.styleAttr;
+				_updateClass(element, skrollable.classAttr);
+			}
+		}
+	};
+
+	/**
+	 * Detects support for 3d transforms by applying it to the skrollr-body.
+	 */
+	var _detect3DTransforms = function() {
+		_translateZ = 'translateZ(0)';
+		skrollr.setStyle(_skrollrBody, 'transform', _translateZ);
+
+		var computedStyle = getStyle(_skrollrBody);
+		var computedTransform = computedStyle.getPropertyValue('transform');
+		var computedTransformWithPrefix = computedStyle.getPropertyValue(theDashedCSSPrefix + 'transform');
+		var has3D = (computedTransform && computedTransform !== 'none') || (computedTransformWithPrefix && computedTransformWithPrefix !== 'none');
+
+		if(!has3D) {
+			_translateZ = '';
+		}
+	};
+
+	/**
+	 * Set the CSS property on the given element. Sets prefixed properties as well.
+	 */
+	skrollr.setStyle = function(el, prop, val) {
+		var style = el.style;
+
+		//Camel case.
+		prop = prop.replace(rxCamelCase, rxCamelCaseFn).replace('-', '');
+
+		//Make sure z-index gets a <integer>.
+		//This is the only <integer> case we need to handle.
+		if(prop === 'zIndex') {
+			if(isNaN(val)) {
+				//If it's not a number, don't touch it.
+				//It could for example be "auto" (#351).
+				style[prop] = val;
+			} else {
+				//Floor the number.
+				style[prop] = '' + (val | 0);
+			}
+		}
+		//#64: "float" can't be set across browsers. Needs to use "cssFloat" for all except IE.
+		else if(prop === 'float') {
+			style.styleFloat = style.cssFloat = val;
+		}
+		else {
+			//Need try-catch for old IE.
+			try {
+				//Set prefixed property if there's a prefix.
+				if(theCSSPrefix) {
+					style[theCSSPrefix + prop.slice(0,1).toUpperCase() + prop.slice(1)] = val;
+				}
+
+				//Set unprefixed.
+				style[prop] = val;
+			} catch(ignore) {}
+		}
+	};
+
+	/**
+	 * Cross browser event handling.
+	 */
+	var _addEvent = skrollr.addEvent = function(element, names, callback) {
+		var intermediate = function(e) {
+			//Normalize IE event stuff.
+			e = e || window.event;
+
+			if(!e.target) {
+				e.target = e.srcElement;
+			}
+
+			if(!e.preventDefault) {
+				e.preventDefault = function() {
+					e.returnValue = false;
+					e.defaultPrevented = true;
+				};
+			}
+
+			return callback.call(this, e);
+		};
+
+		names = names.split(' ');
+
+		var name;
+		var nameCounter = 0;
+		var namesLength = names.length;
+
+		for(; nameCounter < namesLength; nameCounter++) {
+			name = names[nameCounter];
+
+			if(element.addEventListener) {
+				element.addEventListener(name, callback, false);
+			} else {
+				element.attachEvent('on' + name, intermediate);
+			}
+
+			//Remember the events to be able to flush them later.
+			_registeredEvents.push({
+				element: element,
+				name: name,
+				listener: callback
+			});
+		}
+	};
+
+	var _removeEvent = skrollr.removeEvent = function(element, names, callback) {
+		names = names.split(' ');
+
+		var nameCounter = 0;
+		var namesLength = names.length;
+
+		for(; nameCounter < namesLength; nameCounter++) {
+			if(element.removeEventListener) {
+				element.removeEventListener(names[nameCounter], callback, false);
+			} else {
+				element.detachEvent('on' + names[nameCounter], callback);
+			}
+		}
+	};
+
+	var _removeAllEvents = function() {
+		var eventData;
+		var eventCounter = 0;
+		var eventsLength = _registeredEvents.length;
+
+		for(; eventCounter < eventsLength; eventCounter++) {
+			eventData = _registeredEvents[eventCounter];
+
+			_removeEvent(eventData.element, eventData.name, eventData.listener);
+		}
+
+		_registeredEvents = [];
+	};
+
+	var _emitEvent = function(element, name, direction) {
+		if(_listeners.keyframe) {
+			_listeners.keyframe.call(_instance, element, name, direction);
+		}
+	};
+
+	var _reflow = function() {
+		var pos = _instance.getScrollTop();
+
+		//Will be recalculated by _updateDependentKeyFrames.
+		_maxKeyFrame = 0;
+
+		if(_forceHeight && !_isMobile) {
+			//un-"force" the height to not mess with the calculations in _updateDependentKeyFrames (#216).
+			body.style.height = '';
+		}
+
+		_updateDependentKeyFrames();
+
+		if(_forceHeight && !_isMobile) {
+			//"force" the height.
+			body.style.height = (_maxKeyFrame + documentElement.clientHeight) + 'px';
+		}
+
+		//The scroll offset may now be larger than needed (on desktop the browser/os prevents scrolling farther than the bottom).
+		if(_isMobile) {
+			_instance.setScrollTop(Math.min(_instance.getScrollTop(), _maxKeyFrame));
+		} else {
+			//Remember and reset the scroll pos (#217).
+			_instance.setScrollTop(pos, true);
+		}
+
+		_forceRender = true;
+	};
+
+	/*
+	 * Returns a copy of the constants object where all functions and strings have been evaluated.
+	 */
+	var _processConstants = function() {
+		var viewportHeight = documentElement.clientHeight;
+		var copy = {};
+		var prop;
+		var value;
+
+		for(prop in _constants) {
+			value = _constants[prop];
+
+			if(typeof value === 'function') {
+				value = value.call(_instance);
+			}
+			//Percentage offset.
+			else if((/p$/).test(value)) {
+				value = (value.slice(0, -1) / 100) * viewportHeight;
+			}
+
+			copy[prop] = value;
+		}
+
+		return copy;
+	};
+
+	/*
+	 * Returns the height of the document.
+	 */
+	var _getDocumentHeight = function() {
+		var skrollrBodyHeight = 0;
+		var bodyHeight;
+
+		if(_skrollrBody) {
+			skrollrBodyHeight = Math.max(_skrollrBody.offsetHeight, _skrollrBody.scrollHeight);
+		}
+
+		bodyHeight = Math.max(skrollrBodyHeight, body.scrollHeight, body.offsetHeight, documentElement.scrollHeight, documentElement.offsetHeight, documentElement.clientHeight);
+
+		return bodyHeight - documentElement.clientHeight;
+	};
+
+	/**
+	 * Returns a string of space separated classnames for the current element.
+	 * Works with SVG as well.
+	 */
+	var _getClass = function(element) {
+		var prop = 'className';
+
+		//SVG support by using className.baseVal instead of just className.
+		if(window.SVGElement && element instanceof window.SVGElement) {
+			element = element[prop];
+			prop = 'baseVal';
+		}
+
+		return element[prop];
+	};
+
+	/**
+	 * Adds and removes a CSS classes.
+	 * Works with SVG as well.
+	 * add and remove are arrays of strings,
+	 * or if remove is ommited add is a string and overwrites all classes.
+	 */
+	var _updateClass = function(element, add, remove) {
+		var prop = 'className';
+
+		//SVG support by using className.baseVal instead of just className.
+		if(window.SVGElement && element instanceof window.SVGElement) {
+			element = element[prop];
+			prop = 'baseVal';
+		}
+
+		//When remove is ommited, we want to overwrite/set the classes.
+		if(remove === undefined) {
+			element[prop] = add;
+			return;
+		}
+
+		//Cache current classes. We will work on a string before passing back to DOM.
+		var val = element[prop];
+
+		//All classes to be removed.
+		var classRemoveIndex = 0;
+		var removeLength = remove.length;
+
+		for(; classRemoveIndex < removeLength; classRemoveIndex++) {
+			val = _untrim(val).replace(_untrim(remove[classRemoveIndex]), ' ');
+		}
+
+		val = _trim(val);
+
+		//All classes to be added.
+		var classAddIndex = 0;
+		var addLength = add.length;
+
+		for(; classAddIndex < addLength; classAddIndex++) {
+			//Only add if el not already has class.
+			if(_untrim(val).indexOf(_untrim(add[classAddIndex])) === -1) {
+				val += ' ' + add[classAddIndex];
+			}
+		}
+
+		element[prop] = _trim(val);
+	};
+
+	var _trim = function(a) {
+		return a.replace(rxTrim, '');
+	};
+
+	/**
+	 * Adds a space before and after the string.
+	 */
+	var _untrim = function(a) {
+		return ' ' + a + ' ';
+	};
+
+	var _now = Date.now || function() {
+		return +new Date();
+	};
+
+	var _keyFrameComparator = function(a, b) {
+		return a.frame - b.frame;
+	};
+
+	/*
+	 * Private variables.
+	 */
+
+	//Singleton
+	var _instance;
+
+	/*
+		A list of all elements which should be animated associated with their the metadata.
+		Exmaple skrollable with two key frames animating from 100px width to 20px:
+
+		skrollable = {
+			element: <the DOM element>,
+			styleAttr: <style attribute of the element before skrollr>,
+			classAttr: <class attribute of the element before skrollr>,
+			keyFrames: [
+				{
+					frame: 100,
+					props: {
+						width: {
+							value: ['{?}px', 100],
+							easing: <reference to easing function>
+						}
+					},
+					mode: "absolute"
+				},
+				{
+					frame: 200,
+					props: {
+						width: {
+							value: ['{?}px', 20],
+							easing: <reference to easing function>
+						}
+					},
+					mode: "absolute"
+				}
+			]
+		};
+	*/
+	var _skrollables;
+
+	var _skrollrBody;
+
+	var _listeners;
+	var _forceHeight;
+	var _maxKeyFrame = 0;
+
+	var _scale = 1;
+	var _constants;
+
+	var _mobileDeceleration;
+
+	//Current direction (up/down).
+	var _direction = 'down';
+
+	//The last top offset value. Needed to determine direction.
+	var _lastTop = -1;
+
+	//The last time we called the render method (doesn't mean we rendered!).
+	var _lastRenderCall = _now();
+
+	//For detecting if it actually resized (#271).
+	var _lastViewportWidth = 0;
+	var _lastViewportHeight = 0;
+
+	var _requestReflow = false;
+
+	//Will contain data about a running scrollbar animation, if any.
+	var _scrollAnimation;
+
+	var _smoothScrollingEnabled;
+
+	var _smoothScrollingDuration;
+
+	//Will contain settins for smooth scrolling if enabled.
+	var _smoothScrolling;
+
+	//Can be set by any operation/event to force rendering even if the scrollbar didn't move.
+	var _forceRender;
+
+	//Each skrollable gets an unique ID incremented for each skrollable.
+	//The ID is the index in the _skrollables array.
+	var _skrollableIdCounter = 0;
+
+	var _edgeStrategy;
+
+
+	//Mobile specific vars. Will be stripped by UglifyJS when not in use.
+	var _isMobile = false;
+
+	//The virtual scroll offset when using mobile scrolling.
+	var _mobileOffset = 0;
+
+	//If the browser supports 3d transforms, this will be filled with 'translateZ(0)' (empty string otherwise).
+	var _translateZ;
+
+	//Will contain data about registered events by skrollr.
+	var _registeredEvents = [];
+
+	//Animation frame id returned by RequestAnimationFrame (or timeout when RAF is not supported).
+	var _animFrame;
+
+	//Expose skrollr as either a global variable or a require.js module.
+	if(typeof define === 'function' && define.amd) {
+		define([], function () {
+			return skrollr;
+		});
+	} else if (typeof module !== 'undefined' && module.exports) {
+		module.exports = skrollr;
+	} else {
+		window.skrollr = skrollr;
+	}
+
+}(window, document));
+
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+/*!
+ * Bootstrap v3.3.7 (http://getbootstrap.com)
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */
+
+/*!
+ * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=918c95fec99b73e8a82e534fd56fc8c8)
+ * Config saved to config.json and https://gist.github.com/918c95fec99b73e8a82e534fd56fc8c8
+ */
+if (typeof jQuery === 'undefined') {
+  throw new Error('Bootstrap\'s JavaScript requires jQuery');
+}
++function ($) {
+  'use strict';
+
+  var version = $.fn.jquery.split(' ')[0].split('.');
+  if (version[0] < 2 && version[1] < 9 || version[0] == 1 && version[1] == 9 && version[2] < 1 || version[0] > 3) {
+    throw new Error('Bootstrap\'s JavaScript requires jQuery version 1.9.1 or higher, but lower than version 4');
+  }
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: alert.js v3.3.7
+ * http://getbootstrap.com/javascript/#alerts
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // ALERT CLASS DEFINITION
+  // ======================
+
+  var dismiss = '[data-dismiss="alert"]';
+  var Alert = function Alert(el) {
+    $(el).on('click', dismiss, this.close);
+  };
+
+  Alert.VERSION = '3.3.7';
+
+  Alert.TRANSITION_DURATION = 150;
+
+  Alert.prototype.close = function (e) {
+    var $this = $(this);
+    var selector = $this.attr('data-target');
+
+    if (!selector) {
+      selector = $this.attr('href');
+      selector = selector && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
+    }
+
+    var $parent = $(selector === '#' ? [] : selector);
+
+    if (e) e.preventDefault();
+
+    if (!$parent.length) {
+      $parent = $this.closest('.alert');
+    }
+
+    $parent.trigger(e = $.Event('close.bs.alert'));
+
+    if (e.isDefaultPrevented()) return;
+
+    $parent.removeClass('in');
+
+    function removeElement() {
+      // detach from parent, fire event then clean up data
+      $parent.detach().trigger('closed.bs.alert').remove();
+    }
+
+    $.support.transition && $parent.hasClass('fade') ? $parent.one('bsTransitionEnd', removeElement).emulateTransitionEnd(Alert.TRANSITION_DURATION) : removeElement();
+  };
+
+  // ALERT PLUGIN DEFINITION
+  // =======================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.alert');
+
+      if (!data) $this.data('bs.alert', data = new Alert(this));
+      if (typeof option == 'string') data[option].call($this);
+    });
+  }
+
+  var old = $.fn.alert;
+
+  $.fn.alert = Plugin;
+  $.fn.alert.Constructor = Alert;
+
+  // ALERT NO CONFLICT
+  // =================
+
+  $.fn.alert.noConflict = function () {
+    $.fn.alert = old;
+    return this;
+  };
+
+  // ALERT DATA-API
+  // ==============
+
+  $(document).on('click.bs.alert.data-api', dismiss, Alert.prototype.close);
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: button.js v3.3.7
+ * http://getbootstrap.com/javascript/#buttons
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // BUTTON PUBLIC CLASS DEFINITION
+  // ==============================
+
+  var Button = function Button(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, Button.DEFAULTS, options);
+    this.isLoading = false;
+  };
+
+  Button.VERSION = '3.3.7';
+
+  Button.DEFAULTS = {
+    loadingText: 'loading...'
+  };
+
+  Button.prototype.setState = function (state) {
+    var d = 'disabled';
+    var $el = this.$element;
+    var val = $el.is('input') ? 'val' : 'html';
+    var data = $el.data();
+
+    state += 'Text';
+
+    if (data.resetText == null) $el.data('resetText', $el[val]());
+
+    // push to event loop to allow forms to submit
+    setTimeout($.proxy(function () {
+      $el[val](data[state] == null ? this.options[state] : data[state]);
+
+      if (state == 'loadingText') {
+        this.isLoading = true;
+        $el.addClass(d).attr(d, d).prop(d, true);
+      } else if (this.isLoading) {
+        this.isLoading = false;
+        $el.removeClass(d).removeAttr(d).prop(d, false);
+      }
+    }, this), 0);
+  };
+
+  Button.prototype.toggle = function () {
+    var changed = true;
+    var $parent = this.$element.closest('[data-toggle="buttons"]');
+
+    if ($parent.length) {
+      var $input = this.$element.find('input');
+      if ($input.prop('type') == 'radio') {
+        if ($input.prop('checked')) changed = false;
+        $parent.find('.active').removeClass('active');
+        this.$element.addClass('active');
+      } else if ($input.prop('type') == 'checkbox') {
+        if ($input.prop('checked') !== this.$element.hasClass('active')) changed = false;
+        this.$element.toggleClass('active');
+      }
+      $input.prop('checked', this.$element.hasClass('active'));
+      if (changed) $input.trigger('change');
+    } else {
+      this.$element.attr('aria-pressed', !this.$element.hasClass('active'));
+      this.$element.toggleClass('active');
+    }
+  };
+
+  // BUTTON PLUGIN DEFINITION
+  // ========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.button');
+      var options = (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option;
+
+      if (!data) $this.data('bs.button', data = new Button(this, options));
+
+      if (option == 'toggle') data.toggle();else if (option) data.setState(option);
+    });
+  }
+
+  var old = $.fn.button;
+
+  $.fn.button = Plugin;
+  $.fn.button.Constructor = Button;
+
+  // BUTTON NO CONFLICT
+  // ==================
+
+  $.fn.button.noConflict = function () {
+    $.fn.button = old;
+    return this;
+  };
+
+  // BUTTON DATA-API
+  // ===============
+
+  $(document).on('click.bs.button.data-api', '[data-toggle^="button"]', function (e) {
+    var $btn = $(e.target).closest('.btn');
+    Plugin.call($btn, 'toggle');
+    if (!$(e.target).is('input[type="radio"], input[type="checkbox"]')) {
+      // Prevent double click on radios, and the double selections (so cancellation) on checkboxes
+      e.preventDefault();
+      // The target component still receive the focus
+      if ($btn.is('input,button')) $btn.trigger('focus');else $btn.find('input:visible,button:visible').first().trigger('focus');
+    }
+  }).on('focus.bs.button.data-api blur.bs.button.data-api', '[data-toggle^="button"]', function (e) {
+    $(e.target).closest('.btn').toggleClass('focus', /^focus(in)?$/.test(e.type));
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: carousel.js v3.3.7
+ * http://getbootstrap.com/javascript/#carousel
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // CAROUSEL CLASS DEFINITION
+  // =========================
+
+  var Carousel = function Carousel(element, options) {
+    this.$element = $(element);
+    this.$indicators = this.$element.find('.carousel-indicators');
+    this.options = options;
+    this.paused = null;
+    this.sliding = null;
+    this.interval = null;
+    this.$active = null;
+    this.$items = null;
+
+    this.options.keyboard && this.$element.on('keydown.bs.carousel', $.proxy(this.keydown, this));
+
+    this.options.pause == 'hover' && !('ontouchstart' in document.documentElement) && this.$element.on('mouseenter.bs.carousel', $.proxy(this.pause, this)).on('mouseleave.bs.carousel', $.proxy(this.cycle, this));
+  };
+
+  Carousel.VERSION = '3.3.7';
+
+  Carousel.TRANSITION_DURATION = 600;
+
+  Carousel.DEFAULTS = {
+    interval: 5000,
+    pause: 'hover',
+    wrap: true,
+    keyboard: true
+  };
+
+  Carousel.prototype.keydown = function (e) {
+    if (/input|textarea/i.test(e.target.tagName)) return;
+    switch (e.which) {
+      case 37:
+        this.prev();break;
+      case 39:
+        this.next();break;
+      default:
+        return;
+    }
+
+    e.preventDefault();
+  };
+
+  Carousel.prototype.cycle = function (e) {
+    e || (this.paused = false);
+
+    this.interval && clearInterval(this.interval);
+
+    this.options.interval && !this.paused && (this.interval = setInterval($.proxy(this.next, this), this.options.interval));
+
+    return this;
+  };
+
+  Carousel.prototype.getItemIndex = function (item) {
+    this.$items = item.parent().children('.item');
+    return this.$items.index(item || this.$active);
+  };
+
+  Carousel.prototype.getItemForDirection = function (direction, active) {
+    var activeIndex = this.getItemIndex(active);
+    var willWrap = direction == 'prev' && activeIndex === 0 || direction == 'next' && activeIndex == this.$items.length - 1;
+    if (willWrap && !this.options.wrap) return active;
+    var delta = direction == 'prev' ? -1 : 1;
+    var itemIndex = (activeIndex + delta) % this.$items.length;
+    return this.$items.eq(itemIndex);
+  };
+
+  Carousel.prototype.to = function (pos) {
+    var that = this;
+    var activeIndex = this.getItemIndex(this.$active = this.$element.find('.item.active'));
+
+    if (pos > this.$items.length - 1 || pos < 0) return;
+
+    if (this.sliding) return this.$element.one('slid.bs.carousel', function () {
+      that.to(pos);
+    }); // yes, "slid"
+    if (activeIndex == pos) return this.pause().cycle();
+
+    return this.slide(pos > activeIndex ? 'next' : 'prev', this.$items.eq(pos));
+  };
+
+  Carousel.prototype.pause = function (e) {
+    e || (this.paused = true);
+
+    if (this.$element.find('.next, .prev').length && $.support.transition) {
+      this.$element.trigger($.support.transition.end);
+      this.cycle(true);
+    }
+
+    this.interval = clearInterval(this.interval);
+
+    return this;
+  };
+
+  Carousel.prototype.next = function () {
+    if (this.sliding) return;
+    return this.slide('next');
+  };
+
+  Carousel.prototype.prev = function () {
+    if (this.sliding) return;
+    return this.slide('prev');
+  };
+
+  Carousel.prototype.slide = function (type, next) {
+    var $active = this.$element.find('.item.active');
+    var $next = next || this.getItemForDirection(type, $active);
+    var isCycling = this.interval;
+    var direction = type == 'next' ? 'left' : 'right';
+    var that = this;
+
+    if ($next.hasClass('active')) return this.sliding = false;
+
+    var relatedTarget = $next[0];
+    var slideEvent = $.Event('slide.bs.carousel', {
+      relatedTarget: relatedTarget,
+      direction: direction
+    });
+    this.$element.trigger(slideEvent);
+    if (slideEvent.isDefaultPrevented()) return;
+
+    this.sliding = true;
+
+    isCycling && this.pause();
+
+    if (this.$indicators.length) {
+      this.$indicators.find('.active').removeClass('active');
+      var $nextIndicator = $(this.$indicators.children()[this.getItemIndex($next)]);
+      $nextIndicator && $nextIndicator.addClass('active');
+    }
+
+    var slidEvent = $.Event('slid.bs.carousel', { relatedTarget: relatedTarget, direction: direction }); // yes, "slid"
+    if ($.support.transition && this.$element.hasClass('slide')) {
+      $next.addClass(type);
+      $next[0].offsetWidth; // force reflow
+      $active.addClass(direction);
+      $next.addClass(direction);
+      $active.one('bsTransitionEnd', function () {
+        $next.removeClass([type, direction].join(' ')).addClass('active');
+        $active.removeClass(['active', direction].join(' '));
+        that.sliding = false;
+        setTimeout(function () {
+          that.$element.trigger(slidEvent);
+        }, 0);
+      }).emulateTransitionEnd(Carousel.TRANSITION_DURATION);
+    } else {
+      $active.removeClass('active');
+      $next.addClass('active');
+      this.sliding = false;
+      this.$element.trigger(slidEvent);
+    }
+
+    isCycling && this.cycle();
+
+    return this;
+  };
+
+  // CAROUSEL PLUGIN DEFINITION
+  // ==========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.carousel');
+      var options = $.extend({}, Carousel.DEFAULTS, $this.data(), (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option);
+      var action = typeof option == 'string' ? option : options.slide;
+
+      if (!data) $this.data('bs.carousel', data = new Carousel(this, options));
+      if (typeof option == 'number') data.to(option);else if (action) data[action]();else if (options.interval) data.pause().cycle();
+    });
+  }
+
+  var old = $.fn.carousel;
+
+  $.fn.carousel = Plugin;
+  $.fn.carousel.Constructor = Carousel;
+
+  // CAROUSEL NO CONFLICT
+  // ====================
+
+  $.fn.carousel.noConflict = function () {
+    $.fn.carousel = old;
+    return this;
+  };
+
+  // CAROUSEL DATA-API
+  // =================
+
+  var clickHandler = function clickHandler(e) {
+    var href;
+    var $this = $(this);
+    var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')); // strip for ie7
+    if (!$target.hasClass('carousel')) return;
+    var options = $.extend({}, $target.data(), $this.data());
+    var slideIndex = $this.attr('data-slide-to');
+    if (slideIndex) options.interval = false;
+
+    Plugin.call($target, options);
+
+    if (slideIndex) {
+      $target.data('bs.carousel').to(slideIndex);
+    }
+
+    e.preventDefault();
+  };
+
+  $(document).on('click.bs.carousel.data-api', '[data-slide]', clickHandler).on('click.bs.carousel.data-api', '[data-slide-to]', clickHandler);
+
+  $(window).on('load', function () {
+    $('[data-ride="carousel"]').each(function () {
+      var $carousel = $(this);
+      Plugin.call($carousel, $carousel.data());
+    });
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: dropdown.js v3.3.7
+ * http://getbootstrap.com/javascript/#dropdowns
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // DROPDOWN CLASS DEFINITION
+  // =========================
+
+  var backdrop = '.dropdown-backdrop';
+  var toggle = '[data-toggle="dropdown"]';
+  var Dropdown = function Dropdown(element) {
+    $(element).on('click.bs.dropdown', this.toggle);
+  };
+
+  Dropdown.VERSION = '3.3.7';
+
+  function getParent($this) {
+    var selector = $this.attr('data-target');
+
+    if (!selector) {
+      selector = $this.attr('href');
+      selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
+    }
+
+    var $parent = selector && $(selector);
+
+    return $parent && $parent.length ? $parent : $this.parent();
+  }
+
+  function clearMenus(e) {
+    if (e && e.which === 3) return;
+    $(backdrop).remove();
+    $(toggle).each(function () {
+      var $this = $(this);
+      var $parent = getParent($this);
+      var relatedTarget = { relatedTarget: this };
+
+      if (!$parent.hasClass('open')) return;
+
+      if (e && e.type == 'click' && /input|textarea/i.test(e.target.tagName) && $.contains($parent[0], e.target)) return;
+
+      $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget));
+
+      if (e.isDefaultPrevented()) return;
+
+      $this.attr('aria-expanded', 'false');
+      $parent.removeClass('open').trigger($.Event('hidden.bs.dropdown', relatedTarget));
+    });
+  }
+
+  Dropdown.prototype.toggle = function (e) {
+    var $this = $(this);
+
+    if ($this.is('.disabled, :disabled')) return;
+
+    var $parent = getParent($this);
+    var isActive = $parent.hasClass('open');
+
+    clearMenus();
+
+    if (!isActive) {
+      if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
+        // if mobile we use a backdrop because click events don't delegate
+        $(document.createElement('div')).addClass('dropdown-backdrop').insertAfter($(this)).on('click', clearMenus);
+      }
+
+      var relatedTarget = { relatedTarget: this };
+      $parent.trigger(e = $.Event('show.bs.dropdown', relatedTarget));
+
+      if (e.isDefaultPrevented()) return;
+
+      $this.trigger('focus').attr('aria-expanded', 'true');
+
+      $parent.toggleClass('open').trigger($.Event('shown.bs.dropdown', relatedTarget));
+    }
+
+    return false;
+  };
+
+  Dropdown.prototype.keydown = function (e) {
+    if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return;
+
+    var $this = $(this);
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if ($this.is('.disabled, :disabled')) return;
+
+    var $parent = getParent($this);
+    var isActive = $parent.hasClass('open');
+
+    if (!isActive && e.which != 27 || isActive && e.which == 27) {
+      if (e.which == 27) $parent.find(toggle).trigger('focus');
+      return $this.trigger('click');
+    }
+
+    var desc = ' li:not(.disabled):visible a';
+    var $items = $parent.find('.dropdown-menu' + desc);
+
+    if (!$items.length) return;
+
+    var index = $items.index(e.target);
+
+    if (e.which == 38 && index > 0) index--; // up
+    if (e.which == 40 && index < $items.length - 1) index++; // down
+    if (!~index) index = 0;
+
+    $items.eq(index).trigger('focus');
+  };
+
+  // DROPDOWN PLUGIN DEFINITION
+  // ==========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.dropdown');
+
+      if (!data) $this.data('bs.dropdown', data = new Dropdown(this));
+      if (typeof option == 'string') data[option].call($this);
+    });
+  }
+
+  var old = $.fn.dropdown;
+
+  $.fn.dropdown = Plugin;
+  $.fn.dropdown.Constructor = Dropdown;
+
+  // DROPDOWN NO CONFLICT
+  // ====================
+
+  $.fn.dropdown.noConflict = function () {
+    $.fn.dropdown = old;
+    return this;
+  };
+
+  // APPLY TO STANDARD DROPDOWN ELEMENTS
+  // ===================================
+
+  $(document).on('click.bs.dropdown.data-api', clearMenus).on('click.bs.dropdown.data-api', '.dropdown form', function (e) {
+    e.stopPropagation();
+  }).on('click.bs.dropdown.data-api', toggle, Dropdown.prototype.toggle).on('keydown.bs.dropdown.data-api', toggle, Dropdown.prototype.keydown).on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown);
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: modal.js v3.3.7
+ * http://getbootstrap.com/javascript/#modals
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // MODAL CLASS DEFINITION
+  // ======================
+
+  var Modal = function Modal(element, options) {
+    this.options = options;
+    this.$body = $(document.body);
+    this.$element = $(element);
+    this.$dialog = this.$element.find('.modal-dialog');
+    this.$backdrop = null;
+    this.isShown = null;
+    this.originalBodyPad = null;
+    this.scrollbarWidth = 0;
+    this.ignoreBackdropClick = false;
+
+    if (this.options.remote) {
+      this.$element.find('.modal-content').load(this.options.remote, $.proxy(function () {
+        this.$element.trigger('loaded.bs.modal');
+      }, this));
+    }
+  };
+
+  Modal.VERSION = '3.3.7';
+
+  Modal.TRANSITION_DURATION = 300;
+  Modal.BACKDROP_TRANSITION_DURATION = 150;
+
+  Modal.DEFAULTS = {
+    backdrop: true,
+    keyboard: true,
+    show: true
+  };
+
+  Modal.prototype.toggle = function (_relatedTarget) {
+    return this.isShown ? this.hide() : this.show(_relatedTarget);
+  };
+
+  Modal.prototype.show = function (_relatedTarget) {
+    var that = this;
+    var e = $.Event('show.bs.modal', { relatedTarget: _relatedTarget });
+
+    this.$element.trigger(e);
+
+    if (this.isShown || e.isDefaultPrevented()) return;
+
+    this.isShown = true;
+
+    this.checkScrollbar();
+    this.setScrollbar();
+    this.$body.addClass('modal-open');
+
+    this.escape();
+    this.resize();
+
+    this.$element.on('click.dismiss.bs.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this));
+
+    this.$dialog.on('mousedown.dismiss.bs.modal', function () {
+      that.$element.one('mouseup.dismiss.bs.modal', function (e) {
+        if ($(e.target).is(that.$element)) that.ignoreBackdropClick = true;
+      });
+    });
+
+    this.backdrop(function () {
+      var transition = $.support.transition && that.$element.hasClass('fade');
+
+      if (!that.$element.parent().length) {
+        that.$element.appendTo(that.$body); // don't move modals dom position
+      }
+
+      that.$element.show().scrollTop(0);
+
+      that.adjustDialog();
+
+      if (transition) {
+        that.$element[0].offsetWidth; // force reflow
+      }
+
+      that.$element.addClass('in');
+
+      that.enforceFocus();
+
+      var e = $.Event('shown.bs.modal', { relatedTarget: _relatedTarget });
+
+      transition ? that.$dialog // wait for modal to slide in
+      .one('bsTransitionEnd', function () {
+        that.$element.trigger('focus').trigger(e);
+      }).emulateTransitionEnd(Modal.TRANSITION_DURATION) : that.$element.trigger('focus').trigger(e);
+    });
+  };
+
+  Modal.prototype.hide = function (e) {
+    if (e) e.preventDefault();
+
+    e = $.Event('hide.bs.modal');
+
+    this.$element.trigger(e);
+
+    if (!this.isShown || e.isDefaultPrevented()) return;
+
+    this.isShown = false;
+
+    this.escape();
+    this.resize();
+
+    $(document).off('focusin.bs.modal');
+
+    this.$element.removeClass('in').off('click.dismiss.bs.modal').off('mouseup.dismiss.bs.modal');
+
+    this.$dialog.off('mousedown.dismiss.bs.modal');
+
+    $.support.transition && this.$element.hasClass('fade') ? this.$element.one('bsTransitionEnd', $.proxy(this.hideModal, this)).emulateTransitionEnd(Modal.TRANSITION_DURATION) : this.hideModal();
+  };
+
+  Modal.prototype.enforceFocus = function () {
+    $(document).off('focusin.bs.modal') // guard against infinite focus loop
+    .on('focusin.bs.modal', $.proxy(function (e) {
+      if (document !== e.target && this.$element[0] !== e.target && !this.$element.has(e.target).length) {
+        this.$element.trigger('focus');
+      }
+    }, this));
+  };
+
+  Modal.prototype.escape = function () {
+    if (this.isShown && this.options.keyboard) {
+      this.$element.on('keydown.dismiss.bs.modal', $.proxy(function (e) {
+        e.which == 27 && this.hide();
+      }, this));
+    } else if (!this.isShown) {
+      this.$element.off('keydown.dismiss.bs.modal');
+    }
+  };
+
+  Modal.prototype.resize = function () {
+    if (this.isShown) {
+      $(window).on('resize.bs.modal', $.proxy(this.handleUpdate, this));
+    } else {
+      $(window).off('resize.bs.modal');
+    }
+  };
+
+  Modal.prototype.hideModal = function () {
+    var that = this;
+    this.$element.hide();
+    this.backdrop(function () {
+      that.$body.removeClass('modal-open');
+      that.resetAdjustments();
+      that.resetScrollbar();
+      that.$element.trigger('hidden.bs.modal');
+    });
+  };
+
+  Modal.prototype.removeBackdrop = function () {
+    this.$backdrop && this.$backdrop.remove();
+    this.$backdrop = null;
+  };
+
+  Modal.prototype.backdrop = function (callback) {
+    var that = this;
+    var animate = this.$element.hasClass('fade') ? 'fade' : '';
+
+    if (this.isShown && this.options.backdrop) {
+      var doAnimate = $.support.transition && animate;
+
+      this.$backdrop = $(document.createElement('div')).addClass('modal-backdrop ' + animate).appendTo(this.$body);
+
+      this.$element.on('click.dismiss.bs.modal', $.proxy(function (e) {
+        if (this.ignoreBackdropClick) {
+          this.ignoreBackdropClick = false;
+          return;
+        }
+        if (e.target !== e.currentTarget) return;
+        this.options.backdrop == 'static' ? this.$element[0].focus() : this.hide();
+      }, this));
+
+      if (doAnimate) this.$backdrop[0].offsetWidth; // force reflow
+
+      this.$backdrop.addClass('in');
+
+      if (!callback) return;
+
+      doAnimate ? this.$backdrop.one('bsTransitionEnd', callback).emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) : callback();
+    } else if (!this.isShown && this.$backdrop) {
+      this.$backdrop.removeClass('in');
+
+      var callbackRemove = function callbackRemove() {
+        that.removeBackdrop();
+        callback && callback();
+      };
+      $.support.transition && this.$element.hasClass('fade') ? this.$backdrop.one('bsTransitionEnd', callbackRemove).emulateTransitionEnd(Modal.BACKDROP_TRANSITION_DURATION) : callbackRemove();
+    } else if (callback) {
+      callback();
+    }
+  };
+
+  // these following methods are used to handle overflowing modals
+
+  Modal.prototype.handleUpdate = function () {
+    this.adjustDialog();
+  };
+
+  Modal.prototype.adjustDialog = function () {
+    var modalIsOverflowing = this.$element[0].scrollHeight > document.documentElement.clientHeight;
+
+    this.$element.css({
+      paddingLeft: !this.bodyIsOverflowing && modalIsOverflowing ? this.scrollbarWidth : '',
+      paddingRight: this.bodyIsOverflowing && !modalIsOverflowing ? this.scrollbarWidth : ''
+    });
+  };
+
+  Modal.prototype.resetAdjustments = function () {
+    this.$element.css({
+      paddingLeft: '',
+      paddingRight: ''
+    });
+  };
+
+  Modal.prototype.checkScrollbar = function () {
+    var fullWindowWidth = window.innerWidth;
+    if (!fullWindowWidth) {
+      // workaround for missing window.innerWidth in IE8
+      var documentElementRect = document.documentElement.getBoundingClientRect();
+      fullWindowWidth = documentElementRect.right - Math.abs(documentElementRect.left);
+    }
+    this.bodyIsOverflowing = document.body.clientWidth < fullWindowWidth;
+    this.scrollbarWidth = this.measureScrollbar();
+  };
+
+  Modal.prototype.setScrollbar = function () {
+    var bodyPad = parseInt(this.$body.css('padding-right') || 0, 10);
+    this.originalBodyPad = document.body.style.paddingRight || '';
+    if (this.bodyIsOverflowing) this.$body.css('padding-right', bodyPad + this.scrollbarWidth);
+  };
+
+  Modal.prototype.resetScrollbar = function () {
+    this.$body.css('padding-right', this.originalBodyPad);
+  };
+
+  Modal.prototype.measureScrollbar = function () {
+    // thx walsh
+    var scrollDiv = document.createElement('div');
+    scrollDiv.className = 'modal-scrollbar-measure';
+    this.$body.append(scrollDiv);
+    var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+    this.$body[0].removeChild(scrollDiv);
+    return scrollbarWidth;
+  };
+
+  // MODAL PLUGIN DEFINITION
+  // =======================
+
+  function Plugin(option, _relatedTarget) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.modal');
+      var options = $.extend({}, Modal.DEFAULTS, $this.data(), (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option);
+
+      if (!data) $this.data('bs.modal', data = new Modal(this, options));
+      if (typeof option == 'string') data[option](_relatedTarget);else if (options.show) data.show(_relatedTarget);
+    });
+  }
+
+  var old = $.fn.modal;
+
+  $.fn.modal = Plugin;
+  $.fn.modal.Constructor = Modal;
+
+  // MODAL NO CONFLICT
+  // =================
+
+  $.fn.modal.noConflict = function () {
+    $.fn.modal = old;
+    return this;
+  };
+
+  // MODAL DATA-API
+  // ==============
+
+  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+    var $this = $(this);
+    var href = $this.attr('href');
+    var $target = $($this.attr('data-target') || href && href.replace(/.*(?=#[^\s]+$)/, '')); // strip for ie7
+    var option = $target.data('bs.modal') ? 'toggle' : $.extend({ remote: !/#/.test(href) && href }, $target.data(), $this.data());
+
+    if ($this.is('a')) e.preventDefault();
+
+    $target.one('show.bs.modal', function (showEvent) {
+      if (showEvent.isDefaultPrevented()) return; // only register focus restorer if modal will actually get shown
+      $target.one('hidden.bs.modal', function () {
+        $this.is(':visible') && $this.trigger('focus');
+      });
+    });
+    Plugin.call($target, option, this);
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: tooltip.js v3.3.7
+ * http://getbootstrap.com/javascript/#tooltip
+ * Inspired by the original jQuery.tipsy by Jason Frame
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // TOOLTIP PUBLIC CLASS DEFINITION
+  // ===============================
+
+  var Tooltip = function Tooltip(element, options) {
+    this.type = null;
+    this.options = null;
+    this.enabled = null;
+    this.timeout = null;
+    this.hoverState = null;
+    this.$element = null;
+    this.inState = null;
+
+    this.init('tooltip', element, options);
+  };
+
+  Tooltip.VERSION = '3.3.7';
+
+  Tooltip.TRANSITION_DURATION = 150;
+
+  Tooltip.DEFAULTS = {
+    animation: true,
+    placement: 'top',
+    selector: false,
+    template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+    trigger: 'hover focus',
+    title: '',
+    delay: 0,
+    html: false,
+    container: false,
+    viewport: {
+      selector: 'body',
+      padding: 0
+    }
+  };
+
+  Tooltip.prototype.init = function (type, element, options) {
+    this.enabled = true;
+    this.type = type;
+    this.$element = $(element);
+    this.options = this.getOptions(options);
+    this.$viewport = this.options.viewport && $($.isFunction(this.options.viewport) ? this.options.viewport.call(this, this.$element) : this.options.viewport.selector || this.options.viewport);
+    this.inState = { click: false, hover: false, focus: false };
+
+    if (this.$element[0] instanceof document.constructor && !this.options.selector) {
+      throw new Error('`selector` option must be specified when initializing ' + this.type + ' on the window.document object!');
+    }
+
+    var triggers = this.options.trigger.split(' ');
+
+    for (var i = triggers.length; i--;) {
+      var trigger = triggers[i];
+
+      if (trigger == 'click') {
+        this.$element.on('click.' + this.type, this.options.selector, $.proxy(this.toggle, this));
+      } else if (trigger != 'manual') {
+        var eventIn = trigger == 'hover' ? 'mouseenter' : 'focusin';
+        var eventOut = trigger == 'hover' ? 'mouseleave' : 'focusout';
+
+        this.$element.on(eventIn + '.' + this.type, this.options.selector, $.proxy(this.enter, this));
+        this.$element.on(eventOut + '.' + this.type, this.options.selector, $.proxy(this.leave, this));
+      }
+    }
+
+    this.options.selector ? this._options = $.extend({}, this.options, { trigger: 'manual', selector: '' }) : this.fixTitle();
+  };
+
+  Tooltip.prototype.getDefaults = function () {
+    return Tooltip.DEFAULTS;
+  };
+
+  Tooltip.prototype.getOptions = function (options) {
+    options = $.extend({}, this.getDefaults(), this.$element.data(), options);
+
+    if (options.delay && typeof options.delay == 'number') {
+      options.delay = {
+        show: options.delay,
+        hide: options.delay
+      };
+    }
+
+    return options;
+  };
+
+  Tooltip.prototype.getDelegateOptions = function () {
+    var options = {};
+    var defaults = this.getDefaults();
+
+    this._options && $.each(this._options, function (key, value) {
+      if (defaults[key] != value) options[key] = value;
+    });
+
+    return options;
+  };
+
+  Tooltip.prototype.enter = function (obj) {
+    var self = obj instanceof this.constructor ? obj : $(obj.currentTarget).data('bs.' + this.type);
+
+    if (!self) {
+      self = new this.constructor(obj.currentTarget, this.getDelegateOptions());
+      $(obj.currentTarget).data('bs.' + this.type, self);
+    }
+
+    if (obj instanceof $.Event) {
+      self.inState[obj.type == 'focusin' ? 'focus' : 'hover'] = true;
+    }
+
+    if (self.tip().hasClass('in') || self.hoverState == 'in') {
+      self.hoverState = 'in';
+      return;
+    }
+
+    clearTimeout(self.timeout);
+
+    self.hoverState = 'in';
+
+    if (!self.options.delay || !self.options.delay.show) return self.show();
+
+    self.timeout = setTimeout(function () {
+      if (self.hoverState == 'in') self.show();
+    }, self.options.delay.show);
+  };
+
+  Tooltip.prototype.isInStateTrue = function () {
+    for (var key in this.inState) {
+      if (this.inState[key]) return true;
+    }
+
+    return false;
+  };
+
+  Tooltip.prototype.leave = function (obj) {
+    var self = obj instanceof this.constructor ? obj : $(obj.currentTarget).data('bs.' + this.type);
+
+    if (!self) {
+      self = new this.constructor(obj.currentTarget, this.getDelegateOptions());
+      $(obj.currentTarget).data('bs.' + this.type, self);
+    }
+
+    if (obj instanceof $.Event) {
+      self.inState[obj.type == 'focusout' ? 'focus' : 'hover'] = false;
+    }
+
+    if (self.isInStateTrue()) return;
+
+    clearTimeout(self.timeout);
+
+    self.hoverState = 'out';
+
+    if (!self.options.delay || !self.options.delay.hide) return self.hide();
+
+    self.timeout = setTimeout(function () {
+      if (self.hoverState == 'out') self.hide();
+    }, self.options.delay.hide);
+  };
+
+  Tooltip.prototype.show = function () {
+    var e = $.Event('show.bs.' + this.type);
+
+    if (this.hasContent() && this.enabled) {
+      this.$element.trigger(e);
+
+      var inDom = $.contains(this.$element[0].ownerDocument.documentElement, this.$element[0]);
+      if (e.isDefaultPrevented() || !inDom) return;
+      var that = this;
+
+      var $tip = this.tip();
+
+      var tipId = this.getUID(this.type);
+
+      this.setContent();
+      $tip.attr('id', tipId);
+      this.$element.attr('aria-describedby', tipId);
+
+      if (this.options.animation) $tip.addClass('fade');
+
+      var placement = typeof this.options.placement == 'function' ? this.options.placement.call(this, $tip[0], this.$element[0]) : this.options.placement;
+
+      var autoToken = /\s?auto?\s?/i;
+      var autoPlace = autoToken.test(placement);
+      if (autoPlace) placement = placement.replace(autoToken, '') || 'top';
+
+      $tip.detach().css({ top: 0, left: 0, display: 'block' }).addClass(placement).data('bs.' + this.type, this);
+
+      this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element);
+      this.$element.trigger('inserted.bs.' + this.type);
+
+      var pos = this.getPosition();
+      var actualWidth = $tip[0].offsetWidth;
+      var actualHeight = $tip[0].offsetHeight;
+
+      if (autoPlace) {
+        var orgPlacement = placement;
+        var viewportDim = this.getPosition(this.$viewport);
+
+        placement = placement == 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top' : placement == 'top' && pos.top - actualHeight < viewportDim.top ? 'bottom' : placement == 'right' && pos.right + actualWidth > viewportDim.width ? 'left' : placement == 'left' && pos.left - actualWidth < viewportDim.left ? 'right' : placement;
+
+        $tip.removeClass(orgPlacement).addClass(placement);
+      }
+
+      var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight);
+
+      this.applyPlacement(calculatedOffset, placement);
+
+      var complete = function complete() {
+        var prevHoverState = that.hoverState;
+        that.$element.trigger('shown.bs.' + that.type);
+        that.hoverState = null;
+
+        if (prevHoverState == 'out') that.leave(that);
+      };
+
+      $.support.transition && this.$tip.hasClass('fade') ? $tip.one('bsTransitionEnd', complete).emulateTransitionEnd(Tooltip.TRANSITION_DURATION) : complete();
+    }
+  };
+
+  Tooltip.prototype.applyPlacement = function (offset, placement) {
+    var $tip = this.tip();
+    var width = $tip[0].offsetWidth;
+    var height = $tip[0].offsetHeight;
+
+    // manually read margins because getBoundingClientRect includes difference
+    var marginTop = parseInt($tip.css('margin-top'), 10);
+    var marginLeft = parseInt($tip.css('margin-left'), 10);
+
+    // we must check for NaN for ie 8/9
+    if (isNaN(marginTop)) marginTop = 0;
+    if (isNaN(marginLeft)) marginLeft = 0;
+
+    offset.top += marginTop;
+    offset.left += marginLeft;
+
+    // $.fn.offset doesn't round pixel values
+    // so we use setOffset directly with our own function B-0
+    $.offset.setOffset($tip[0], $.extend({
+      using: function using(props) {
+        $tip.css({
+          top: Math.round(props.top),
+          left: Math.round(props.left)
+        });
+      }
+    }, offset), 0);
+
+    $tip.addClass('in');
+
+    // check to see if placing tip in new offset caused the tip to resize itself
+    var actualWidth = $tip[0].offsetWidth;
+    var actualHeight = $tip[0].offsetHeight;
+
+    if (placement == 'top' && actualHeight != height) {
+      offset.top = offset.top + height - actualHeight;
+    }
+
+    var delta = this.getViewportAdjustedDelta(placement, offset, actualWidth, actualHeight);
+
+    if (delta.left) offset.left += delta.left;else offset.top += delta.top;
+
+    var isVertical = /top|bottom/.test(placement);
+    var arrowDelta = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight;
+    var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight';
+
+    $tip.offset(offset);
+    this.replaceArrow(arrowDelta, $tip[0][arrowOffsetPosition], isVertical);
+  };
+
+  Tooltip.prototype.replaceArrow = function (delta, dimension, isVertical) {
+    this.arrow().css(isVertical ? 'left' : 'top', 50 * (1 - delta / dimension) + '%').css(isVertical ? 'top' : 'left', '');
+  };
+
+  Tooltip.prototype.setContent = function () {
+    var $tip = this.tip();
+    var title = this.getTitle();
+
+    $tip.find('.tooltip-inner')[this.options.html ? 'html' : 'text'](title);
+    $tip.removeClass('fade in top bottom left right');
+  };
+
+  Tooltip.prototype.hide = function (callback) {
+    var that = this;
+    var $tip = $(this.$tip);
+    var e = $.Event('hide.bs.' + this.type);
+
+    function complete() {
+      if (that.hoverState != 'in') $tip.detach();
+      if (that.$element) {
+        // TODO: Check whether guarding this code with this `if` is really necessary.
+        that.$element.removeAttr('aria-describedby').trigger('hidden.bs.' + that.type);
+      }
+      callback && callback();
+    }
+
+    this.$element.trigger(e);
+
+    if (e.isDefaultPrevented()) return;
+
+    $tip.removeClass('in');
+
+    $.support.transition && $tip.hasClass('fade') ? $tip.one('bsTransitionEnd', complete).emulateTransitionEnd(Tooltip.TRANSITION_DURATION) : complete();
+
+    this.hoverState = null;
+
+    return this;
+  };
+
+  Tooltip.prototype.fixTitle = function () {
+    var $e = this.$element;
+    if ($e.attr('title') || typeof $e.attr('data-original-title') != 'string') {
+      $e.attr('data-original-title', $e.attr('title') || '').attr('title', '');
+    }
+  };
+
+  Tooltip.prototype.hasContent = function () {
+    return this.getTitle();
+  };
+
+  Tooltip.prototype.getPosition = function ($element) {
+    $element = $element || this.$element;
+
+    var el = $element[0];
+    var isBody = el.tagName == 'BODY';
+
+    var elRect = el.getBoundingClientRect();
+    if (elRect.width == null) {
+      // width and height are missing in IE8, so compute them manually; see https://github.com/twbs/bootstrap/issues/14093
+      elRect = $.extend({}, elRect, { width: elRect.right - elRect.left, height: elRect.bottom - elRect.top });
+    }
+    var isSvg = window.SVGElement && el instanceof window.SVGElement;
+    // Avoid using $.offset() on SVGs since it gives incorrect results in jQuery 3.
+    // See https://github.com/twbs/bootstrap/issues/20280
+    var elOffset = isBody ? { top: 0, left: 0 } : isSvg ? null : $element.offset();
+    var scroll = { scroll: isBody ? document.documentElement.scrollTop || document.body.scrollTop : $element.scrollTop() };
+    var outerDims = isBody ? { width: $(window).width(), height: $(window).height() } : null;
+
+    return $.extend({}, elRect, scroll, outerDims, elOffset);
+  };
+
+  Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
+    return placement == 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2 } : placement == 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2 } : placement == 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
+    /* placement == 'right' */{ top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width };
+  };
+
+  Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWidth, actualHeight) {
+    var delta = { top: 0, left: 0 };
+    if (!this.$viewport) return delta;
+
+    var viewportPadding = this.options.viewport && this.options.viewport.padding || 0;
+    var viewportDimensions = this.getPosition(this.$viewport);
+
+    if (/right|left/.test(placement)) {
+      var topEdgeOffset = pos.top - viewportPadding - viewportDimensions.scroll;
+      var bottomEdgeOffset = pos.top + viewportPadding - viewportDimensions.scroll + actualHeight;
+      if (topEdgeOffset < viewportDimensions.top) {
+        // top overflow
+        delta.top = viewportDimensions.top - topEdgeOffset;
+      } else if (bottomEdgeOffset > viewportDimensions.top + viewportDimensions.height) {
+        // bottom overflow
+        delta.top = viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset;
+      }
+    } else {
+      var leftEdgeOffset = pos.left - viewportPadding;
+      var rightEdgeOffset = pos.left + viewportPadding + actualWidth;
+      if (leftEdgeOffset < viewportDimensions.left) {
+        // left overflow
+        delta.left = viewportDimensions.left - leftEdgeOffset;
+      } else if (rightEdgeOffset > viewportDimensions.right) {
+        // right overflow
+        delta.left = viewportDimensions.left + viewportDimensions.width - rightEdgeOffset;
+      }
+    }
+
+    return delta;
+  };
+
+  Tooltip.prototype.getTitle = function () {
+    var title;
+    var $e = this.$element;
+    var o = this.options;
+
+    title = $e.attr('data-original-title') || (typeof o.title == 'function' ? o.title.call($e[0]) : o.title);
+
+    return title;
+  };
+
+  Tooltip.prototype.getUID = function (prefix) {
+    do {
+      prefix += ~~(Math.random() * 1000000);
+    } while (document.getElementById(prefix));
+    return prefix;
+  };
+
+  Tooltip.prototype.tip = function () {
+    if (!this.$tip) {
+      this.$tip = $(this.options.template);
+      if (this.$tip.length != 1) {
+        throw new Error(this.type + ' `template` option must consist of exactly 1 top-level element!');
+      }
+    }
+    return this.$tip;
+  };
+
+  Tooltip.prototype.arrow = function () {
+    return this.$arrow = this.$arrow || this.tip().find('.tooltip-arrow');
+  };
+
+  Tooltip.prototype.enable = function () {
+    this.enabled = true;
+  };
+
+  Tooltip.prototype.disable = function () {
+    this.enabled = false;
+  };
+
+  Tooltip.prototype.toggleEnabled = function () {
+    this.enabled = !this.enabled;
+  };
+
+  Tooltip.prototype.toggle = function (e) {
+    var self = this;
+    if (e) {
+      self = $(e.currentTarget).data('bs.' + this.type);
+      if (!self) {
+        self = new this.constructor(e.currentTarget, this.getDelegateOptions());
+        $(e.currentTarget).data('bs.' + this.type, self);
+      }
+    }
+
+    if (e) {
+      self.inState.click = !self.inState.click;
+      if (self.isInStateTrue()) self.enter(self);else self.leave(self);
+    } else {
+      self.tip().hasClass('in') ? self.leave(self) : self.enter(self);
+    }
+  };
+
+  Tooltip.prototype.destroy = function () {
+    var that = this;
+    clearTimeout(this.timeout);
+    this.hide(function () {
+      that.$element.off('.' + that.type).removeData('bs.' + that.type);
+      if (that.$tip) {
+        that.$tip.detach();
+      }
+      that.$tip = null;
+      that.$arrow = null;
+      that.$viewport = null;
+      that.$element = null;
+    });
+  };
+
+  // TOOLTIP PLUGIN DEFINITION
+  // =========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.tooltip');
+      var options = (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option;
+
+      if (!data && /destroy|hide/.test(option)) return;
+      if (!data) $this.data('bs.tooltip', data = new Tooltip(this, options));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.tooltip;
+
+  $.fn.tooltip = Plugin;
+  $.fn.tooltip.Constructor = Tooltip;
+
+  // TOOLTIP NO CONFLICT
+  // ===================
+
+  $.fn.tooltip.noConflict = function () {
+    $.fn.tooltip = old;
+    return this;
+  };
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: popover.js v3.3.7
+ * http://getbootstrap.com/javascript/#popovers
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // POPOVER PUBLIC CLASS DEFINITION
+  // ===============================
+
+  var Popover = function Popover(element, options) {
+    this.init('popover', element, options);
+  };
+
+  if (!$.fn.tooltip) throw new Error('Popover requires tooltip.js');
+
+  Popover.VERSION = '3.3.7';
+
+  Popover.DEFAULTS = $.extend({}, $.fn.tooltip.Constructor.DEFAULTS, {
+    placement: 'right',
+    trigger: 'click',
+    content: '',
+    template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+  });
+
+  // NOTE: POPOVER EXTENDS tooltip.js
+  // ================================
+
+  Popover.prototype = $.extend({}, $.fn.tooltip.Constructor.prototype);
+
+  Popover.prototype.constructor = Popover;
+
+  Popover.prototype.getDefaults = function () {
+    return Popover.DEFAULTS;
+  };
+
+  Popover.prototype.setContent = function () {
+    var $tip = this.tip();
+    var title = this.getTitle();
+    var content = this.getContent();
+
+    $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
+    $tip.find('.popover-content').children().detach().end()[// we use append for html objects to maintain js events
+    this.options.html ? typeof content == 'string' ? 'html' : 'append' : 'text'](content);
+
+    $tip.removeClass('fade top bottom left right in');
+
+    // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+    // this manually by checking the contents.
+    if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
+  };
+
+  Popover.prototype.hasContent = function () {
+    return this.getTitle() || this.getContent();
+  };
+
+  Popover.prototype.getContent = function () {
+    var $e = this.$element;
+    var o = this.options;
+
+    return $e.attr('data-content') || (typeof o.content == 'function' ? o.content.call($e[0]) : o.content);
+  };
+
+  Popover.prototype.arrow = function () {
+    return this.$arrow = this.$arrow || this.tip().find('.arrow');
+  };
+
+  // POPOVER PLUGIN DEFINITION
+  // =========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.popover');
+      var options = (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option;
+
+      if (!data && /destroy|hide/.test(option)) return;
+      if (!data) $this.data('bs.popover', data = new Popover(this, options));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.popover;
+
+  $.fn.popover = Plugin;
+  $.fn.popover.Constructor = Popover;
+
+  // POPOVER NO CONFLICT
+  // ===================
+
+  $.fn.popover.noConflict = function () {
+    $.fn.popover = old;
+    return this;
+  };
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: tab.js v3.3.7
+ * http://getbootstrap.com/javascript/#tabs
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // TAB CLASS DEFINITION
+  // ====================
+
+  var Tab = function Tab(element) {
+    // jscs:disable requireDollarBeforejQueryAssignment
+    this.element = $(element);
+    // jscs:enable requireDollarBeforejQueryAssignment
+  };
+
+  Tab.VERSION = '3.3.7';
+
+  Tab.TRANSITION_DURATION = 150;
+
+  Tab.prototype.show = function () {
+    var $this = this.element;
+    var $ul = $this.closest('ul:not(.dropdown-menu)');
+    var selector = $this.data('target');
+
+    if (!selector) {
+      selector = $this.attr('href');
+      selector = selector && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
+    }
+
+    if ($this.parent('li').hasClass('active')) return;
+
+    var $previous = $ul.find('.active:last a');
+    var hideEvent = $.Event('hide.bs.tab', {
+      relatedTarget: $this[0]
+    });
+    var showEvent = $.Event('show.bs.tab', {
+      relatedTarget: $previous[0]
+    });
+
+    $previous.trigger(hideEvent);
+    $this.trigger(showEvent);
+
+    if (showEvent.isDefaultPrevented() || hideEvent.isDefaultPrevented()) return;
+
+    var $target = $(selector);
+
+    this.activate($this.closest('li'), $ul);
+    this.activate($target, $target.parent(), function () {
+      $previous.trigger({
+        type: 'hidden.bs.tab',
+        relatedTarget: $this[0]
+      });
+      $this.trigger({
+        type: 'shown.bs.tab',
+        relatedTarget: $previous[0]
+      });
+    });
+  };
+
+  Tab.prototype.activate = function (element, container, callback) {
+    var $active = container.find('> .active');
+    var transition = callback && $.support.transition && ($active.length && $active.hasClass('fade') || !!container.find('> .fade').length);
+
+    function next() {
+      $active.removeClass('active').find('> .dropdown-menu > .active').removeClass('active').end().find('[data-toggle="tab"]').attr('aria-expanded', false);
+
+      element.addClass('active').find('[data-toggle="tab"]').attr('aria-expanded', true);
+
+      if (transition) {
+        element[0].offsetWidth; // reflow for transition
+        element.addClass('in');
+      } else {
+        element.removeClass('fade');
+      }
+
+      if (element.parent('.dropdown-menu').length) {
+        element.closest('li.dropdown').addClass('active').end().find('[data-toggle="tab"]').attr('aria-expanded', true);
+      }
+
+      callback && callback();
+    }
+
+    $active.length && transition ? $active.one('bsTransitionEnd', next).emulateTransitionEnd(Tab.TRANSITION_DURATION) : next();
+
+    $active.removeClass('in');
+  };
+
+  // TAB PLUGIN DEFINITION
+  // =====================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.tab');
+
+      if (!data) $this.data('bs.tab', data = new Tab(this));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.tab;
+
+  $.fn.tab = Plugin;
+  $.fn.tab.Constructor = Tab;
+
+  // TAB NO CONFLICT
+  // ===============
+
+  $.fn.tab.noConflict = function () {
+    $.fn.tab = old;
+    return this;
+  };
+
+  // TAB DATA-API
+  // ============
+
+  var clickHandler = function clickHandler(e) {
+    e.preventDefault();
+    Plugin.call($(this), 'show');
+  };
+
+  $(document).on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler).on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler);
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: affix.js v3.3.7
+ * http://getbootstrap.com/javascript/#affix
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // AFFIX CLASS DEFINITION
+  // ======================
+
+  var Affix = function Affix(element, options) {
+    this.options = $.extend({}, Affix.DEFAULTS, options);
+
+    this.$target = $(this.options.target).on('scroll.bs.affix.data-api', $.proxy(this.checkPosition, this)).on('click.bs.affix.data-api', $.proxy(this.checkPositionWithEventLoop, this));
+
+    this.$element = $(element);
+    this.affixed = null;
+    this.unpin = null;
+    this.pinnedOffset = null;
+
+    this.checkPosition();
+  };
+
+  Affix.VERSION = '3.3.7';
+
+  Affix.RESET = 'affix affix-top affix-bottom';
+
+  Affix.DEFAULTS = {
+    offset: 0,
+    target: window
+  };
+
+  Affix.prototype.getState = function (scrollHeight, height, offsetTop, offsetBottom) {
+    var scrollTop = this.$target.scrollTop();
+    var position = this.$element.offset();
+    var targetHeight = this.$target.height();
+
+    if (offsetTop != null && this.affixed == 'top') return scrollTop < offsetTop ? 'top' : false;
+
+    if (this.affixed == 'bottom') {
+      if (offsetTop != null) return scrollTop + this.unpin <= position.top ? false : 'bottom';
+      return scrollTop + targetHeight <= scrollHeight - offsetBottom ? false : 'bottom';
+    }
+
+    var initializing = this.affixed == null;
+    var colliderTop = initializing ? scrollTop : position.top;
+    var colliderHeight = initializing ? targetHeight : height;
+
+    if (offsetTop != null && scrollTop <= offsetTop) return 'top';
+    if (offsetBottom != null && colliderTop + colliderHeight >= scrollHeight - offsetBottom) return 'bottom';
+
+    return false;
+  };
+
+  Affix.prototype.getPinnedOffset = function () {
+    if (this.pinnedOffset) return this.pinnedOffset;
+    this.$element.removeClass(Affix.RESET).addClass('affix');
+    var scrollTop = this.$target.scrollTop();
+    var position = this.$element.offset();
+    return this.pinnedOffset = position.top - scrollTop;
+  };
+
+  Affix.prototype.checkPositionWithEventLoop = function () {
+    setTimeout($.proxy(this.checkPosition, this), 1);
+  };
+
+  Affix.prototype.checkPosition = function () {
+    if (!this.$element.is(':visible')) return;
+
+    var height = this.$element.height();
+    var offset = this.options.offset;
+    var offsetTop = offset.top;
+    var offsetBottom = offset.bottom;
+    var scrollHeight = Math.max($(document).height(), $(document.body).height());
+
+    if ((typeof offset === 'undefined' ? 'undefined' : _typeof(offset)) != 'object') offsetBottom = offsetTop = offset;
+    if (typeof offsetTop == 'function') offsetTop = offset.top(this.$element);
+    if (typeof offsetBottom == 'function') offsetBottom = offset.bottom(this.$element);
+
+    var affix = this.getState(scrollHeight, height, offsetTop, offsetBottom);
+
+    if (this.affixed != affix) {
+      if (this.unpin != null) this.$element.css('top', '');
+
+      var affixType = 'affix' + (affix ? '-' + affix : '');
+      var e = $.Event(affixType + '.bs.affix');
+
+      this.$element.trigger(e);
+
+      if (e.isDefaultPrevented()) return;
+
+      this.affixed = affix;
+      this.unpin = affix == 'bottom' ? this.getPinnedOffset() : null;
+
+      this.$element.removeClass(Affix.RESET).addClass(affixType).trigger(affixType.replace('affix', 'affixed') + '.bs.affix');
+    }
+
+    if (affix == 'bottom') {
+      this.$element.offset({
+        top: scrollHeight - height - offsetBottom
+      });
+    }
+  };
+
+  // AFFIX PLUGIN DEFINITION
+  // =======================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.affix');
+      var options = (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option;
+
+      if (!data) $this.data('bs.affix', data = new Affix(this, options));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.affix;
+
+  $.fn.affix = Plugin;
+  $.fn.affix.Constructor = Affix;
+
+  // AFFIX NO CONFLICT
+  // =================
+
+  $.fn.affix.noConflict = function () {
+    $.fn.affix = old;
+    return this;
+  };
+
+  // AFFIX DATA-API
+  // ==============
+
+  $(window).on('load', function () {
+    $('[data-spy="affix"]').each(function () {
+      var $spy = $(this);
+      var data = $spy.data();
+
+      data.offset = data.offset || {};
+
+      if (data.offsetBottom != null) data.offset.bottom = data.offsetBottom;
+      if (data.offsetTop != null) data.offset.top = data.offsetTop;
+
+      Plugin.call($spy, data);
+    });
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: collapse.js v3.3.7
+ * http://getbootstrap.com/javascript/#collapse
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
+/* jshint latedef: false */
+
++function ($) {
+  'use strict';
+
+  // COLLAPSE PUBLIC CLASS DEFINITION
+  // ================================
+
+  var Collapse = function Collapse(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, Collapse.DEFAULTS, options);
+    this.$trigger = $('[data-toggle="collapse"][href="#' + element.id + '"],' + '[data-toggle="collapse"][data-target="#' + element.id + '"]');
+    this.transitioning = null;
+
+    if (this.options.parent) {
+      this.$parent = this.getParent();
+    } else {
+      this.addAriaAndCollapsedClass(this.$element, this.$trigger);
+    }
+
+    if (this.options.toggle) this.toggle();
+  };
+
+  Collapse.VERSION = '3.3.7';
+
+  Collapse.TRANSITION_DURATION = 350;
+
+  Collapse.DEFAULTS = {
+    toggle: true
+  };
+
+  Collapse.prototype.dimension = function () {
+    var hasWidth = this.$element.hasClass('width');
+    return hasWidth ? 'width' : 'height';
+  };
+
+  Collapse.prototype.show = function () {
+    if (this.transitioning || this.$element.hasClass('in')) return;
+
+    var activesData;
+    var actives = this.$parent && this.$parent.children('.panel').children('.in, .collapsing');
+
+    if (actives && actives.length) {
+      activesData = actives.data('bs.collapse');
+      if (activesData && activesData.transitioning) return;
+    }
+
+    var startEvent = $.Event('show.bs.collapse');
+    this.$element.trigger(startEvent);
+    if (startEvent.isDefaultPrevented()) return;
+
+    if (actives && actives.length) {
+      Plugin.call(actives, 'hide');
+      activesData || actives.data('bs.collapse', null);
+    }
+
+    var dimension = this.dimension();
+
+    this.$element.removeClass('collapse').addClass('collapsing')[dimension](0).attr('aria-expanded', true);
+
+    this.$trigger.removeClass('collapsed').attr('aria-expanded', true);
+
+    this.transitioning = 1;
+
+    var complete = function complete() {
+      this.$element.removeClass('collapsing').addClass('collapse in')[dimension]('');
+      this.transitioning = 0;
+      this.$element.trigger('shown.bs.collapse');
+    };
+
+    if (!$.support.transition) return complete.call(this);
+
+    var scrollSize = $.camelCase(['scroll', dimension].join('-'));
+
+    this.$element.one('bsTransitionEnd', $.proxy(complete, this)).emulateTransitionEnd(Collapse.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize]);
+  };
+
+  Collapse.prototype.hide = function () {
+    if (this.transitioning || !this.$element.hasClass('in')) return;
+
+    var startEvent = $.Event('hide.bs.collapse');
+    this.$element.trigger(startEvent);
+    if (startEvent.isDefaultPrevented()) return;
+
+    var dimension = this.dimension();
+
+    this.$element[dimension](this.$element[dimension]())[0].offsetHeight;
+
+    this.$element.addClass('collapsing').removeClass('collapse in').attr('aria-expanded', false);
+
+    this.$trigger.addClass('collapsed').attr('aria-expanded', false);
+
+    this.transitioning = 1;
+
+    var complete = function complete() {
+      this.transitioning = 0;
+      this.$element.removeClass('collapsing').addClass('collapse').trigger('hidden.bs.collapse');
+    };
+
+    if (!$.support.transition) return complete.call(this);
+
+    this.$element[dimension](0).one('bsTransitionEnd', $.proxy(complete, this)).emulateTransitionEnd(Collapse.TRANSITION_DURATION);
+  };
+
+  Collapse.prototype.toggle = function () {
+    this[this.$element.hasClass('in') ? 'hide' : 'show']();
+  };
+
+  Collapse.prototype.getParent = function () {
+    return $(this.options.parent).find('[data-toggle="collapse"][data-parent="' + this.options.parent + '"]').each($.proxy(function (i, element) {
+      var $element = $(element);
+      this.addAriaAndCollapsedClass(getTargetFromTrigger($element), $element);
+    }, this)).end();
+  };
+
+  Collapse.prototype.addAriaAndCollapsedClass = function ($element, $trigger) {
+    var isOpen = $element.hasClass('in');
+
+    $element.attr('aria-expanded', isOpen);
+    $trigger.toggleClass('collapsed', !isOpen).attr('aria-expanded', isOpen);
+  };
+
+  function getTargetFromTrigger($trigger) {
+    var href;
+    var target = $trigger.attr('data-target') || (href = $trigger.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, ''); // strip for ie7
+
+    return $(target);
+  }
+
+  // COLLAPSE PLUGIN DEFINITION
+  // ==========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.collapse');
+      var options = $.extend({}, Collapse.DEFAULTS, $this.data(), (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option);
+
+      if (!data && options.toggle && /show|hide/.test(option)) options.toggle = false;
+      if (!data) $this.data('bs.collapse', data = new Collapse(this, options));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.collapse;
+
+  $.fn.collapse = Plugin;
+  $.fn.collapse.Constructor = Collapse;
+
+  // COLLAPSE NO CONFLICT
+  // ====================
+
+  $.fn.collapse.noConflict = function () {
+    $.fn.collapse = old;
+    return this;
+  };
+
+  // COLLAPSE DATA-API
+  // =================
+
+  $(document).on('click.bs.collapse.data-api', '[data-toggle="collapse"]', function (e) {
+    var $this = $(this);
+
+    if (!$this.attr('data-target')) e.preventDefault();
+
+    var $target = getTargetFromTrigger($this);
+    var data = $target.data('bs.collapse');
+    var option = data ? 'toggle' : $this.data();
+
+    Plugin.call($target, option);
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: scrollspy.js v3.3.7
+ * http://getbootstrap.com/javascript/#scrollspy
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // SCROLLSPY CLASS DEFINITION
+  // ==========================
+
+  function ScrollSpy(element, options) {
+    this.$body = $(document.body);
+    this.$scrollElement = $(element).is(document.body) ? $(window) : $(element);
+    this.options = $.extend({}, ScrollSpy.DEFAULTS, options);
+    this.selector = (this.options.target || '') + ' .nav li > a';
+    this.offsets = [];
+    this.targets = [];
+    this.activeTarget = null;
+    this.scrollHeight = 0;
+
+    this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this));
+    this.refresh();
+    this.process();
+  }
+
+  ScrollSpy.VERSION = '3.3.7';
+
+  ScrollSpy.DEFAULTS = {
+    offset: 10
+  };
+
+  ScrollSpy.prototype.getScrollHeight = function () {
+    return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight);
+  };
+
+  ScrollSpy.prototype.refresh = function () {
+    var that = this;
+    var offsetMethod = 'offset';
+    var offsetBase = 0;
+
+    this.offsets = [];
+    this.targets = [];
+    this.scrollHeight = this.getScrollHeight();
+
+    if (!$.isWindow(this.$scrollElement[0])) {
+      offsetMethod = 'position';
+      offsetBase = this.$scrollElement.scrollTop();
+    }
+
+    this.$body.find(this.selector).map(function () {
+      var $el = $(this);
+      var href = $el.data('target') || $el.attr('href');
+      var $href = /^#./.test(href) && $(href);
+
+      return $href && $href.length && $href.is(':visible') && [[$href[offsetMethod]().top + offsetBase, href]] || null;
+    }).sort(function (a, b) {
+      return a[0] - b[0];
+    }).each(function () {
+      that.offsets.push(this[0]);
+      that.targets.push(this[1]);
+    });
+  };
+
+  ScrollSpy.prototype.process = function () {
+    var scrollTop = this.$scrollElement.scrollTop() + this.options.offset;
+    var scrollHeight = this.getScrollHeight();
+    var maxScroll = this.options.offset + scrollHeight - this.$scrollElement.height();
+    var offsets = this.offsets;
+    var targets = this.targets;
+    var activeTarget = this.activeTarget;
+    var i;
+
+    if (this.scrollHeight != scrollHeight) {
+      this.refresh();
+    }
+
+    if (scrollTop >= maxScroll) {
+      return activeTarget != (i = targets[targets.length - 1]) && this.activate(i);
+    }
+
+    if (activeTarget && scrollTop < offsets[0]) {
+      this.activeTarget = null;
+      return this.clear();
+    }
+
+    for (i = offsets.length; i--;) {
+      activeTarget != targets[i] && scrollTop >= offsets[i] && (offsets[i + 1] === undefined || scrollTop < offsets[i + 1]) && this.activate(targets[i]);
+    }
+  };
+
+  ScrollSpy.prototype.activate = function (target) {
+    this.activeTarget = target;
+
+    this.clear();
+
+    var selector = this.selector + '[data-target="' + target + '"],' + this.selector + '[href="' + target + '"]';
+
+    var active = $(selector).parents('li').addClass('active');
+
+    if (active.parent('.dropdown-menu').length) {
+      active = active.closest('li.dropdown').addClass('active');
+    }
+
+    active.trigger('activate.bs.scrollspy');
+  };
+
+  ScrollSpy.prototype.clear = function () {
+    $(this.selector).parentsUntil(this.options.target, '.active').removeClass('active');
+  };
+
+  // SCROLLSPY PLUGIN DEFINITION
+  // ===========================
+
+  function Plugin(option) {
+    return this.each(function () {
+      var $this = $(this);
+      var data = $this.data('bs.scrollspy');
+      var options = (typeof option === 'undefined' ? 'undefined' : _typeof(option)) == 'object' && option;
+
+      if (!data) $this.data('bs.scrollspy', data = new ScrollSpy(this, options));
+      if (typeof option == 'string') data[option]();
+    });
+  }
+
+  var old = $.fn.scrollspy;
+
+  $.fn.scrollspy = Plugin;
+  $.fn.scrollspy.Constructor = ScrollSpy;
+
+  // SCROLLSPY NO CONFLICT
+  // =====================
+
+  $.fn.scrollspy.noConflict = function () {
+    $.fn.scrollspy = old;
+    return this;
+  };
+
+  // SCROLLSPY DATA-API
+  // ==================
+
+  $(window).on('load.bs.scrollspy.data-api', function () {
+    $('[data-spy="scroll"]').each(function () {
+      var $spy = $(this);
+      Plugin.call($spy, $spy.data());
+    });
+  });
+}(jQuery);
+
+/* ========================================================================
+ * Bootstrap: transition.js v3.3.7
+ * http://getbootstrap.com/javascript/#transitions
+ * ========================================================================
+ * Copyright 2011-2016 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ * ======================================================================== */
+
++function ($) {
+  'use strict';
+
+  // CSS TRANSITION SUPPORT (Shoutout: http://www.modernizr.com/)
+  // ============================================================
+
+  function transitionEnd() {
+    var el = document.createElement('bootstrap');
+
+    var transEndEventNames = {
+      WebkitTransition: 'webkitTransitionEnd',
+      MozTransition: 'transitionend',
+      OTransition: 'oTransitionEnd otransitionend',
+      transition: 'transitionend'
+    };
+
+    for (var name in transEndEventNames) {
+      if (el.style[name] !== undefined) {
+        return { end: transEndEventNames[name] };
+      }
+    }
+
+    return false; // explicit for ie8 (  ._.)
+  }
+
+  // http://blog.alexmaccaw.com/css-transitions
+  $.fn.emulateTransitionEnd = function (duration) {
+    var called = false;
+    var $el = this;
+    $(this).one('bsTransitionEnd', function () {
+      called = true;
+    });
+    var callback = function callback() {
+      if (!called) $($el).trigger($.support.transition.end);
+    };
+    setTimeout(callback, duration);
+    return this;
+  };
+
+  $(function () {
+    $.support.transition = transitionEnd();
+
+    if (!$.support.transition) return;
+
+    $.event.special.bsTransitionEnd = {
+      bindType: $.support.transition.end,
+      delegateType: $.support.transition.end,
+      handle: function handle(e) {
+        if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments);
+      }
+    };
+  });
+}(jQuery);
+//# sourceMappingURL=bootstrap.js.map

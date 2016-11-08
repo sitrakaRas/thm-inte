@@ -626,15 +626,6 @@
 			padding-right: 11px;
 			position: relative;
 			&:not(:last-child):after{
-				content: ".";
-				color: @bleu;
-				position: absolute;
-				right: -4px;
-				top: -4px;
-				font-size: 14px ;
-				font-family: @wesfy_bold;
-			}
-			&:last-child:after{
 				content: "";
 				height: 14px;
 				width: 2px;
@@ -642,6 +633,16 @@
 				right: -4px;
 				top: 2px;
 				background-color: @bleu;
+			}
+			&:last-child:after{
+				
+				content: ".";
+				color: @bleu;
+				position: absolute;
+				right: -4px;
+				top: -4px;
+				font-size: 14px ;
+				font-family: @wesfy_bold;
 			}
 
 			a{

@@ -22,9 +22,30 @@ if (!function_exists('after_setup_theme')) {
 
     register_nav_menus(array(
       'primary' => 'Menu principale',
+      'mentions_menu' => "Menu Mentions",
+      'footer_menu' => 'Menu Footer'
     ));
 
     add_image_size('thumbnail', 300, 300, TRUE); // A modifier
 
+
+    function widgets_init() {
+        register_sidebar( array(
+            'name'          => __( 'footer', 'thinkmarket' ),
+            'id'            => 'footer-widget',
+            'description'   => __( 'Add widgets here to appear in your sidebar.', 'thinkmarket' )
+        ) );
+    }
+    add_action( 'widgets_init', 'widgets_init' );
+
   }
 } // after_setup_theme
+
+add_filter('nav_menu_css_class' , 'special_nav_class' , 10 , 2);
+
+function special_nav_class ($classes, $item) {
+    if (in_array('current-menu-item', $classes) ){
+        $classes[] = 'active ';
+    }
+    return $classes;
+}
