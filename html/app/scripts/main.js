@@ -4,6 +4,13 @@ var thinkmarket = {
 	},
 	headfixe : function(parent,arg){
 		parent.scrollToFixed(arg);
+	},
+	resizeSlide : function(elem,arg){
+		var sectionSize = $(window).height();
+		if(arg.sub){
+			sectionSize = sectionSize - arg.sub;
+		}
+		elem.height(sectionSize);
 	}
 }
 
@@ -54,4 +61,31 @@ $(function(){
 		}
 
 	});
+
+	//top slider
+	var arg_St = {
+		dots : true,
+		easing : 'easeOut',
+		infinite: true
+	};
+
+	thinkmarket.slider($(".slider-top"),arg_St);
+
+	
+	
+	$(window).on("resize", function(){
+		var arg_slide = {
+			sub : 90
+		};
+
+		thinkmarket.resizeSlide($(".item-top"),arg_slide);
+		
+		// Init Skrollr
+		var s = skrollr.init();
+		// Refresh Skrollr after resizing our sections
+		s.refresh($('#block-top'));
+	});
+
+	$(window).trigger("resize");
+ 
 });

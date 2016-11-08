@@ -6,7 +6,8 @@
     "modernizr": "~2.8.1",
     "matchHeight": "^0.7.0",
     "slick-carousel": "^1.6.0",
-    "ScrollToFixed": "^1.0.8"
+    "ScrollToFixed": "^1.0.8",
+    "skrollr": "^0.6.30"
   },
   "overrides": {
     "slick-carousel": {
