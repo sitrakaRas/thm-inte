@@ -207,27 +207,19 @@
 					.passif{
 						position: relative;
 						z-index: 10;
-						opacity : 1;
-						.transition(opacity 0.5s ease);
+						filter : brightness(0) invert(1);
+						.transition(filter 0.5s ease);
 						top : 50%;
 						left: 50%;
 						transform : translate(-50%,-50%);
 						width: 100%;
 						max-height : 100%;
-					}
-					.hover{
-						position: absolute;	
-						top : 50%;
-						left: 50%;
-						transform : translate(-50%,-50%);
-						z-index: 1;
-						max-height : 100%;
-						width: 100%;
 					}
 					&:hover{
 						.passif{
-							opacity:0;
-							.transition(opacity 0.5s ease);
+							filter : none;
+							// opacity:0;
+							.transition(filter 0.5s ease);
 						}
 					}
 				}
@@ -259,6 +251,9 @@
 	}
 	.slick-dots{
 		bottom: -50px;
+		left: 50%;
+		transform : translateX(-50%);
+		width: auto;
 		button{
 			height: 16px;
 			width: 16px;
@@ -476,7 +471,7 @@
 
 // map section
 #map{
-	.map-wrapper{
+	#map-wrapper{
 		height: 235px;
 		width: 100%;
 	}
