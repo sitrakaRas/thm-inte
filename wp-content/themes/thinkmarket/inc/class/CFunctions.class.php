@@ -219,7 +219,7 @@ class CFunctions {
   }
 
   function customize_rte($settings) {
-    $settings[ 'block_formats' ] = 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4';
+    $settings[ 'block_formats' ] = 'Paragraph=p;Heading 1=h1;Heading 2=h2;Heading 3=h3;Heading 4=h4';
     /* List all options as multi dimension array */
     $style_formats = array(
       array(

@@ -56,6 +56,62 @@ function configuration_post_type() {
     );
 	register_post_type( 'partenaire', $args );
 
+	/* POST TYPE client */
+	$labels = array(
+		'name'                => 'client',
+		'singular_name'       => 'Client',
+		'menu_name'           => 'Client',
+		'parent_item_colon'   => 'Elément parent',
+		'all_items'           => 'Tous les Clients',
+		'view_item'           => 'Voir Client',
+		'add_new_item'        => 'Ajouter un Client',
+		'add_new'             => 'Ajouter',
+		'edit_item'           => 'Editer un Client',
+		'update_item'         => 'Mettre à jour',
+		'search_items'        => 'Chercher',
+		'not_found'           => 'Aucun résultat trouvé',
+		'not_found_in_trash'  => 'Aucun résultat trouvé dans la corbeille',
+	);
+	
+	$args = array(
+		'label'               => 'Client',
+		 'description'         => 'client',
+		'labels'              => $labels,
+		'supports'            => array( 'title' ,'thumbnail'),
+		'public'              => true,
+		'has_archive'         => true,
+		'menu_icon' 		  => 'dashicons-businessman',
+    );
+	register_post_type( 'client', $args );
+
+	/* POST TYPE offre */
+	$labels = array(
+		'name'                => 'offre',
+		'singular_name'       => 'offre',
+		'menu_name'           => 'offre',
+		'parent_item_colon'   => 'Elément parent',
+		'all_items'           => 'Tous les offres',
+		'view_item'           => 'Voir offre',
+		'add_new_item'        => 'Ajouter un offre',
+		'add_new'             => 'Ajouter',
+		'edit_item'           => 'Editer un offre',
+		'update_item'         => 'Mettre à jour',
+		'search_items'        => 'Chercher',
+		'not_found'           => 'Aucun résultat trouvé',
+		'not_found_in_trash'  => 'Aucun résultat trouvé dans la corbeille',
+	);
+	
+	$args = array(
+		'label'               => 'offre',
+		 'description'         => 'offre',
+		'labels'              => $labels,
+		'supports'            => array( 'title'),
+		'public'              => true,
+		'has_archive'         => true,
+		'menu_icon' 		  => 'dashicons-tickets-alt',
+    );
+	register_post_type( 'offre', $args );
+
 }
 
 add_action( 'admin_menu', 'myprefix_adjust_the_wp_menu', 999 );
@@ -72,6 +128,3 @@ function myprefix_adjust_the_wp_menu() {
   if($count>1)
        $page = remove_submenu_page( 'edit.php?post_type=footer', 'post-new.php?post_type=footer' );
 }
-
-
-
