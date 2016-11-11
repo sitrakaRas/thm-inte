@@ -689,11 +689,19 @@
 				display: table-cell;
 				vertical-align: middle;
 				height: 100%;
+				.titre{
+					font-size: 32px;
+					font-family: @wesfy_medium;
+					color: @rose;
+				}
 				.content-box-type-one{
 					width: 33.3333%;
 					margin-left: 8.3333%;
 					color: @blanc;
-					h1{
+					&.large{
+						width:91.6667%;
+					}
+					h1,h2{
 						font-size: 115px;
 						line-height: 103px;
 						font-family: @wesfy_bold;
@@ -711,6 +719,13 @@
 							}
 						}
 					}
+					h2{
+						margin-bottom: 0;
+						&+p{
+							margin-top: 40px;
+						}
+					}
+
 					p{
 						font-size: 26px;
 						font-family: @wesfy;
@@ -965,6 +980,73 @@
 				color: @bleu;
 			}
 			margin-bottom: 10px;
+		}
+	}
+}
+//section offre
+#single-ctn{
+	padding-top: 55px;
+	padding-bottom: 55px;
+	.titre-part{
+		width: 100%;
+		text-align: center;
+		h2{
+			margin-top: 0;
+			font-size: 32px;
+			color: @rose;
+			text-transform: uppercase;
+			font-family: @wesfy_black;
+			
+		}
+	}
+	.offre-row{
+		display: table;
+		width: 100%;
+		padding-top: 20px;
+		.dtc-l{
+			display: table-cell;
+			width: 16.6667%;
+			text-align:left;
+			padding-left: 8.3333%;
+			img{
+				margin-top: 5px;
+		
+			}
+		}
+		.dtc-r{
+			display: table-cell;
+			vertical-align: top;
+			width: 83.3333%;
+			padding-right: 8.3333%;
+			padding-left: 20px;
+			p{
+				color: @bleu;
+				font-size: 20px;
+				font-family: @wesfy_medium;
+				margin-bottom: 20px;
+			}
+		}
+	}
+}
+
+// bussiness-case
+#bussiness-case{
+	.titre{
+		h2{
+			text-align: center;
+			text-transform: uppercase;
+			color: @blanc;
+		}
+	}
+	.slider-bc{
+		.item{
+			h3{
+
+			}
+			p{
+				
+			}
+
 		}
 	}
 }

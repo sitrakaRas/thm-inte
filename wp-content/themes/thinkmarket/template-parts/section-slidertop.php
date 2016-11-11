@@ -1,5 +1,14 @@
 <?php global $post; ?>
 
+<?php 
+  $type = get_field("type",$post->ID);
+  if($type == "interne"){
+    $class = "large";
+  }else{
+    $class="";
+  }
+?>
+
 <section id="block-top">
   <!-- slider-top -->
   <div class="slider-top">
@@ -9,18 +18,24 @@
     data-top-bottom="background-position: 50% -40%;"
     data-anchor-target="#block-top">
       <div class="content-box ">
-        <div class="content-box-type-one">
-          <?php echo $post->post_content; ?>
+        <div class="content-box-type-one <?php echo $class; ?>">
+          <?php if($post->post_type == 'offre'): ?>
+          <div class="titre"><?php echo $post->post_title; ?></div>
+          <?php endif; ?>
+          <?php echo get_field('contenu_premier_slide',$post->ID); ?>
         </div>
         
       </div>
+      <?php $lien = get_field('lien',$post->ID); ?>
+      <?php if($lien != ""): ?>
       <!-- bottom-link -->
       <div class="col-md-12 bottom-link">
         <div class="link-ctnr">
-          <a href="#">découvrir notre approche</a>
+          <a href="<?php echo $lien; ?>">découvrir notre approche</a>
         </div>
       </div>
       <!-- ./bottom-link -->
+      <?php endif; ?>
     </div>
     <!-- ./item-top -->
 

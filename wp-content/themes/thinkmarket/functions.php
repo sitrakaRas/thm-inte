@@ -19,6 +19,7 @@ if (!function_exists('after_setup_theme')) {
 
     require_once(get_stylesheet_directory() . '/inc/custom-types.php');
     require_once(get_stylesheet_directory() . '/inc/class/CFunctions.class.php');
+    require_once(get_stylesheet_directory() . '/inc/class/COffre.class.php');
 
     register_nav_menus(array(
       'primary' => 'Menu principale',
