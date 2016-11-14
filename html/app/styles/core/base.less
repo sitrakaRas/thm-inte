@@ -169,6 +169,54 @@
 		}
 
 	}
+	.slider-schifter{
+		padding: 35px 55px 15px;
+		margin-bottom: 40px;
+		.block-shifter{
+			padding: 15px 65px;
+		}
+
+		.slick-prev,.slick-next{
+			&:before{
+				content: "";
+				display: block;
+			}
+		}
+		.slick-prev{
+			left: 0;
+			&:before{
+				.sprite(@left-slide);
+			}
+		}
+		.slick-next{
+			right: 5px;
+			&:before{
+				.sprite(@right-slide);
+			}
+		}
+		.slick-dots{
+			bottom: -50px;
+			left: 50%;
+			transform : translateX(-50%);
+			width: auto;
+			button{
+				height: 16px;
+				width: 16px;
+				border: 2px solid @bleu;
+				background-color: @blanc;
+				border-radius: 50%;
+				&:before{
+					display: none;
+				}
+			}
+			.slick-active{
+				button{
+					background-color: @bleu;
+				}
+			}
+
+		}
+	}
 }
 
 //section nos client
@@ -516,7 +564,7 @@
 				line-height: 18px;
 				color: @bleu;
 				font-family: @wesfy_bold;
-				letter-spacing: 0.0015em;
+				letter-spacing: 0.015em;
 				padding: 0;
 				&:hover{
 					background-color: @blanc;
@@ -598,7 +646,7 @@
 					font-family: @wesfy_medium;
 					font-size: 13px;
 					line-height: 21px;
-					letter-spacing: 0.0015em;
+					letter-spacing: 0.015em;
 					margin-bottom: 0;
 				}
 			}
@@ -678,6 +726,7 @@
 #block-top{
 	position: relative;
 	.slider-top{
+		margin-bottom: 0;
 		.item-top{
 			display: table;
 			// background-position: center 50px;
@@ -1031,22 +1080,122 @@
 
 // bussiness-case
 #bussiness-case{
+	height: 640px;
+	padding: 45px 0px 30px 0px;
 	.titre{
 		h2{
 			text-align: center;
 			text-transform: uppercase;
 			color: @blanc;
+			margin-top: 0;
+			font-family: @wesfy_black;
+			font-size: 32px;
+			letter-spacing: 0.0015;
 		}
 	}
 	.slider-bc{
 		.item{
-			h3{
+			padding-top: 45px;
+			width: 100%;
+			overflow: hidden;
+			.bloc{
+				height: 200px;
+				max-width: 540px;
+				width: 100%;
+				background-color: @blanc;
+				padding: 30px;
+				margin-bottom: 15px;
+				margin-left: 100%;
+				.transition(margin-left 0.75s ease-in-out);
 
+				&.bottom-block{
+					margin-left: 110%;
+					.transition(margin-left 0.95s ease-in-out);
+				}
+			}
+			h3{
+				margin-top: 0;
+				font-size: 27px;
+				color: @bleu;
+				font-family: @wesfy_medium;
 			}
 			p{
+				color: @rose;
+				font-family: @wesfy;
+				font-size: 16px;
+				letter-spacing: ;
+				strong{
+					font-family: @wesfy_bold;
+					font-weight: normal;
+				}
 				
 			}
+			&.slick-active,&.slick-current{
+				.top-block{
+					margin-left: 8.3333%;
+					.transition(margin-left 0.75s ease-in-out);
+				}
+				.bottom-block{
+					margin-left: 8.3333%;
+					.transition(margin-left 0.95s ease-in-out);
+				}
+			}
 
+		}
+		.slick-prev,.slick-next{
+			z-index: 100;
+			&:before{
+				content: "";
+				display: block;
+			}
+		}
+		.slick-prev{
+			left: 30px;
+			&:before{
+				.sprite(@left-slide-b);
+			}
+			&:hover{
+				&:before{
+					.sprite(@left-slide);
+				}
+			}
+		}
+		.slick-next{
+			right: 35px;
+			&:before{
+				.sprite(@right-slide-b);
+			}
+			&:hover{
+				&:before{
+					.sprite(@right-slide);
+				}
+			}
+		}
+		.slick-dots{
+			bottom: -50px;
+			button{
+				height: 16px;
+				width: 16px;
+				border: 2px solid @blanc;
+				background-color: transparent;
+				border-radius: 50%;
+				&:before{
+					display: none;
+				}
+				&:hover{
+					background-color: @rose;
+				}
+
+			}
+			.slick-active{
+				button{
+					background-color: @blanc;
+					&:hover{
+						background-color: @rose;
+					}
+				}
+			}
+			
 		}
 	}
 }

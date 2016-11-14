@@ -46,14 +46,15 @@
     <div class="item-top" 
     <?php 
       $fd = get_sub_field("type_fond");
+
       if( $fd == "Rose"){
         ?>
-         style="background-image: url('<?php echo get_bloginfo('template_url') ?>/images/bounce.jpg')"
+         style="background-image: url('<?php echo bloginfo('template_url') ?>/images/bounce.jpg')"
         <?php 
       }
       elseif($fd == "Bleu"){        
          ?>
-         style="background-image: url('<?php echo get_bloginfo('template_url') ?>/images/fond-bleu.jpg')"
+         style="background-image: url('<?php echo bloginfo('template_url') ?>/images/fond-bleu.jpg')"
         <?php 
       }else{
         ?>

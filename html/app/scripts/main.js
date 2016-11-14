@@ -71,7 +71,24 @@ $(function(){
 
 	thinkmarket.slider($(".slider-top"),arg_St);
 
-	
+	// business case 
+	var arg_bc = {
+		dots : true,
+		easing : 'easeOut',
+		infinite: true,
+		fade: true
+	};
+	thinkmarket.slider($(".slider-bc"),arg_bc);
+
+	//slider-schifter
+	var arg_sh = {
+		dots : true,
+		slidesToScroll: 3,
+		slidesToShow : 3,
+		easing: 'easeOut'
+	}
+
+	thinkmarket.slider($(".slider-schifter"),arg_sh);
 	
 	$(window).on("resize", function(){
 		var arg_slide = {
