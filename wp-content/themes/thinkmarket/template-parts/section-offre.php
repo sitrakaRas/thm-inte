@@ -1,4 +1,11 @@
 <?php global $post; ?>
+<?php if($post->post_name =="offres"){
+        $class="offreP";
+
+      } else{
+        $class="";
+      }
+?>
 <?php if($post->post_type == "offre") : ?>
 <!-- section offre-shifter   -->
 <section id="shifter-part" class="sect-wrap rose">
@@ -43,7 +50,7 @@
 <!-- ./section offre-shifter   -->
 <?php else: ?>
 <!-- section offre-shifter   -->
-<section id="shifter-part" class="sect-wrap rose">
+<section id="shifter-part" class="sect-wrap rose <?php echo $class; ?>">
   <div class="container-fluid">
     <div class="row">
       <!-- titre-part -->
@@ -80,8 +87,9 @@
         </div>   
       </div>
       <!-- ./wrapper-shiffter -->
+
       <!-- bottom-link -->
-      <div class="col-md-12 bottom-link bleu">
+      <div class="col-md-12 bottom-link bleu ">
         <div class="link-ctnr">
           <a href="#">Nos offres</a>
         </div>
