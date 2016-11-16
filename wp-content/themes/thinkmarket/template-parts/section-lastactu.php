@@ -48,9 +48,7 @@
             <h3><a href="#">nos tweets</a></h3>
             <div class="listing">
               <!-- listing feed tweet -->
-              <?php if ( is_active_sidebar( 'feedtweet-widget' ) ) : ?>
-                <?php dynamic_sidebar( 'feedtweet-widget' ); ?>
-              <?php endif; ?>
+             <a class="twitter-timeline" href="https://twitter.com/THINKMARKET" data-show-replies="false"  data-aria-polite="assertive"data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5">Thinkmarket</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
             </div>
             <div class="link-more">
               <a href="#">tweet</a>
