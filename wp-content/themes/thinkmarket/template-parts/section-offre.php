@@ -93,3 +93,7 @@
 </section>
 <!-- ./section offre-shifter   -->
 <?php endif; ?>
+
+<?php wp_reset_query(); ?>
+
+

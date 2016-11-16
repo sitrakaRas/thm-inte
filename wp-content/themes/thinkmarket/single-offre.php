@@ -22,7 +22,6 @@
 </section>
 
 <?php get_template_part( 'template-parts/section', 'businesscase' ); ?>
-
 <?php get_template_part( 'template-parts/section', 'citation' ); ?>
 <?php get_template_part( 'template-parts/section', 'offre' ); ?>
 <?php get_footer();

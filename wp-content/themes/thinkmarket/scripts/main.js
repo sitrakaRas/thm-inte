@@ -93,6 +93,27 @@ $(function () {
 
 	thinkmarket.slider($(".slider-schifter"), arg_sh);
 
+	//slider-expertise
+	var arg_ex = {
+		dots: true,
+		slidesToScroll: 1,
+		slidesToShow: 3,
+		easing: 'easeOut',
+		responsive: [{
+			breakpoint: 1024,
+			settings: {
+				slidesToShow: 2
+			}
+		}, {
+			breakpoint: 768,
+			settings: {
+				slidesToShow: 1
+			}
+		}]
+	};
+
+	thinkmarket.slider($(".slider-expertise"), arg_ex);
+
 	$(window).on("resize", function () {
 		var arg_slide = {
 			sub: 90
