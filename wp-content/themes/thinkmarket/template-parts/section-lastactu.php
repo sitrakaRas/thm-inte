@@ -48,6 +48,9 @@
             <h3><a href="#">nos tweets</a></h3>
             <div class="listing">
               <!-- listing feed tweet -->
+              <?php if ( is_active_sidebar( 'feedtweet-widget' ) ) : ?>
+                <?php dynamic_sidebar( 'feedtweet-widget' ); ?>
+              <?php endif; ?>
             </div>
             <div class="link-more">
               <a href="#">tweet</a>

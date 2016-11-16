@@ -32,8 +32,8 @@ if (!function_exists('after_setup_theme')) {
 
     function widgets_init() {
         register_sidebar( array(
-            'name'          => __( 'footer', 'thinkmarket' ),
-            'id'            => 'footer-widget',
+            'name'          => __( 'feedtweet', 'thinkmarket' ),
+            'id'            => 'feedtweet-widget',
             'description'   => __( 'Add widgets here to appear in your sidebar.', 'thinkmarket' )
         ) );
     }

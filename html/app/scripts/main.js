@@ -11,6 +11,14 @@ var thinkmarket = {
 			sectionSize = sectionSize - arg.sub;
 		}
 		elem.height(sectionSize);
+	},
+	videoctrler: function(){
+
+		$("#slidervideo .slick-arrow, #slidervideo .slick-dots button").on("click",function(){
+			$("#slidervideo .slick-active .video-play")[0].play();
+		});
+		
+
 	}
 }
 
@@ -104,5 +112,11 @@ $(function(){
 	});
 
 	$(window).trigger("resize");
- 
+
+	thinkmarket.videoctrler();
+	var arg_vid = {
+		dots : true,
+		easing: 'easeOut'
+	};
+ 	thinkmarket.slider($(".slidervideoctnr"),arg_vid);
 });
