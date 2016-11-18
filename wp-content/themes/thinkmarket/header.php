@@ -22,7 +22,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="#"><img src=" <?php bloginfo("template_url"); ?>/images/logo-top.png" alt=""></a>
+              <a class="navbar-brand" href="<?php echo bloginfo("home");  ?>"><img src=" <?php bloginfo("template_url"); ?>/images/logo-top.png" alt=""></a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
             <?php 

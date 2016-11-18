@@ -137,10 +137,28 @@ $(function(){
 
 	$(window).trigger("resize");
 
-	thinkmarket.videoctrler();
+	// thinkmarket.videoctrler();
 	var arg_vid = {
 		dots : true,
-		easing: 'easeOut'
+		easing: 'easeOut',
+		lazyLoad: 'ondemand'
 	};
  	thinkmarket.slider($(".slidervideoctnr"),arg_vid);
+
+ 	$("#slidervideo .slick-active .video-play")[0].play();
+
+
+ 	$(".slidervideoctnr").on("afterChange",function(event,slick){
+ 		$("#slidervideo .slick-active .video-play")[0].play();
+ 	});
+ 	$(".slidervideoctnr").on("beforeChange",function(event,slick){
+ 		$("#slidervideo .items .video-play")[0].pause();
+ 	});
+
+ 	//slider top scroll to
+ 	$("#block-top .to-next-btn a").on("click",function(e){
+ 		e.preventDefault();
+ 		var id = "#" + $("#block-top").next().attr("id");
+ 		$("html,body").animate({scrollTop: $(id).offset().top},500);
+ 	});
 });

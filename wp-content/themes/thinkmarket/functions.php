@@ -28,6 +28,7 @@ if (!function_exists('after_setup_theme')) {
     ));
 
     add_image_size('thumbnail', 300, 300, TRUE); // A modifier
+    add_image_size('portrait', 310, 310, TRUE); // A modifier
 
 
     function widgets_init() {

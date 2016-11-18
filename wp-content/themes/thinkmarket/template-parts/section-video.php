@@ -25,7 +25,7 @@
         <div class="col-md-12">
           <div class="row">
             <video class="video-play" preload="none" loop autoplay>
-              <source src="<?php blogInfo("template_url"); ?>/video/CamilleRio.mp4" type="video/mp4" />
+              <source src="<?php blogInfo("template_url"); ?>/video/CelineForestier.mp4" type="video/mp4" />
             </video>  
             <div class="content col-md-4 col-md-offset-7">
               <h3><a href="#">join the shift</a></h3>
