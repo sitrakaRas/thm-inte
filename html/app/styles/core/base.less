@@ -658,7 +658,7 @@
             a{
                 text-transform: uppercase;
                 font-size: 15px;
-                line-height: 18px;
+                line-height: 21px;
                 color: @bleu;
                 font-family: @wesfy_bold;
                 letter-spacing: 0.015em;
@@ -679,7 +679,7 @@
                         width: 100%;
                         background-color: @rose;
                         position: relative;
-                        top: 2px;
+                        top: 0px;
                     }
                     &:hover{
                         background-color: @blanc;
@@ -693,6 +693,19 @@
                 a{
                     color: @rose;
                 }
+            }
+            &.menu-join{
+            	background-color: @bleu;
+            	a{
+            		color : @blanc;
+            	}
+            	&:hover{
+            		background-color: @rose;
+            		a{
+            			background-color: transparent;
+            		}
+            	}
+
             }
         }
     }

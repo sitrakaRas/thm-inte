@@ -1,6 +1,6 @@
 <?php global $post; ?>
 <?php 
-  if($post->ID == wp_get_post_by_template("template-offre.php")){
+  if($post->ID == wp_get_post_by_template("template/template-offre.php")){
     $class="offreP";
   } else{
     $class="";
