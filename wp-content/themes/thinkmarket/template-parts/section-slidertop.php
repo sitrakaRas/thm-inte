@@ -7,9 +7,15 @@
   }else{
     $class="";
   }
+
+  if($post->ID == wp_get_post_by_template("template-rejoindre.php")){
+    $type = "class='inverted'";
+  }else{
+    $type ="";
+  }
 ?>
 
-<section id="block-top">
+<section id="block-top" <?php echo $type; ?>>
   <!-- slider-top -->
   <div class="slider-top">
     <!-- item-top -->

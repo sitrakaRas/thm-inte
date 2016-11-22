@@ -1,5 +1,13 @@
 <!-- section fondamentaux -->
-<section id="fondamentaux" >
+<?php global $post; ?>
+<?php 
+  if($post->ID == wp_get_post_by_template("template-rejoindre.php")){
+    $class="class='bl-rose'";
+  } else{
+    $class="";
+  }
+?>
+<section id="fondamentaux" <?php echo $class; ?>>
   <div class="container-fluid">
     <div class="row">
        <!-- titre-part -->

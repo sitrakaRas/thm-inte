@@ -1,10 +1,21 @@
 <!-- section manager -->
-<section id="manager" class="sect-wrap">
+<?php 
+  if(get_field('type_section') == 'Success Stories'){
+      $class="storie";
+      $icone = "linkedin.png";
+  } else{
+    $class="";
+    $icone = "linkedin-app.png";
+
+  }
+?>
+<section id="manager" class="sect-wrap <?php echo $class; ?>">
   <div class="container-fluid">
     <div class="row">
       <!-- titre-part -->
       <div class="titre-part col-md-10 col-md-offset-1">
-        <h2><?php echo get_field("titre_section") ?></h2>          
+        <h2><?php echo get_field("titre_section") ?></h2>     
+        <?php echo get_field("sous_titre_section") ?>   
       </div>
 
       <div class="manager-part">
@@ -24,7 +35,7 @@
                     <p><?php echo get_sub_field("citation_manager") ;?></p>
                     <ul>
                       <li><a href="mailto:<?php echo get_sub_field("mail_manager") ?>"><img src="<?php echo bloginfo("template_url") ?>/images/mail.png" alt=""></a></li>
-                      <li><a href="<?php echo get_sub_field("linkedin_manager") ?>"><img src="<?php echo bloginfo("template_url") ?>/images/linkedin-app.png" alt=""></a></li>
+                      <li><a href="<?php echo get_sub_field("linkedin_manager") ?>"><img src="<?php echo bloginfo("template_url") ?>/images/<?php echo $icone; ?>" alt=""></a></li>
                     </ul>
                   </div>
                 </div>

@@ -51,3 +51,22 @@ function special_nav_class ($classes, $item) {
     }
     return $classes;
 }
+
+function wp_get_post_by_template( $meta_value )
+{
+  $args = array(
+    'post_type' => 'page',
+    'meta_key' => '_wp_page_template',
+    'meta_value' => $meta_value,
+    'suppress_filters' => FALSE,
+    'numberposts' => 1,
+    'fields' => 'ids'
+  );
+  $posts = get_posts($args);
+  if(isset($posts) && !empty($posts)){
+    return $posts[0];
+  }else{
+    global $post;
+    return $post->ID;
+  }
+}

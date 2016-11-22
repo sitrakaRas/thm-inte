@@ -1,10 +1,10 @@
 <?php global $post; ?>
-<?php if($post->post_name =="offres"){
-        $class="offreP";
-
-      } else{
-        $class="";
-      }
+<?php 
+  if($post->ID == wp_get_post_by_template("template-offre.php")){
+    $class="offreP";
+  } else{
+    $class="";
+  }
 ?>
 <?php if($post->post_type == "offre") : ?>
 <!-- section offre-shifter   -->

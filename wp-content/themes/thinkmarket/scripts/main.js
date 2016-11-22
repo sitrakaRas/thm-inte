@@ -14,10 +14,43 @@ var thinkmarket = {
 		}
 		elem.height(sectionSize);
 	},
-	videoctrler: function videoctrler() {
+	equalHeight: function equalHeight(container) {
+		var currentTallest = 0,
+		    currentRowStart = 0,
+		    rowDivs = new Array(),
+		    $el,
+		    topPosition = 0,
+		    currentDiv;
 
-		$("#slidervideo .slick-arrow, #slidervideo .slick-dots button").on("click", function () {
-			$("#slidervideo .slick-active .video-play")[0].play();
+		$(container).each(function () {
+
+			$el = $(this);
+			topPosition = $el.position().top;
+
+			if (currentRowStart != topPosition) {
+
+				// we just came to a new row.  Set all the heights on the completed row
+				for (currentDiv = 0; currentDiv < rowDivs.length; currentDiv++) {
+					rowDivs[currentDiv].height(currentTallest);
+				}
+
+				// set the variables for the new row
+				rowDivs.length = 0; // empty the array
+				currentRowStart = topPosition;
+				currentTallest = $el.height();
+				rowDivs.push($el);
+			} else {
+
+				// another div on the current row.  Add it to the list and check if it's taller
+				rowDivs.push($el);
+				currentTallest = currentTallest < $el.height() ? $el.height() : currentTallest;
+			}
+
+			// do the last row
+
+			for (currentDiv = 0; currentDiv < rowDivs.length; currentDiv++) {
+				rowDivs[currentDiv].height(currentTallest);
+			}
 		});
 	}
 };
@@ -69,7 +102,8 @@ $(function () {
 	var arg_St = {
 		dots: true,
 		easing: 'easeOut',
-		infinite: true
+		infinite: true,
+		adaptiveHeight: true
 	};
 
 	thinkmarket.slider($(".slider-top"), arg_St);
@@ -125,11 +159,16 @@ $(function () {
 		var s = skrollr.init();
 		// Refresh Skrollr after resizing our sections
 		s.refresh($('#block-top'));
+
+		//same height #recute
+
+		if ($("#recrute").length > 0) {
+			thinkmarket.equalHeight(".processus-wrapper .block");
+		}
 	});
 
 	$(window).trigger("resize");
 
-	// thinkmarket.videoctrler();
 	var arg_vid = {
 		dots: true,
 		easing: 'easeOut',
@@ -137,10 +176,10 @@ $(function () {
 	};
 	thinkmarket.slider($(".slidervideoctnr"), arg_vid);
 
-	// $(".slidervideoctnr").on("init",function(event,slick){
-	// 	alert('init');
-	$("#slidervideo .slick-active .video-play")[0].play();
-	// });
+	//playing video slider
+	if ($("#slidervideo").length > 0) {
+		$("#slidervideo .slick-active .video-play")[0].play();
+	}
 
 	$(".slidervideoctnr").on("afterChange", function (event, slick) {
 		$("#slidervideo .slick-active .video-play")[0].play();
@@ -155,5 +194,15 @@ $(function () {
 		var id = "#" + $("#block-top").next().attr("id");
 		$("html,body").animate({ scrollTop: $(id).offset().top }, 500);
 	});
+
+	//add class on hover
+	if ($("#joins_us").length > 0) {
+		$("#joins_us a").on("mouseover", function () {
+			$("#joins_us").toggleClass("hover");
+		});
+		$("#joins_us a").on("mouseout", function () {
+			$("#joins_us").toggleClass("hover");
+		});
+	}
 });
 //# sourceMappingURL=main.js.map

@@ -1,5 +1,12 @@
 <!-- section expertise   -->
-<section id="expertise-part" class="sect-wrap rose">
+<?php 
+  if(get_field("color") == "Rose"){
+    $class = "inverted";
+  }else{
+    $class = "";
+  }
+?>
+<section id="expertise-part" class="sect-wrap rose <?php echo $class; ?>">
   <div class="container-fluid">
     <div class="row">
       <!-- titre-part -->
@@ -33,6 +40,13 @@
       <!-- ./wrapper-expertise -->
 
     </div>
+    <!-- bottom-link -->
+    <div class="col-md-12 bottom-link blanc">
+      <div class="link-ctnr">
+        <a href="<?php echo get_field("lien_vers") ?>">Découvrir nos clients</a>
+      </div>
+    </div>
+    <!-- ./bottom-link -->
   </div>
 </section>
 <!-- ./section expertise -->
