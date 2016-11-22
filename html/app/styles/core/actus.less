@@ -1,0 +1,208 @@
+#articleBanner{
+
+    .row.actu_banner{
+        margin-bottom: 38px;
+        img{
+            width: 100%;
+        }
+    }
+}
+
+#articleContent{
+    margin: 0 60px;
+    font-family: @wesfy_medium;
+    .row.actu_title{
+        .link{
+            margin-bottom: 35px;
+
+            a{
+                font-size: 18px;
+                font-family: @wesfy_bold;
+                text-transform: uppercase;
+                font-weight: normal;
+                color : @rose;
+                line-height: 130%;
+                padding: 8px 0;
+                display: inline-block;
+                border-bottom: solid 2px @rose;
+                text-decoration: none;
+            }
+            
+            a:hover{
+                color:@bleu;
+                border-bottom-color: @bleu;
+            }
+        }
+
+        .writer{
+            font-size: 15px;
+            font-family: @wesfy_bold;
+            color: @bleu;
+            margin-bottom: 20px;
+        }
+
+        .leftCol{
+            article{
+                padding-right: 55px;
+                margin-bottom: 70px;
+            }
+            nav{
+                margin-bottom: 85px;
+                ul{
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    li{
+                        margin: 0;
+                        margin-bottom: 20px;
+                        padding: 0;
+                        a{
+                            font-size: 20px;
+                            text-transform: uppercase;
+                        }
+                    }
+
+                    li.nav-left{
+//                        text-align: left;
+                        a::before{
+                            content:"";
+                        }
+                    }
+
+                    li.nav-all{
+//                        text-align: center;
+                    }
+
+                    li.nav-next{
+//                        text-align-last: right;
+                        a::after{
+                            content:"";
+                        }
+                    }
+                }
+            }
+        }
+
+        .rightCol{
+            .twitter-block{
+                margin-bottom: 85px;
+            }
+        }
+    }
+}
+
+.wysiwyg{
+    color: @bleu;
+    h1,h2,h3,h4,h5,h6{
+        font-size: 36px;
+        font-family: @wesfy_bold;
+        margin-top: 0;
+        margin-bottom: 0.5em;
+    }
+
+    b,strong{
+        font-weight: bold;
+    }
+
+    i,em{
+        font-style: italic;
+    }
+
+    P{
+        margin-bottom: 1em;
+        font-size: 17px;
+        a{
+            color:@rose;
+        }
+
+        a:hover{
+            text-decoration: underline;
+        }
+    }
+
+    .summary{
+        color:@rose;
+        font-size: 20px;
+    }
+}
+
+a.readmore{
+    color: @rose;
+}
+
+a.readmore:hover{
+    color:@bleu;
+}
+
+a.readmore.rm-left::before{
+    .sprite(@arrow-min-pink-left);
+    content: "";
+    display: inline-block;
+    height: 15px;
+    margin-right: 7px;
+    width: 11px;
+}
+
+a.readmore.rm-left:hover::before{
+    .sprite(@arrow-min-blue-left);
+}
+
+a.readmore.rm-right::after{
+    .sprite(@br-link-arrow-b-h);
+    content: "";
+    display: inline-block;
+    height: 15px;
+    margin-left: 7px;
+    width: 11px;
+}
+
+a.readmore.rm-right:hover::after{
+    .sprite(@br-link-arrow-b);
+}
+
+
+/*-- texte responsive --*/
+.text-xs-left { text-align: left; }
+.text-xs-right { text-align: right; }
+.text-xs-center { text-align: center; }
+.text-xs-justify { text-align: justify; }
+
+@media (min-width: 768px) {
+    .text-sm-left { text-align: left; }
+    .text-sm-right { text-align: right; }
+    .text-sm-center { text-align: center; }
+    .text-sm-justify { text-align: justify; }
+}
+
+@media (min-width: 992px) {
+    .text-md-left { text-align: left; }
+    .text-md-right { text-align: right; }
+    .text-md-center { text-align: center; }
+    .text-md-justify { text-align: justify; }
+}
+
+@media (min-width: 1200px) {
+    .text-lg-left { text-align: left; }
+    .text-lg-right { text-align: right; }
+    .text-lg-center { text-align: center; }
+    .text-lg-justify { text-align: justify; }
+}
+/*-- end: texte responsive --*/
+
+@media screen and (max-width:992px){
+    #last-actu nav.tabs ul li{
+        display: block;
+        border: none;
+    }    
+}
+
+@media screen and (max-width:767px){
+    #actucontent .row.actu_title .leftCol nav{
+        margin-bottom: 50px;
+    }
+}
+
+
+
+
+
