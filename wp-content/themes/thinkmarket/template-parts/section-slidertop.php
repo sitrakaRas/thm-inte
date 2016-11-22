@@ -1,3 +1,4 @@
+<?php wp_reset_query(); ?>
 <?php global $post; ?>
 
 <?php 
@@ -7,15 +8,15 @@
   }else{
     $class="";
   }
-
-  if($post->ID == wp_get_post_by_template("template-rejoindre.php")){
-    $type = "class='inverted'";
+  
+  if($post->ID == wp_get_post_by_template("template/template-rejoindre.php")){
+    $glob_class = "class='inverted'";
   }else{
-    $type ="";
+    $glob_class ="";
   }
 ?>
 
-<section id="block-top" <?php echo $type; ?>>
+<section id="block-top" <?php echo $glob_class; ?>>
   <!-- slider-top -->
   <div class="slider-top">
     <!-- item-top -->

@@ -1,7 +1,7 @@
 <!-- section fondamentaux -->
 <?php global $post; ?>
 <?php 
-  if($post->ID == wp_get_post_by_template("template-rejoindre.php")){
+  if($post->ID == wp_get_post_by_template("template/template-rejoindre.php")){
     $class="class='bl-rose'";
   } else{
     $class="";
