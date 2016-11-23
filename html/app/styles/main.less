@@ -8,28 +8,89 @@
 @import "core/animations.less" ;
 
 .browserupgrade {
-  margin: 0.2em 0;
-  background: #ccc;
-  color: #000;
-  padding: 0.2em 0;
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
 }
 
 html,body{
-	height: 100% !important;
+    height: 100% !important;
 }
 
 @media only screen and (max-width : 767px) {
     #shifter-part{
-    	.block-shifter {
-	        height: auto !important;
-	    } 
+        .block-shifter {
+            height: auto !important;
+        } 
     }
-   
+
+    .navbar{
+        .navbar-header{
+            button{
+                margin-top: 25px;
+                border: none;
+                background-color: @bleu;
+                &:hover,&:active,&:focus{
+                    background: @bleu;
+                    .icon-bar{
+                        background: white;
+                    }
+                }
+                &.collapsed{
+                    background: white;
+                    .icon-bar{
+                        background: @bleu;
+                    }
+                    /*&:hover,&:active{
+                    background: white;
+                }*/
+                }
+                .icon-bar{
+                    width: 37px;
+                    height: 5px;
+                    border-radius: 5px;
+                    background: white;
+                    margin-top: 6px;
+                }
+                .sr-only+.icon-bar{
+                    margin-top: 0;
+                }
+            }
+        }
+        #navbar{
+            ul{
+                padding-top: 0;
+                li{
+                    margin-bottom: 10px;
+                    &:first-child{
+                        margin-top: 5px;
+                    }
+                    &.active a{
+                        background: @rose;
+                    }
+                    a{
+                        background-color: @bleu;
+                        display: block;
+                        text-align: center;
+                        text-decoration: none;
+                        color: white;
+                        padding-top: 15px;
+                        padding-bottom: 15px;
+                        border-radius: 5px;
+                        &:after{
+                            display: none;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
-	@import "core/tablette";	
+    @import "core/tablette";	
 }
 
 /* Responsive: Portrait tablets and up */
@@ -39,6 +100,6 @@ html,body{
 
 /* Responsive: desktop and up */
 @media screen and (min-width: 1200px) {
-	@import "core/desktop";
-	
+    @import "core/desktop";
+
 }
