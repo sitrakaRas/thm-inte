@@ -7,7 +7,7 @@
     <div class="items">
       <div class="col-md-12">
         <div class="row">
-          <video class="video-play" preload="none" loop autoplay>
+          <video class="video-play" preload="none" loop autoplay muted>
             <source src="<?php echo get_sub_field("fichier_video"); ?>" type="video/mp4" />
           </video>  
           <div class="content col-md-4 col-md-offset-7">

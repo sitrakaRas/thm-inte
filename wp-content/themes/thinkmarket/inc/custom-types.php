@@ -112,6 +112,45 @@ function configuration_post_type() {
     );
 	register_post_type( 'offre', $args );
 
+	// Post type actu
+	$labels = array(
+			'name' => 'Actus',
+			'singular_name' => 'Actu',
+			'add_new' => 'Ajouter',
+			'all_items' => 'Tous les Actus',
+			'add_new_item' => 'Ajouter Actu',
+			'edit_item' => 'Editer Actu',
+			'new_item' => 'Nouvel Actu',
+			'view_item' => 'Voir Actu',
+			'search_items' => 'Chercher',
+			'not_found'           => 'Aucun résultat trouvé',
+			'not_found_in_trash'  => 'Aucun résultat trouvé dans la corbeille',
+			'parent_item_colon' => 'Parent Actu'
+			//'menu_name' => default to 'name'
+		);
+	
+	$args = array(
+		'label'               => 'Actus',
+		 'description'         => 'Actus',
+		'labels'              => $labels,
+		'supports' => array(
+			'title',
+			'editor',
+			'excerpt',
+			//'author',
+			//'trackbacks',
+			//'custom-fields',
+			//'comments',
+			'revisions',
+			//'page-attributes', // (menu order, hierarchical must be true to show Parent option)
+			//'post-formats',
+		),
+		'public'              => true,
+		'has_archive'         => true,
+		'taxonomies' => array( 'category' )
+    );
+	register_post_type( 'actus', $args );
+
 }
 
 add_action( 'admin_menu', 'myprefix_adjust_the_wp_menu', 999 );
