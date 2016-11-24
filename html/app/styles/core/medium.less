@@ -5,7 +5,7 @@
 
 /*-- #block-top  --*/
 #block-top .slider-top .item-top .content-box{
-     .content-box-type-one{
+    .content-box-type-one{
         width: auto;
         margin-right: 8.3333%;
         h1,h2{
@@ -13,7 +13,7 @@
             line-height: 130%;
         }
     }
-    
+
     .content-box-type-two{
         width: 55%;
     }
@@ -21,4 +21,28 @@
 /*-- end: #block-top  --*/
 
 
-
+/*-- #associes --*/
+#associes .table-assoc .mid-part .box{
+    .intern-bloc-half{
+        &:first-child{
+            float: none;
+            width: auto;
+            &+.intern-bloc-half{
+                clear: both;
+                position: static;
+                width: auto;
+                padding: 20px 20px 30px;
+            }
+        }
+        .ctnctnr{
+            padding: 20px;
+        }
+        
+        .contenu .rs-part{
+            right: 10px;
+            left: auto;
+            bottom: 20px;
+        }
+    }
+}
+/*-- end: #associes --*/

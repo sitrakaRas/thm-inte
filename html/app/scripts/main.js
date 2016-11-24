@@ -169,7 +169,7 @@ $(function(){
                     slidesToScroll: 1,
                     dots : false,
                     arrows : false
-                    
+
                 }
             }
         ]
@@ -222,7 +222,21 @@ $(function(){
         if($("#recrute").length > 0 ){
             thinkmarket.equalHeight(".processus-wrapper .block");
         }
+
     });
+
+    
+    $("img").each(function(){ //add class square/portrait/landscape to imgs
+        $(this).load(function(){
+            if($(this).prop("naturalWidth")==$(this).prop("naturalHeight")){
+                $(this).addClass("img-square");
+            }else if($(this).prop("naturalWidth")<$(this).prop("naturalHeight")){
+                $(this).addClass("img-portrait");
+            }else if($(this).prop("naturalWidth")>$(this).prop("naturalHeight")){
+                $(this).addClass("img-landscape");
+            }
+        })
+    })
 
     $(window).trigger("resize");
 
