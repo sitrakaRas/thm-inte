@@ -115,7 +115,16 @@ $(function(){
         dots : true,
         easing : 'easeOut',
         infinite: true,
-        adaptiveHeight: true
+        adaptiveHeight: true,
+        responsive : [
+            {
+                breakpoint : 768,
+                settings: {
+                    arrows: false,
+                    dots : false
+                }
+            }
+        ]
     };
 
     thinkmarket.slider($(".slider-top"),arg_St);
@@ -125,7 +134,16 @@ $(function(){
         dots : true,
         easing : 'easeOut',
         infinite: true,
-        fade: true
+        fade: true,
+        responsive:[
+            {
+                breakpoint: 768,
+                settings : {
+                    arrows : false,
+                    dots : false
+                }
+            }
+        ]
     };
     thinkmarket.slider($(".slider-bc"),arg_bc);
 
@@ -141,13 +159,17 @@ $(function(){
                 settings: {
                     slidesToShow: 2,
                     slidesToScroll: 2,
+                    arrows : false
                 }
             },
             {
-                breakpoint: 767,
+                breakpoint: 768,
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
+                    dots : false,
+                    arrows : false
+                    
                 }
             }
         ]
@@ -172,7 +194,9 @@ $(function(){
             {
                 breakpoint : 768,
                 settings: {
-                    slidesToShow: 1
+                    slidesToShow: 1,
+                    arrows : false,
+                    dots : false
                 }
             }
         ]
@@ -205,7 +229,16 @@ $(function(){
     var arg_vid = {
         dots : true,
         easing: 'easeOut',
-        lazyLoad: 'ondemand'
+        lazyLoad: 'ondemand',
+        responsive:[
+            {
+                breakpoint: 768,
+                settings : {
+                    arrows : false,
+                    dots : false
+                }
+            }
+        ]
     };
     thinkmarket.slider($(".slidervideoctnr"),arg_vid);
 

@@ -18,99 +18,33 @@ html,body{
     height: 100% !important;
 }
 
+/* Responsive: Medium devices */
+@media only screen and (max-width : 1199px) {
+    @import "core/medium";
+}
+
+/* Responsive: Small devices */
 @media only screen and (max-width : 991px) {
-    #footer-link{
-        padding-left: 50px;
-        padding-right: 50px;
-    }
+    @import "core/small";
 }
-    
+
+/* Responsive: Extra small devices */
 @media only screen and (max-width : 767px) {
-    #shifter-part{
-        .block-shifter {
-            height: auto !important;
-        } 
-    }
-
-    .navbar{
-        .navbar-header{
-            button{
-                margin-top: 25px;
-                border: none;
-                background-color: @bleu;
-                &:hover,&:active,&:focus{
-                    background: @bleu;
-                    .icon-bar{
-                        background: white;
-                    }
-                }
-                &.collapsed{
-                    background: white;
-                    .icon-bar{
-                        background: @bleu;
-                    }
-                    /*&:hover,&:active{
-                    background: white;
-                }*/
-                }
-                .icon-bar{
-                    width: 37px;
-                    height: 5px;
-                    border-radius: 5px;
-                    background: white;
-                    margin-top: 6px;
-                }
-                .sr-only+.icon-bar{
-                    margin-top: 0;
-                }
-            }
-        }
-        #navbar{
-            ul{
-                padding-top: 0;
-                li{
-                    margin-bottom: 10px;
-                    &:first-child{
-                        margin-top: 5px;
-                    }
-                    &.active a{
-                        background: @rose;
-                    }
-                    a{
-                        background-color: @bleu;
-                        display: block;
-                        text-align: center;
-                        text-decoration: none;
-                        color: white;
-                        padding-top: 15px;
-                        padding-bottom: 15px;
-                        border-radius: 5px;
-                        &:after{
-                            display: none;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    #contact-part .contact-wrapper .mail-contact{
-        font-size: 22px;
-    }
+    @import "core/extra-small";
 }
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
+/*@media screen and (min-width: 768px) {
     @import "core/tablette";	
-}
+}*/
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 992px) {
+/*@media screen and (min-width: 992px) {
 
-}
+}*/
 
 /* Responsive: desktop and up */
-@media screen and (min-width: 1200px) {
+/*@media screen and (min-width: 1200px) {
     @import "core/desktop";
 
-}
+}*/
