@@ -1,125 +1,125 @@
 var thinkmarket = {
-	slider: function(parent,arg){
-		parent.slick(arg);
-	},
-	headfixe : function(parent,arg){
-		parent.scrollToFixed(arg);
-	},
-	resizeSlide : function(elem,arg){
-		var sectionSize = $(window).height();
-		if(arg.sub){
-			sectionSize = sectionSize - arg.sub;
-		}
-		elem.height(sectionSize);
-	},
-	equalHeight : function(container){
-		var currentTallest = 0,
-		     currentRowStart = 0,
-		     rowDivs = new Array(),
-		     $el,
-		     topPosition = 0,
-		     currentDiv;
+    slider: function(parent,arg){
+        parent.slick(arg);
+    },
+    headfixe : function(parent,arg){
+        parent.scrollToFixed(arg);
+    },
+    resizeSlide : function(elem,arg){
+        var sectionSize = $(window).height();
+        if(arg.sub){
+            sectionSize = sectionSize - arg.sub;
+        }
+        elem.height(sectionSize);
+    },
+    equalHeight : function(container){
+        var currentTallest = 0,
+            currentRowStart = 0,
+            rowDivs = new Array(),
+            $el,
+            topPosition = 0,
+            currentDiv;
 
-		 $(container).each(function() {
+        $(container).each(function() {
 
-		   $el = $(this);
-		   topPosition = $el.position().top;
-		   
-		   if (currentRowStart != topPosition) {
+            $el = $(this);
+            topPosition = $el.position().top;
 
-		     // we just came to a new row.  Set all the heights on the completed row
-		     for (currentDiv = 0 ; currentDiv < rowDivs.length ; currentDiv++) {
-		       rowDivs[currentDiv].height(currentTallest);
-		     }
+            if (currentRowStart != topPosition) {
 
-		     // set the variables for the new row
-		     rowDivs.length = 0; // empty the array
-		     currentRowStart = topPosition;
-		     currentTallest = $el.height();
-		     rowDivs.push($el);
+                // we just came to a new row.  Set all the heights on the completed row
+                for (currentDiv = 0 ; currentDiv < rowDivs.length ; currentDiv++) {
+                    rowDivs[currentDiv].height(currentTallest);
+                }
 
-		   } else {
+                // set the variables for the new row
+                rowDivs.length = 0; // empty the array
+                currentRowStart = topPosition;
+                currentTallest = $el.height();
+                rowDivs.push($el);
 
-		     // another div on the current row.  Add it to the list and check if it's taller
-		     rowDivs.push($el);
-		     currentTallest = (currentTallest < $el.height()) ? ($el.height()) : (currentTallest);
+            } else {
 
-		  }
-		   
-		  // do the last row
+                // another div on the current row.  Add it to the list and check if it's taller
+                rowDivs.push($el);
+                currentTallest = (currentTallest < $el.height()) ? ($el.height()) : (currentTallest);
 
-		   for (currentDiv = 0 ; currentDiv < rowDivs.length ; currentDiv++) {
-		     rowDivs[currentDiv].height(currentTallest);
-		   }
-		   
-		})
-	},
-	filterActu : function(cible){
-		$("#last-actu.actu-inner .actu-wrapper .all").addClass("hidden");
-		$("#last-actu.actu-inner .actu-wrapper " + cible).removeClass("hidden");
-	}
+            }
+
+            // do the last row
+
+            for (currentDiv = 0 ; currentDiv < rowDivs.length ; currentDiv++) {
+                rowDivs[currentDiv].height(currentTallest);
+            }
+
+        })
+    },
+    filterActu : function(cible){
+        $("#last-actu.actu-inner .actu-wrapper .all").addClass("hidden");
+        $("#last-actu.actu-inner .actu-wrapper " + cible).removeClass("hidden");
+    }
 }
 
 $(function(){
-	//same height block
-	$(".row-shiffter .block-shifter").matchHeight();
-	$(".logo-wrapper .block-logo").matchHeight();
+    //same height block
+    $(".row-shiffter .block-shifter").matchHeight();
+    $(".logo-wrapper .block-logo").matchHeight();
 
-	//slider partenaire
-	var arg = {
-		slidesToShow : 4,
-		dots : true,
-		infinite: true,
-		easing: 'easeOut',
-		responsive : [
-			{
-				breakpoint : 1024,
-				settings: {
-			        slidesToShow: 3
-			    }
-			},
-			{
-				breakpoint : 768,
-				settings: {
-			        slidesToShow: 2
-			    }
-			},
-			{
-				breakpoint : 480,
-				settings: {
-			        slidesToShow: 1
-			    }
-			}
-		]
+    //slider partenaire
+    var arg = {
+        slidesToShow : 4,
+        dots : true,
+        infinite: true,
+        easing: 'easeOut',
+        responsive : [
+            {
+                breakpoint : 1024,
+                settings: {
+                    slidesToShow: 3
+                }
+            },
+            {
+                breakpoint : 768,
+                settings: {
+                    slidesToShow: 2
+                }
+            },
+            {
+                breakpoint : 480,
+                settings: {
+                    slidesToShow: 1
+                }
+            }
+        ]
 
-	};
-	thinkmarket.slider($(".slider-part"),arg);
+    };
+    thinkmarket.slider($(".slider-part"),arg);
 
-	 //slider citation
+    //slider citation
     var arg_cit = {
         dots: true
     }
     thinkmarket.slider($("#citation.slider"),arg_cit);
-	
-	//menu fixe
-	var menu_arg;
-	thinkmarket.headfixe($(".main-nav"),menu_arg);
 
-	$(window).on("scroll",function(){
-		if($(".main-nav").offset().top > 10 ){
-			$(".main-nav").addClass("minimize");
-		}else{
-			$(".main-nav").removeClass("minimize");
-		}
+    //menu fixe
+    var menu_arg;
+    thinkmarket.headfixe($(".main-nav"),menu_arg);
 
-	});
+    $(window).on("scroll",function(){
+        if($(".main-nav").offset().top > 10 ){
+            $(".main-nav").addClass("minimize");
+        }else{
+            $(".main-nav").removeClass("minimize");
+        }
 
-	//top slider
-	var arg_St = {
-		dots : true,
-		easing : 'easeOut',
-		infinite: true,
-		adaptiveHeight: true,
+    });
+
+    //top slider
+    var arg_St = {
+        dots : true,
+        easing : 'easeOut',
+        infinite: true,
+        adaptiveHeight: true,
         responsive : [
             {
                 breakpoint : 768,
@@ -129,16 +129,16 @@ $(function(){
                 }
             }
         ]
-	};
+    };
 
-	thinkmarket.slider($(".slider-top"),arg_St);
+    thinkmarket.slider($(".slider-top"),arg_St);
 
-	// business case 
-	var arg_bc = {
-		dots : true,
-		easing : 'easeOut',
-		infinite: true,
-		fade: true,
+    // business case 
+    var arg_bc = {
+        dots : true,
+        easing : 'easeOut',
+        infinite: true,
+        fade: true,
         responsive:[
             {
                 breakpoint: 768,
@@ -148,15 +148,15 @@ $(function(){
                 }
             }
         ]
-	};
-	thinkmarket.slider($(".slider-bc"),arg_bc);
+    };
+    thinkmarket.slider($(".slider-bc"),arg_bc);
 
-	//slider-schifter
-	var arg_sh = {
-		dots : true,
-		slidesToScroll: 3,
-		slidesToShow : 3,
-		easing: 'easeOut',
+    //slider-schifter
+    var arg_sh = {
+        dots : true,
+        slidesToScroll: 3,
+        slidesToShow : 3,
+        easing: 'easeOut',
         responsive: [
             {
                 breakpoint: 991,
@@ -177,57 +177,57 @@ $(function(){
                 }
             }
         ]
-	}
+    }
 
-	thinkmarket.slider($(".slider-schifter"),arg_sh);
+    thinkmarket.slider($(".slider-schifter"),arg_sh);
 
-	//slider-expertise
-	var arg_ex = {
-		dots : true,
-		slidesToScroll: 1,
-		slidesToShow : 3,
-		easing: 'easeOut',
-		responsive : [
-			{
-				breakpoint : 1024,
-				settings: {
-			        slidesToShow: 2
-			    }
-			},
-			{
-				breakpoint : 768,
-				settings: {
-			        slidesToShow: 1,
-			        arrows : false,
+    //slider-expertise
+    var arg_ex = {
+        dots : true,
+        slidesToScroll: 1,
+        slidesToShow : 3,
+        easing: 'easeOut',
+        responsive : [
+            {
+                breakpoint : 1024,
+                settings: {
+                    slidesToShow: 2
+                }
+            },
+            {
+                breakpoint : 768,
+                settings: {
+                    slidesToShow: 1,
+                    arrows : false,
                     dots : false
-			    }
-			}
-		]
-	}
+                }
+            }
+        ]
+    }
 
-	thinkmarket.slider($(".slider-expertise"),arg_ex);
-	
-	$(window).on("resize", function(){
-		var arg_slide = {
-			sub : 90
-		};
+    thinkmarket.slider($(".slider-expertise"),arg_ex);
 
-		thinkmarket.resizeSlide($(".item-top"),arg_slide);
-		
-		// Init Skrollr
-		var s = skrollr.init();
-		// Refresh Skrollr after resizing our sections
-		s.refresh($('#block-top'));
+    $(window).on("resize", function(){
+        var arg_slide = {
+            sub : 90
+        };
+
+        thinkmarket.resizeSlide($(".item-top"),arg_slide);
+
+        // Init Skrollr
+        var s = skrollr.init();
+        // Refresh Skrollr after resizing our sections
+        s.refresh($('#block-top'));
 
 
-	 	//same height #recute
+        //same height #recute
 
-	 	if($("#recrute").length > 0 ){
-	 		thinkmarket.equalHeight(".processus-wrapper .block");
-	 	}
-	});
+        if($("#recrute").length > 0 ){
+            thinkmarket.equalHeight(".processus-wrapper .block");
+        }
+    });
 
-	$("img").each(function(){ //add class square/portrait/landscape to imgs
+    $("img").each(function(){ //add class square/portrait/landscape to imgs
         $(this).load(function(){
             if($(this).prop("naturalWidth")==$(this).prop("naturalHeight")){
                 $(this).addClass("img-square");
@@ -239,12 +239,12 @@ $(function(){
         })
     })
 
-	$(window).trigger("resize");
+    $(window).trigger("resize");
 
-	var arg_vid = {
-		dots : true,
-		easing: 'easeOut',
-		lazyLoad: 'ondemand',
+    var arg_vid = {
+        dots : true,
+        easing: 'easeOut',
+        lazyLoad: 'ondemand',
         responsive:[
             {
                 breakpoint: 768,
@@ -254,47 +254,54 @@ $(function(){
                 }
             }
         ]
-	};
- 	thinkmarket.slider($(".slidervideoctnr"),arg_vid);
+    };
+    thinkmarket.slider($(".slidervideoctnr"),arg_vid);
 
- 	//playing video slider
- 	if($("#slidervideo").length > 0){
- 		$("#slidervideo .slick-active .video-play")[0].play();
- 	}
+    //playing video slider
+    if($("#slidervideo").length > 0){
+        $("#slidervideo .slick-active .video-play")[0].play();
+    }
 
- 	$(".slidervideoctnr").on("afterChange",function(event,slick){
- 		$("#slidervideo .slick-active .video-play")[0].play();
- 	});
- 	$(".slidervideoctnr").on("beforeChange",function(event,slick){
- 		$("#slidervideo .items .video-play")[0].pause();
- 	});
+    $(".slidervideoctnr").on("afterChange",function(event,slick){
+        $("#slidervideo .slick-active .video-play")[0].play();
+    });
+    $(".slidervideoctnr").on("beforeChange",function(event,slick){
+        $("#slidervideo .items .video-play")[0].pause();
+    });
 
- 	//slider top scroll to
- 	$("#block-top .to-next-btn a").on("click",function(e){
- 		e.preventDefault();
- 		var id = "#" + $("#block-top").next().attr("id");
- 		$("html,body").animate({scrollTop: $(id).offset().top},500);
- 	});
+    //slider top scroll to
+    $("#block-top .to-next-btn a").on("click",function(e){
+        e.preventDefault();
+        var id = "#" + $("#block-top").next().attr("id");
+        $("html,body").animate({scrollTop: $(id).offset().top},500);
+    });
 
- 	//add class on hover
- 	if($("#joins_us").length > 0){
- 		$("#joins_us a").on("mouseover",function(){
- 				$("#joins_us").toggleClass("hover");
- 		});
- 		$("#joins_us a").on("mouseout",function(){
- 				$("#joins_us").toggleClass("hover");
- 		});
- 	}
- 	
- 	//tab filter actu
+    //add class on hover
+    if($("#joins_us").length > 0){
+        $("#joins_us a").on("mouseover",function(){
+            $("#joins_us").toggleClass("hover");
+        });
+        $("#joins_us a").on("mouseout",function(){
+            $("#joins_us").toggleClass("hover");
+        });
+    }
 
- 	$(".actu-inner .tabs li a").on("click",function(e){
- 		e.preventDefault();
+    //tab filter actu
 
- 		thinkmarket.filterActu($(this).attr("href"));
- 		$(".actu-inner .tabs li").removeClass("active");
- 		$(this).parent().toggleClass("active");
- 	});
+    $(".actu-inner .tabs li a").on("click",function(e){
+        e.preventDefault();
+
+        thinkmarket.filterActu($(this).attr("href"));
+        $(".actu-inner .tabs li").removeClass("active");
+        $(this).parent().toggleClass("active");
+    });
+
+    //browser detection
+    var bDetection = browserDetection();
+    var bName = bDetection.browser;
+    var bVers = bDetection.version;
+    var bOs = bDetection.os;
+    $("body").addClass(bName + " " + bName + "-" + bVers + " " + bOs);
 
 
 });

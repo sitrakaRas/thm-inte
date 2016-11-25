@@ -7,7 +7,8 @@
     "matchHeight": "^0.7.0",
     "slick-carousel": "^1.6.0",
     "ScrollToFixed": "^1.0.8",
-    "skrollr": "^0.6.30"
+    "skrollr": "^0.6.30",
+    "browser-detection": "browserdetection#^0.3.3"
   },
   "overrides": {
     "slick-carousel": {
