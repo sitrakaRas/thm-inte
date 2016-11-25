@@ -90,6 +90,12 @@ $(function () {
 	};
 	thinkmarket.slider($(".slider-part"), arg);
 
+	//slider citation
+	var arg_cit = {
+		dots: true
+	};
+	thinkmarket.slider($("#citation.slider"), arg_cit);
+
 	//menu fixe
 	var menu_arg;
 	thinkmarket.headfixe($(".main-nav"), menu_arg);
@@ -107,7 +113,14 @@ $(function () {
 		dots: true,
 		easing: 'easeOut',
 		infinite: true,
-		adaptiveHeight: true
+		adaptiveHeight: true,
+		responsive: [{
+			breakpoint: 768,
+			settings: {
+				arrows: false,
+				dots: false
+			}
+		}]
 	};
 
 	thinkmarket.slider($(".slider-top"), arg_St);
@@ -117,7 +130,14 @@ $(function () {
 		dots: true,
 		easing: 'easeOut',
 		infinite: true,
-		fade: true
+		fade: true,
+		responsive: [{
+			breakpoint: 768,
+			settings: {
+				arrows: false,
+				dots: false
+			}
+		}]
 	};
 	thinkmarket.slider($(".slider-bc"), arg_bc);
 
@@ -126,7 +146,24 @@ $(function () {
 		dots: true,
 		slidesToScroll: 3,
 		slidesToShow: 3,
-		easing: 'easeOut'
+		easing: 'easeOut',
+		responsive: [{
+			breakpoint: 991,
+			settings: {
+				slidesToShow: 2,
+				slidesToScroll: 2,
+				arrows: false
+			}
+		}, {
+			breakpoint: 768,
+			settings: {
+				slidesToShow: 1,
+				slidesToScroll: 1,
+				dots: false,
+				arrows: false
+
+			}
+		}]
 	};
 
 	thinkmarket.slider($(".slider-schifter"), arg_sh);
@@ -145,7 +182,9 @@ $(function () {
 		}, {
 			breakpoint: 768,
 			settings: {
-				slidesToShow: 1
+				slidesToShow: 1,
+				arrows: false,
+				dots: false
 			}
 		}]
 	};
@@ -171,12 +210,32 @@ $(function () {
 		}
 	});
 
+	$("img").each(function () {
+		//add class square/portrait/landscape to imgs
+		$(this).load(function () {
+			if ($(this).prop("naturalWidth") == $(this).prop("naturalHeight")) {
+				$(this).addClass("img-square");
+			} else if ($(this).prop("naturalWidth") < $(this).prop("naturalHeight")) {
+				$(this).addClass("img-portrait");
+			} else if ($(this).prop("naturalWidth") > $(this).prop("naturalHeight")) {
+				$(this).addClass("img-landscape");
+			}
+		});
+	});
+
 	$(window).trigger("resize");
 
 	var arg_vid = {
 		dots: true,
 		easing: 'easeOut',
-		lazyLoad: 'ondemand'
+		lazyLoad: 'ondemand',
+		responsive: [{
+			breakpoint: 768,
+			settings: {
+				arrows: false,
+				dots: false
+			}
+		}]
 	};
 	thinkmarket.slider($(".slidervideoctnr"), arg_vid);
 
