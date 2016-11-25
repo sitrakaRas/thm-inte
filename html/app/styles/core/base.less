@@ -573,8 +573,8 @@
 
                 }
             }
-                
-            
+
+
         }
     }
 }
@@ -2266,11 +2266,21 @@
                     padding: 25px;	
                     .transition(top 0.3s ease-out);			
                     p{
-                        color: @blanc;
+                        /*color: @blanc;
                         font-size: 15px;
                         line-height: 22px;
                         font-family: @wesfy_medium;
-                        margin-bottom: 45px;
+                        margin-bottom: 45px;*/
+                        color: @blanc;
+                        font-family: @wesfy_medium;
+                        position: absolute;
+                        top: 25px;
+                        left: 25px;
+                        bottom: 45px;
+                        right: 25px;
+                        line-height: 130%;
+                        max-height: 14.3em;
+                        overflow: hidden;
                         &:before{
                             content: "";
                             .sprite(@quotetop);
@@ -2349,7 +2359,7 @@
                         background-color: @rose;
                         p{
                             font-size: 21px;
-                            line-height: unset;
+                            //#line-height: unset;
                         }
                         ul{
                             li{
