@@ -4,40 +4,47 @@
 @import "core/mixins.less" ;
 @import "core/base.less" ;
 @import "core/actus.less" ;
+@import "core/clients.less" ;
 @import "core/animations.less" ;
 
 .browserupgrade {
-  margin: 0.2em 0;
-  background: #ccc;
-  color: #000;
-  padding: 0.2em 0;
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
 }
 
 html,body{
-	height: 100% !important;
+    height: 100% !important;
 }
 
+/* Responsive: Medium devices */
+@media only screen and (max-width : 1199px) {
+    @import "core/medium";
+}
+
+/* Responsive: Small devices */
+@media only screen and (max-width : 991px) {
+    @import "core/small";
+}
+
+/* Responsive: Extra small devices */
 @media only screen and (max-width : 767px) {
-    #shifter-part{
-    	.block-shifter {
-	        height: auto !important;
-	    } 
-    }
-   
+    @import "core/extra-small";
 }
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 768px) {
-	@import "core/tablette";	
-}
+/*@media screen and (min-width: 768px) {
+    @import "core/tablette";	
+}*/
 
 /* Responsive: Portrait tablets and up */
-@media screen and (min-width: 992px) {
+/*@media screen and (min-width: 992px) {
 
-}
+}*/
 
 /* Responsive: desktop and up */
-@media screen and (min-width: 1200px) {
-	@import "core/desktop";
-	
-}
+/*@media screen and (min-width: 1200px) {
+    @import "core/desktop";
+
+}*/
