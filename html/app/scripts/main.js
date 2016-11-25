@@ -270,11 +270,23 @@ $(function(){
     });
 
     //slider top scroll to
-    $("#block-top .to-next-btn a").on("click",function(e){
+    /*$("#block-top .to-next-btn a").on("click",function(e){
         e.preventDefault();
         var id = "#" + $("#block-top").next().attr("id");
         $("html,body").animate({scrollTop: $(id).offset().top},500);
-    });
+    }); - 25.11.2016*/
+
+    //slider top scroll to
+    $('#block-top .to-next-btn a').click(function(e){
+        e.preventDefault();
+        var h = 55 + $("#block-top").height();
+        var speed = 1000;
+        if($('body.safari').length){
+            $("body.safari").animate({scrollTop: h},speed);
+        }else{
+            $("html").animate({scrollTop: h},speed);
+        }
+    })
 
     //add class on hover
     if($("#joins_us").length > 0){
