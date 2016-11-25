@@ -23,7 +23,7 @@
           <div class="row">
             <?php if(have_rows("block_manager")): ?>
             <?php while(have_rows("block_manager")): the_row();?>
-            <div class="col-md-3">
+            <div class="col-md-3 col-sm-6 col-xs-12">
               <!-- case -->
               <div class="case">
                 <!-- block-manager -->
