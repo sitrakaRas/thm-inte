@@ -13,7 +13,7 @@
     <div class="row">
       <!-- titre-part -->
       <div class="titre-part col-md-6 col-md-offset-3">
-        <a href="#"><?php the_field('titre_nos_offre', 'option'); ?></a>
+        <a href="<?php the_field('lien_page_offre', 'option'); ?>"><?php the_field('titre_nos_offre', 'option'); ?></a>
       </div>
       <!-- ./titre-part -->
       <!-- wrapper-shiffter -->
@@ -55,7 +55,7 @@
     <div class="row">
       <!-- titre-part -->
       <div class="titre-part col-md-6 col-md-offset-3">
-        <a href="#"><?php the_field('titre_nos_offre', 'option'); ?></a>
+        <a href="<?php the_field('lien_page_offre', 'option'); ?>"><?php the_field('titre_nos_offre', 'option'); ?></a>
         <p><?php the_field('sous_titre_nos_offre', 'option'); ?></p>
       </div>
       <!-- ./titre-part -->

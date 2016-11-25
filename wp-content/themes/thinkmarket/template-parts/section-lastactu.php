@@ -1,51 +1,51 @@
- <!-- section dernieres- actus -->
-<section id="last-actu" class="sect-wrap rose">
+<?php wp_reset_query(); ?>
+<?php global $post; ?>
+<!-- section dernieres- actus -->
+<section id="last-actu" class="sect-wrap rose homesection">
   <div class="container-fluid">
     <div class="row">
       <!-- titre-part -->
       <div class="titre-part col-md-6 col-md-offset-3">
-        <a href="#">Nos dernières actus</a>           
+        <a href="<?php echo the_field("lien_vers_actus","option"); ?>"><?php echo the_field("titre_section_actus","option"); ?></a>           
       </div>
       <!-- ./titre-part -->
 
+      <?php
+        $args = array(
+          'numberposts' => 2,
+          'post_type' => 'actualite',
+          'post_status' => 'publish'
+        );
+
+        $recent_posts = wp_get_recent_posts($args,OBJECT);
+      ?>
+
       <!-- actu-wrapper -->
       <div class="actu-wrapper">
+        <?php foreach ($recent_posts as $actu) {
+          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+         ?>
         <!-- actu-bloc -->
         <div class="col-md-4">
           <div class="actu-bloc">
-            <div class="img-block" style="background-image: url('<?php echo blogInfo("template_url") ?> /images/actu-img.jpg');">                
+            <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                
             </div>
             <div class="text-actu">
-              <h3><a href="#">l' actualité du cabinet</a></h3>
-              <p>écrit par Jean-Baptiste CHETTI</p>
-              <a href="#">Fusce sodales vitae lectus vestibulum, donec tincidunt lacus bibendum...</a>
+              <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
+              <p>écrit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
+              <a href="<?php echo get_post_permalink($actu->ID); ?>"><?php echo $actu->post_title; ?></a>
               <div class="link-more">
-                <a href="#">lire la suite</a>
+                <a href="<?php echo get_post_permalink($actu->ID); ?>">lire la suite</a>
               </div>
             </div>
           </div>
         </div>
         <!-- ./actu-bloc -->
-        <!-- actu-bloc -->
-        <div class="col-md-4">
-          <div class="actu-bloc">
-            <div class="img-block" style="background-image: url('<?php echo blogInfo("template_url") ?> /images/actu-img.jpg');">                
-            </div>
-            <div class="text-actu">
-              <h3><a href="#">l' actualité du cabinet</a></h3>
-              <p>écrit par Jean-Baptiste CHETTI</p>
-              <a href="#">Fusce sodales vitae lectus vestibulum, donec tincidunt lacus bibendum...</a>
-              <div class="link-more">
-                <a href="#">lire la suite</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- ./actu-bloc -->
+        <?php } ?>
         <!-- twitter block -->
         <div class="col-md-4">
           <div class="twitter-block">
-            <h3><a href="#">nos tweets</a></h3>
+            <h3><a href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" target="_blank">nos tweets</a></h3>
             <div class="listing">
               <!-- listing feed tweet -->
              <a class="twitter-timeline" href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" data-show-replies="false"  data-aria-polite="assertive"data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5"><?php the_field('id_twitter', 'option'); ?></a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -61,7 +61,7 @@
       <!-- bottom-link -->
       <div class="col-md-12 bottom-link bleu">
         <div class="link-ctnr">
-          <a href="#">toute notre actualité</a>
+          <a href="<?php echo the_field("lien_vers_actus","option"); ?>">toute notre actualité</a>
         </div>
       </div>
       <!-- ./bottom-link -->

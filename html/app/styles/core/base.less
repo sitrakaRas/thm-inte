@@ -228,9 +228,13 @@
                     border-radius: 50%;
                     height: 16px;
                     width: 16px;
+                    &:hover{
+                        background-color: @blanc;
+                    }
                 }
                 .slick-active button{
-                    background: white;
+                    background: @blanc;
+
                 }
             }
 
@@ -444,6 +448,16 @@
 
 /*-- last-actu --*/
 #last-actu{
+    &.homesection{
+        .actu-bloc{
+            min-height: 480px;
+            .link-more{
+                position: absolute;
+                bottom : 50px;
+                right: 30px;
+            }
+        }
+    }
     nav.tabs{
         ul{
             margin: 0;
@@ -601,7 +615,7 @@
                     font-size: 17px;
                     color: @bleu;
                     font-family: @wesfy_medium;
-                    margin-bottom: 30px;
+                    margin-bottom: 0px;
                     p{
                         font-size: 17px;
                         font-family: @wesfy_medium;
@@ -609,6 +623,10 @@
                 }
             }
 
+        }
+        .twitter-block{
+            margin-bottom: 0;
+            overflow: auto;
         }
     }
     .spinnerWrapper{
@@ -1650,10 +1668,8 @@
 #citation{
     background-color: @bleu;
     padding: 40px 15px 65px;
-    &.slider{
-        background: #fff;
-        padding: 15px 80px 70px;
 
+    .slider{
         .slick-arrow{
             display: block;
             position: absolute;
@@ -1696,18 +1712,71 @@
         .slick-list{
             overflow: hidden;
         }
-        .contenu{
-            &:before{
-                .sprite(@quotation-blue-left);
+    }
+
+    &.blanc{
+        background: @blanc;
+        
+        .slider{
+           padding: 15px 80px 0px;
+
+            .slick-arrow{
+                display: block;
+                position: absolute;
+                z-index: 2;
+                &:before{
+                    display: inline-block;
+                    content: '';
+                }
+                &.slick-prev{
+                    left: 30px;
+                    &:before{
+                        .sprite(@left-slide);
+                    }
+                }
+                &.slick-next{
+                    right: 30px;
+                    &:before{
+                        .sprite(@right-slide);
+                    }
+                }
             }
-            p{
-                color: @bleu;
-                &:after{
-                    .sprite(@quotation-blue-right);
+            .slick-dots {
+                left: 0;
+                bottom: -75px;
+                button{
+                    background-color: transparent;
+                    border: 2px solid @bleu;
+                    border-radius: 50%;
+                    height: 16px;
+                    width: 16px;
+                    &:before{
+                        display: none;
+                    }
+                }
+                .slick-active button{
+                    background:@bleu;
+                }
+            }
+
+            .slick-list{
+                overflow: hidden;
+            }
+            .contenu{
+                &:before{
+                    .sprite(@quotation-blue-left);
+                }
+                p{
+                    color: @bleu;
+                    &:after{
+                        .sprite(@quotation-blue-right);
+                    }
                 }
             }
         }
     }
+
+   
 
     .titre{
         h2{

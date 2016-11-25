@@ -71,9 +71,9 @@ global $post;
 					<!-- twitter block -->
 	                <div class="col-md-4">
 	                    <div class="twitter-block">
-	                        <h3><a href="#">nos tweets</a></h3>
+	                        <h3><a href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>">nos tweets</a></h3>
 	                        <div class="listing">
-	                            <!-- listing feed tweet -->
+	                           <a class="twitter-timeline" href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" data-show-replies="false"  data-aria-polite="assertive"data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5"><?php the_field('id_twitter', 'option'); ?></a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 	                        </div>
 	                        <div class="link-more">
 	                            <a href="#">tweet</a>

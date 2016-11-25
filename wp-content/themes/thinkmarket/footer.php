@@ -55,6 +55,7 @@
 	        var map = new google.maps.Map(document.getElementById('map-wrapper'), {
 	          zoom: 11,
 	          center: uluru,
+            scrollwheel: false,
             styles : [
                       {
                           "featureType": "water",
