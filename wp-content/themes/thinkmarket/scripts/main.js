@@ -52,6 +52,10 @@ var thinkmarket = {
 				rowDivs[currentDiv].height(currentTallest);
 			}
 		});
+	},
+	filterActu: function filterActu(cible) {
+		$("#last-actu.actu-inner .actu-wrapper .all").addClass("hidden");
+		$("#last-actu.actu-inner .actu-wrapper " + cible).removeClass("hidden");
 	}
 };
 
@@ -204,5 +208,15 @@ $(function () {
 			$("#joins_us").toggleClass("hover");
 		});
 	}
+
+	//tab filter actu
+
+	$(".actu-inner .tabs li a").on("click", function (e) {
+		e.preventDefault();
+
+		thinkmarket.filterActu($(this).attr("href"));
+		$(".actu-inner .tabs li").removeClass("active");
+		$(this).parent().toggleClass("active");
+	});
 });
 //# sourceMappingURL=main.js.map

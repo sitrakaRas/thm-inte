@@ -12,12 +12,12 @@ class CActualite {
     $pid = intval($pid);
     $p = get_post($pid);
 
-    if ($p->post_type == "post") {
+    if ($p->post_type == "actualite") {
 
       $element = new stdClass ();
 
       $element->ID = $p->ID;
-      $element->type = 'post';
+      $element->type = 'actualite';
       $element->permalink = get_permalink($p->ID);
       $element->titre = apply_filters('the_title', $p->post_title, $p->ID);
       $element->description = preg_replace("/(\r\n|\n|\r)/", "", apply_filters('the_content', $p->post_content));
@@ -42,7 +42,7 @@ class CActualite {
   public static function getAll($posts_per_page = -1, $paged = 1, $with_query = FALSE, $id_only = FALSE, $order = 'DESC', $orderby = 'date') {
 
     $args = array(
-      'post_type' => 'post',
+      'post_type' => 'actualite',
       'post_status' => 'publish',
       'posts_per_page' => $posts_per_page,
       'paged' => $paged,
