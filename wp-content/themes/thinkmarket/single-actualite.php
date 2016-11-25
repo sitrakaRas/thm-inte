@@ -44,6 +44,7 @@
             </div>
             <div class="leftCol col-md-8">
                 <article class="content wysiwyg">
+                    <h2><?php echo  get_the_title();?></h2>
                     <?php echo apply_filters('the_content',$post->post_content); ?>
                 </article>
                 <nav>
@@ -68,7 +69,7 @@
                     <div class="twitter-block">
                         <h3><a href="#">nos tweets</a></h3>
                         <div class="listing">
-             				<a class="twitter-timeline" href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" data-show-replies="false"  data-aria-polite="assertive"data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5"><?php the_field('id_twitter', 'option'); ?></a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>                           
+             				<a class="twitter-timeline" href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" data-show-replies="false"  data-aria-polite="assertive" data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5"><?php the_field('id_twitter', 'option'); ?></a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>                           
                         </div>
                         <div class="link-more">
                             <a href="#">tweet</a>

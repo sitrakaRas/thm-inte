@@ -114,18 +114,18 @@ function configuration_post_type() {
 
 	// Post type actu
 	$labels = array(
-			'name' => 'Actus',
-			'singular_name' => 'Actu',
+			'name' => 'Actualites',
+			'singular_name' => 'Actualite',
 			'add_new' => 'Ajouter',
-			'all_items' => 'Tous les Actus',
-			'add_new_item' => 'Ajouter Actu',
-			'edit_item' => 'Editer Actu',
-			'new_item' => 'Nouvel Actu',
-			'view_item' => 'Voir Actu',
+			'all_items' => 'Tous les Actualites',
+			'add_new_item' => 'Ajouter Actualite',
+			'edit_item' => 'Editer Actualite',
+			'new_item' => 'Nouvel Actualite',
+			'view_item' => 'Voir Actualite',
 			'search_items' => 'Chercher',
 			'not_found'           => 'Aucun résultat trouvé',
 			'not_found_in_trash'  => 'Aucun résultat trouvé dans la corbeille',
-			'parent_item_colon' => 'Parent Actu'
+			'parent_item_colon' => 'Parent Actualite'
 			//'menu_name' => default to 'name'
 		);
 	
@@ -142,6 +142,7 @@ function configuration_post_type() {
 			//'custom-fields',
 			//'comments',
 			'revisions',
+			'thumbnail',
 			//'page-attributes', // (menu order, hierarchical must be true to show Parent option)
 			//'post-formats',
 		),
@@ -149,7 +150,7 @@ function configuration_post_type() {
 		'has_archive'         => true,
 		'taxonomies' => array( 'category' )
     );
-	register_post_type( 'actus', $args );
+	register_post_type( 'actualite', $args );
 
 }
 

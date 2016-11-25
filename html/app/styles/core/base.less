@@ -438,6 +438,7 @@
                     margin-bottom: 25px;
                     display: inline-block;
                 }
+
                 .link-more{
                     width: 100%;
                     text-align: right;
@@ -463,6 +464,8 @@
 
                 }
             }
+                
+            
         }
     }
 }
@@ -473,7 +476,11 @@
             margin-bottom: 20px;
             .actu-bloc{
                 margin-bottom: 0;
+                height: 645px;
+                background-color: @blanc;
                 .text-actu{
+                    height: 370px;
+                    overflow: hidden;
                 }
                 .text-actu > a{
                     font-size: 36px;
@@ -508,6 +515,40 @@
             transform: rotate(0);
             animation: spin 2s infinite linear;
         }
+    }
+
+    .bottom-link{
+        position: absolute;
+        bottom: 25px;
+        right: 30px;
+        .link-more{
+            width: 100%;
+            text-align: right;
+            a{
+                font-family: @wesfy_medium;
+                color: @rose;
+                font-size: 20px;
+                text-decoration: none;
+                text-transform: uppercase;
+                line-height: 1;
+                &:after{
+                    content:"";
+                    .sprite(@br-link-arrow-b-h);
+                    display: inline-block;
+                    margin-left: 7px;
+                }
+                &:hover{
+                    color: @bleu;
+                    &:after{
+                        .sprite(@br-link-arrow-b);
+                    }
+                }
+            }
+
+        }
+    }
+    .twitter-block{
+        height: 645px;
     }
 }
 /*-- end: last-actu --*/

@@ -53,6 +53,10 @@ var thinkmarket = {
 		   }
 		   
 		})
+	},
+	filterActu : function(cible){
+		$("#last-actu.actu-inner .actu-wrapper .all").addClass("hidden");
+		$("#last-actu.actu-inner .actu-wrapper " + cible).removeClass("hidden");
 	}
 }
 
@@ -215,5 +219,15 @@ $(function(){
  		});
  	}
  	
+ 	//tab filter actu
+
+ 	$(".actu-inner .tabs li a").on("click",function(e){
+ 		e.preventDefault();
+
+ 		thinkmarket.filterActu($(this).attr("href"));
+ 		$(".actu-inner .tabs li").removeClass("active");
+ 		$(this).parent().toggleClass("active");
+ 	});
+
 
 });
