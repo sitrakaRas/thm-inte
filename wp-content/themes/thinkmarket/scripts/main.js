@@ -123,7 +123,7 @@ $(function () {
 		}]
 	};
 
-	thinkmarket.slider($(".slider-top"), arg_St);
+	//thinkmarket.slider($(".slider-top"),arg_St);
 
 	// business case 
 	var arg_bc = {
