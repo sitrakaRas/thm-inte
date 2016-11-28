@@ -266,6 +266,20 @@ button{
         .link-offre{
             display: inline-block;
             height: 100px;
+            &:hover{
+                img:first-child{
+                    display: none;
+                    &+img{
+                        display: block;
+                    }
+                }
+            }
+            img:first-child{
+                display: block;
+                &+img{
+                    display: none;
+                }
+            }
         }
 
         a:not(.link-offre){
@@ -410,6 +424,11 @@ button{
                         }
                     }
                 }
+            }
+            .slick-prev,
+            .slick-next{
+                width: auto;
+                height: auto;
             }
         }
 
@@ -856,6 +875,15 @@ button{
                 font-family: @wesfy_bold;
                 letter-spacing: 0.015em;
                 padding: 0;
+                &:after{
+                    content: "";
+                    display: block;
+                    height: 2px;
+                    width: 100%;
+                    background-color: transparent;
+                    position: relative;
+                    top: 0px;
+                }
                 &:hover{
                     background-color: @blanc;
                 }
@@ -866,13 +894,7 @@ button{
                     display: inline-block;
                     background-color: @blanc;
                     &:after{
-                        content: "";
-                        display: block;
-                        height: 2px;
-                        width: 100%;
                         background-color: @rose;
-                        position: relative;
-                        top: 0px;
                     }
                     &:hover{
                         background-color: @blanc;
@@ -1096,15 +1118,23 @@ button{
                         font-family: @wesfy_bold;
                         margin-top: 0;
                         a{
+                            perspective: 200px;
                             text-decoration: none;
                             display: inline-block;
                             color : @blanc;
-                            transform : rotateY(0deg);
-                            .transition(transform 0.3s ease-out);
+                            span{
+                                display: inline-block;
+                                transform : rotateY(0deg);
+                                .transition(transform 0.3s ease-out);
+                            }
                             &:hover{
                                 color: @rose;
-                                transform : rotateY(180deg);
-                                .transition(transform 0.3s ease-out);
+                            }
+                            &.spin{
+                                span{
+                                    transform : rotateY(180deg);
+                                    .transition(transform 0.3s ease-out);
+                                }
                             }
                         }
                     }
@@ -1511,6 +1541,8 @@ button{
         }
         .slick-prev,.slick-next{
             z-index: 100;
+            width: auto;
+            height: auto;
             &:before{
                 content: "";
                 display: block;
@@ -1730,7 +1762,10 @@ button{
     background-color: @bleu;
     padding: 40px 15px 65px;
 
-    .slider{
+    &.slider{
+        background: #fff;
+        padding: 15px 80px 70px;
+
         .slick-arrow{
             display: block;
             position: absolute;
@@ -1773,13 +1808,24 @@ button{
         .slick-list{
             overflow: hidden;
         }
+        .contenu{
+            &:before{
+                .sprite(@quotation-blue-left);
+            }
+            p{
+                color: @bleu;
+                &:after{
+                    .sprite(@quotation-blue-right);
+                }
+            }
+        }
     }
 
     &.blanc{
         background: @blanc;
-        
+
         .slider{
-           padding: 15px 80px 0px;
+            padding: 15px 80px 0px;
 
             .slick-arrow{
                 display: block;
@@ -1837,7 +1883,7 @@ button{
         }
     }
 
-   
+
 
     .titre{
         h2{
@@ -1989,6 +2035,8 @@ button{
 
     .slick-prev,.slick-next{
         z-index: 100;
+        width: auto;
+        height: auto;
         &:before{
             content: "";
             display: block;
@@ -2362,13 +2410,13 @@ button{
         padding-top: 25px;
         overflow: hidden;
         width: 100%;
-        
+
         @media only screen and (min-width:1200px){
             .col-md-3{
                 width: 20%;
             }
         }
-        
+
         .case{
             border: 1px solid #dbdbdb;
             margin-bottom: 20px;

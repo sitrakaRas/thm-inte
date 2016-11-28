@@ -135,6 +135,22 @@
         font-size: 26px;
     }
 
+    &.slider{
+        .contenu{
+            padding-top: 15px;
+            &:before{
+                .sprite(@quotation-blue-left-mini);
+            }
+            p{
+                font-size: 15px;
+                line-height: 130%;
+                &:after{
+                    .sprite(@quotation-blue-right-mini);
+                }
+            }
+        }
+    }
+
     .contenu{
         padding-top: 15px;
         &:before{
@@ -258,7 +274,7 @@
 
 
 #processus .processus-wrapper .the-bl .block{
-    
+
     padding: 10px;
     padding-right: 30px;
     &::after{
