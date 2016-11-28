@@ -50,7 +50,7 @@ global $post;
 	                    	</a>
 	                        
 	                        <div class="text-actu">
-	                            <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
+	                            <h3><a href=".<?php echo $categ[0]->slug; ?>"><?php echo $categ[0]->name; ?></a></h3>
 	                            <p>&Eacute;crit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
 	                            <a href="<?php echo $actu->permalink; ?>"><?php echo $actu->titre; ?></a>
 	                            <div class="summary">
@@ -91,7 +91,7 @@ global $post;
 	                    	</a>
 	                        
 	                        <div class="text-actu">
-	                            <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
+	                            <h3><a href=".<?php echo $categ[0]->slug; ?>"><?php echo $categ[0]->name; ?></a></h3>
 	                            <p>&Eacute;crit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
 	                            <a href="<?php echo $actu->permalink; ?>"><?php echo $actu->titre; ?></a>
 	                            <div class="summary">
