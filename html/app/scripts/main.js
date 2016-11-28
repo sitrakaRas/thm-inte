@@ -184,7 +184,7 @@ $(function(){
     //slider-expertise
     var arg_ex = {
         dots : true,
-        slidesToScroll: 1,
+        slidesToScroll: 3,
         slidesToShow : 3,
         easing: 'easeOut',
         responsive : [
@@ -208,6 +208,8 @@ $(function(){
     thinkmarket.slider($(".slider-expertise"),arg_ex);
 
     $(window).on("resize", function(){
+		var vw = $(window).width();  
+
         var arg_slide = {
             sub : 90
         };
@@ -224,6 +226,14 @@ $(function(){
 
         if($("#recrute").length > 0 ){
             thinkmarket.equalHeight(".processus-wrapper .block");
+        }
+
+        //same height bloc associés
+
+        if($("#associes").length > 0 && vw > 1024){
+        	thinkmarket.equalHeight(".mid-part");
+        }else{
+        	$(".mid-part").removeAttr("style");
         }
     });
 
@@ -273,7 +283,13 @@ $(function(){
     $("#block-top .to-next-btn a").on("click",function(e){
         e.preventDefault();
         var id = "#" + $("#block-top").next().attr("id");
-        $("html,body").animate({scrollTop: $(id).offset().top},500);
+       
+
+        if($('body.safari').length){
+            $("body.safari").animate({scrollTop: $(id).offset().top - 50},1000);
+        }else{
+            $("html,body").animate({scrollTop: $(id).offset().top - 50 },1000);
+        }
     });
 
     //add class on hover
