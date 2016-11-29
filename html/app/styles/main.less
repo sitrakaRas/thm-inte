@@ -18,6 +18,16 @@ html,body{
     height: 100% !important;
 }
 
+body{
+    background-position: top center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    &>section{
+        background-color: #fff;
+    }
+}
+
 /* Responsive: Medium devices */
 @media only screen and (max-width : 1199px) {
     @import "core/medium";
@@ -35,7 +45,7 @@ html,body{
 
 /* Responsive: Portrait tablets and up */
 /*@media screen and (min-width: 768px) {
-    @import "core/tablette";	
+@import "core/tablette";	
 }*/
 
 /* Responsive: Portrait tablets and up */
@@ -45,6 +55,6 @@ html,body{
 
 /* Responsive: desktop and up */
 /*@media screen and (min-width: 1200px) {
-    @import "core/desktop";
+@import "core/desktop";
 
 }*/

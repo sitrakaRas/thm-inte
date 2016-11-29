@@ -61,6 +61,15 @@ var thinkmarket = {
 }
 
 $(function(){
+
+    //browser detection
+    var bDetection = browserDetection();
+    var bName = bDetection.browser;
+    var bVers = bDetection.version;
+    var bOs = bDetection.os;
+    $("body").addClass(bName + " " + bName + "-" + bVers + " " + bOs);
+
+
     //same height block
     $(".row-shiffter .block-shifter").matchHeight();
     $(".logo-wrapper .block-logo").matchHeight();
@@ -99,27 +108,27 @@ $(function(){
     var arg_cit = {
         dots: true
     }
-    thinkmarket.slider($("#citation .slider"),arg_cit);
-	
-	//menu fixe
-	var menu_arg;
-	thinkmarket.headfixe($(".main-nav"),menu_arg);
+    thinkmarket.slider($("#citation.slider"),arg_cit);
 
-	$(window).on("scroll",function(){
-		if($(".main-nav").offset().top > 10 ){
-			$(".main-nav").addClass("minimize");
-		}else{
-			$(".main-nav").removeClass("minimize");
-		}
+    //menu fixe
+    var menu_arg;
+    thinkmarket.headfixe($(".main-nav"),menu_arg);
 
-	});
+    $(window).on("scroll",function(){
+        if($(".main-nav").offset().top > 10 ){
+            $(".main-nav").addClass("minimize");
+        }else{
+            $(".main-nav").removeClass("minimize");
+        }
 
-	//top slider
-	var arg_St = {
-		dots : true,
-		easing : 'easeOut',
-		infinite: true,
-		adaptiveHeight: true,
+    });
+
+    //top slider
+    var arg_St = {
+        dots : true,
+        easing : 'easeOut',
+        infinite: true,
+        adaptiveHeight: true,
         responsive : [
             {
                 breakpoint : 768,
@@ -207,6 +216,25 @@ $(function(){
 
     thinkmarket.slider($(".slider-expertise"),arg_ex);
 
+
+    //parralaxe slider
+    (function(){
+        var parallax = document.querySelectorAll("#block-top .item-top"),
+            speed = 0.5;
+
+        $(window).scroll(function(){
+            [].slice.call(parallax).forEach(function(el,i){
+
+                var windowYOffset = $(window).scrollTop(),
+                    elBackgrounPos = "center " + (windowYOffset * speed) + "px";
+
+                el.style.backgroundPosition = elBackgrounPos;
+
+            });
+        });
+
+    })();
+
     $(window).on("resize", function(){
 		var vw = $(window).width();  
 
@@ -217,9 +245,11 @@ $(function(){
         thinkmarket.resizeSlide($(".item-top"),arg_slide);
 
         // Init Skrollr
+        /*--28.11.2016
         var s = skrollr.init();
         // Refresh Skrollr after resizing our sections
         s.refresh($('#block-top'));
+        */
 
 
         //same height #recute
@@ -326,12 +356,7 @@ $(function(){
         
     });
 
-    //browser detection
-    var bDetection = browserDetection();
-    var bName = bDetection.browser;
-    var bVers = bDetection.version;
-    var bOs = bDetection.os;
-    $("body").addClass(bName + " " + bName + "-" + bVers + " " + bOs);
+    
 
 
 });

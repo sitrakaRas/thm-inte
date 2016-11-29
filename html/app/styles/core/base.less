@@ -156,7 +156,7 @@ button{
                 height: auto !important;
                 &:hover{
                     .shifter-inner .shifter-hover{
-                        opacity: 1;;
+                        opacity: 1;
                         .transition( opacity 0.3s ease)
                     }
                 }
@@ -210,6 +210,7 @@ button{
                         left: 0;
                         width: 100%;
                         color: white;
+                        opacity: 0;
                         font-size: 14px;
                         font-family: @wesfy ;
                         .hover-content{
@@ -268,6 +269,20 @@ button{
         .link-offre{
             display: inline-block;
             height: 100px;
+            &:hover{
+                img:first-child{
+                    display: none;
+                    &+img{
+                        display: block;
+                    }
+                }
+            }
+            img:first-child{
+                display: block;
+                &+img{
+                    display: none;
+                }
+            }
         }
 
         a:not(.link-offre){
@@ -412,6 +427,11 @@ button{
                         }
                     }
                 }
+            }
+            .slick-prev,
+            .slick-next{
+                width: auto;
+                height: auto;
             }
         }
 
@@ -858,6 +878,15 @@ button{
                 font-family: @wesfy_bold;
                 letter-spacing: 0.015em;
                 padding: 0;
+                &:after{
+                    content: "";
+                    display: block;
+                    height: 2px;
+                    width: 100%;
+                    background-color: transparent;
+                    position: relative;
+                    top: 0px;
+                }
                 &:hover{
                     background-color: @blanc;
                 }
@@ -868,13 +897,7 @@ button{
                     display: inline-block;
                     background-color: @blanc;
                     &:after{
-                        content: "";
-                        display: block;
-                        height: 2px;
-                        width: 100%;
                         background-color: @rose;
-                        position: relative;
-                        top: 0px;
                     }
                     &:hover{
                         background-color: @blanc;
@@ -1101,15 +1124,23 @@ button{
                         font-family: @wesfy_bold;
                         margin-top: 0;
                         a{
+                            perspective: 200px;
                             text-decoration: none;
                             display: inline-block;
                             color : @blanc;
-                            transform : rotateY(0deg);
-                            .transition(transform 0.3s ease-out);
+                            span{
+                                display: inline-block;
+                                transform : rotateY(0deg);
+                                .transition(transform 0.3s ease-out);
+                            }
                             &:hover{
                                 color: @rose;
-                                transform : rotateY(180deg);
-                                .transition(transform 0.3s ease-out);
+                            }
+                            &.spin{
+                                span{
+                                    transform : rotateY(180deg);
+                                    .transition(transform 0.3s ease-out);
+                                }
                             }
                         }
                     }
@@ -1296,6 +1327,9 @@ button{
                 &:before{
                     display: none;
                 }
+            }
+            li:not(.slick-active) button:hover{
+                border-color: @rose;
             }
             .slick-active{
                 button{
@@ -1513,6 +1547,8 @@ button{
         }
         .slick-prev,.slick-next{
             z-index: 100;
+            width: auto;
+            height: auto;
             &:before{
                 content: "";
                 display: block;
@@ -1775,13 +1811,24 @@ button{
         .slick-list{
             overflow: hidden;
         }
+        .contenu{
+            &:before{
+                .sprite(@quotation-blue-left);
+            }
+            p{
+                color: @bleu;
+                &:after{
+                    .sprite(@quotation-blue-right);
+                }
+            }
+        }
     }
 
     &.blanc{
         background: @blanc;
-        
+
         .slider{
-           padding: 15px 80px 0px;
+            padding: 15px 80px 0px;
 
             .slick-arrow{
                 display: block;
@@ -1839,7 +1886,7 @@ button{
         }
     }
 
-   
+
 
     .titre{
         h2{
@@ -1991,6 +2038,8 @@ button{
 
     .slick-prev,.slick-next{
         z-index: 100;
+        width: auto;
+        height: auto;
         &:before{
             content: "";
             display: block;
