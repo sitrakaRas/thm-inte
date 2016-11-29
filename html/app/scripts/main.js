@@ -142,23 +142,6 @@ $(function(){
 
     thinkmarket.slider($(".slider-top"),arg_St);
 
-    /*if($('body').length){ //bug safari
-        var $safariBody = $('body');
-        var $sliderTop = $(".slider-top");
-        getSafariBgImage($sliderTop);
-
-        function getSafariBgImage($sliderTop){
-            var bgImage = $sliderTop.find(".slick-active").css("background-image");
-            console.log(bgImage);
-            $safariBody.css({'backgroundImage':bgImage});
-        }
-
-        $sliderTop.on('afterChange', function(event, slick, direction){
-            getSafariBgImage($sliderTop);
-            // left
-        });
-    }*/
-
     // business case 
     var arg_bc = {
         dots : true,
@@ -210,7 +193,7 @@ $(function(){
     //slider-expertise
     var arg_ex = {
         dots : true,
-        slidesToScroll: 1,
+        slidesToScroll: 3,
         slidesToShow : 3,
         easing: 'easeOut',
         responsive : [
@@ -253,6 +236,8 @@ $(function(){
     })();
 
     $(window).on("resize", function(){
+		var vw = $(window).width();  
+
         var arg_slide = {
             sub : 90
         };
@@ -271,6 +256,14 @@ $(function(){
 
         if($("#recrute").length > 0 ){
             thinkmarket.equalHeight(".processus-wrapper .block");
+        }
+
+        //same height bloc associés
+
+        if($("#associes").length > 0 && vw > 1024){
+        	thinkmarket.equalHeight(".mid-part");
+        }else{
+        	$(".mid-part").removeAttr("style");
         }
     });
 
@@ -317,23 +310,17 @@ $(function(){
     });
 
     //slider top scroll to
-    /*$("#block-top .to-next-btn a").on("click",function(e){
+    $("#block-top .to-next-btn a").on("click",function(e){
         e.preventDefault();
         var id = "#" + $("#block-top").next().attr("id");
-        $("html,body").animate({scrollTop: $(id).offset().top},500);
-    }); - 25.11.2016*/
+       
 
-    //slider top scroll to
-    $('#block-top .to-next-btn a').click(function(e){
-        e.preventDefault();
-        var h = 55 + $("#block-top").height();
-        var speed = 1000;
         if($('body.safari').length){
-            $("body.safari").animate({scrollTop: h},speed);
+            $("body.safari").animate({scrollTop: $(id).offset().top - 50},1000);
         }else{
-            $("html").animate({scrollTop: h},speed);
+            $("html,body").animate({scrollTop: $(id).offset().top - 50 },1000);
         }
-    })
+    });
 
     //add class on hover
     if($("#joins_us").length > 0){
@@ -355,40 +342,21 @@ $(function(){
         $(this).parent().toggleClass("active");
     });
 
-    //patch javascript
+    $(".actu-inner .actu-bloc .text-actu h3 a").on("click",function(e){
+    	e.preventDefault();
 
-    (function _0037156_0037171() { //correction retournement shift
-        var $h1 = $("#block-top h1");
-        if($h1.text()=="It's time to shift.It's time to shift."){
-            $h1.html('<h1>It\'s time<br>to <a class="shift" href="#" tabindex="0"><span>shift</span></a>.</h1>');
-        }
-
-        var $shift = $h1.find(".shift");
-        $shift.on('mouseenter mouseout',function(){
-            if(!$shift.hasClass('spinning')){
-                $shift.addClass('spinning')
-                setTimeout(function(){$shift.removeClass('spinning')},300)
-                $shift.toggleClass('spin');
-            }
+    	thinkmarket.filterActu($(this).attr("href"));
+    	var that = $(this);
+        $(".actu-inner .tabs li").removeClass("active");
+        $(".actu-inner .tabs li").each(function(){
+        	if($(this).find("a").attr("href") == that.attr("href")){
+        		$(this).toggleClass("active");
+        	}
         });
-    })();
+        
+    });
 
-
-    (function _0037177() { //ajout rollover image bleu
-        var $img = $("#shifter-part a.link-offre img");
-        $img.each(function(){
-            var $imgClone =  $(this).clone();
-            var src = $imgClone.attr("src");
-            var regexp = /(.*)(\.[^.]*)$/;
-            var output = regexp.exec(src);
-            $imgClone.attr("src",output[1]+"-hover"+output[2]);
-            $(this).after($imgClone);
-        });
-    })();
-
-
-    /*(function _0037156() {
-    })()*/
+    
 
 
 });

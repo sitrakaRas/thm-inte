@@ -157,6 +157,7 @@ button{
                 &:hover{
                     .shifter-inner .shifter-hover{
                         opacity: 1;
+                        .transition( opacity 0.3s ease)
                     }
                 }
                 .shifter-inner{
@@ -200,7 +201,9 @@ button{
                     }
                     .shifter-hover{
                         background-color: @bleu;
-                        .transition(all 500ms ease-out);
+                        // transition:all 350ms linear;
+                        .transition(opacity 0.3s ease);
+                        opacity: 0;
                         position: absolute;
                         top: 0;
                         bottom: 0;
@@ -914,12 +917,14 @@ button{
                 a{
                     color : @blanc;
                 }
-                &:hover{
+                &:hover,&.active{
                     background-color: @rose;
                     a{
+                        color: @blanc;
                         background-color: transparent;
                     }
                 }
+
 
             }
         }
@@ -1104,6 +1109,7 @@ button{
                     font-size: 32px;
                     font-family: @wesfy_medium;
                     color: @rose;
+                    margin-bottom: 15px;
                 }
                 .content-box-type-one{
                     width: 33.3333%;
@@ -1762,10 +1768,7 @@ button{
     background-color: @bleu;
     padding: 40px 15px 65px;
 
-    &.slider{
-        background: #fff;
-        padding: 15px 80px 70px;
-
+    .slider{
         .slick-arrow{
             display: block;
             position: absolute;
@@ -2174,7 +2177,7 @@ button{
                     top: 0;
                     left: 0;
                     opacity: 0;
-                    .transition(all 500ms ease-out);				
+                    .transition(opacity 0.3s ease-out);				
                     .text-ctn{
                         position: absolute;
                         top: 50%;
@@ -2198,6 +2201,7 @@ button{
                 &:hover{
                     .mask-view{
                         opacity: 1;
+                        .transition(opacity 0.3s ease-out);
                     }
                 }
 
@@ -2301,16 +2305,24 @@ button{
                 background-color: @bleu;
                 width: 100%;
                 overflow: hidden;
+                height: auto;
+                @media (min-width:768px){
+                    height: 100%;
+                }                
                 position: relative;
                 .intern-bloc-half{
                     width: 50%;
                     float: left;
+                    height: auto;
+                    @media (min-width:768px){
+                        height: 100%;
+                    } 
                     &:first-child+.intern-bloc-half{
-                        position: absolute;
-                        right: 0;
-                        top: 0;
-                        bottom: 0;
-                        overflow: hidden;
+                        // position: absolute;
+                        // right: 0;
+                        // top: 0;
+                        // bottom: 0;
+                        // overflow: hidden;
                         padding: 55px 30px 60px;
                     }
                     .img_ctnr{
@@ -2347,7 +2359,7 @@ button{
 
                     .contenu{
                         max-height: 100%;
-                        overflow: hidden;
+                        // overflow: hidden;
                         h3{
                             color:@rose;
                             font-weight: 400;
@@ -2363,23 +2375,25 @@ button{
                             margin-bottom: 20px;
                         }
                         .rs-part{
-                            position: absolute;
-                            bottom : 30px;
-                            left: 50%;
+                            // position: absolute;
+                            // bottom : 30px;
+                            // left: 50%;
                             ul{
                                 list-style: none;
-                                padding-left: 30px;
+                                padding-left: 0px;
                                 margin-bottom: 0;
                                 li{
                                     display: inline-block;
                                     padding-right: 8px; 
                                     a{
                                         text-decoration: none;
-                                        &:hover img{
-                                            filter : brightness(0) invert(1);
-                                        }
                                         img{
-                                            .transition(filter 0.5s ease);
+                                            .transition(filter 0.3s ease);
+                                        }
+                                        &:hover{
+                                            img{
+                                                filter : brightness(0) invert(1);
+                                            }
                                         }
                                     }
                                 }
@@ -2410,13 +2424,11 @@ button{
         padding-top: 25px;
         overflow: hidden;
         width: 100%;
-
         @media only screen and (min-width:1200px){
             .col-md-3{
                 width: 20%;
             }
         }
-
         .case{
             border: 1px solid #dbdbdb;
             margin-bottom: 20px;
@@ -2436,6 +2448,7 @@ button{
                         transform: translate(-50%,-50%);
                         width: auto;
                         height: auto;
+                        min-width: 100%;
                         &.img-landscape{
                             width: auto;
                             height: 100%;
@@ -2456,10 +2469,10 @@ button{
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: @bleu;
-                    opacity: 0;
+                    background-color: @bleu;	
                     padding: 25px;	
-                    .transition(all 500ms ease-out);			
+                    opacity: 0;
+                    .transition(opacity 0.3s ease-out);			
                     p{
                         /*color: @blanc;
                         font-size: 15px;
@@ -2511,6 +2524,7 @@ button{
                 .block-manager{
                     .content{
                         opacity: 1;
+                        .transition(opacity 0.3s ease-out);
                     }
                 }
             }

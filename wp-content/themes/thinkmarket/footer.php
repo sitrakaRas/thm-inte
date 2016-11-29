@@ -197,10 +197,25 @@
                           "elementType": "geometry",
                           "stylers": [
                               {
+                                  "visibility": "simplified"
+                              },
+                              {
                                   "color": "#f2f2f2"
                               },
                               {
                                   "lightness": 19
+                              }
+                          ]
+                      },
+                      {
+                          "featureType": "transit.station",
+                          "elementType": "all",
+                          "stylers": [
+                              {
+                                  "lightness": 19
+                              },
+                              {
+                                  "visibility": "on"
                               }
                           ]
                       },
@@ -238,7 +253,10 @@
 	          map: map,
             icon: '<?php blogInfo("template_url"); ?>/images/pin.png'
 	        });
-	    }
+
+          var transitLayer = new google.maps.TransitLayer();
+          transitLayer.setMap(map);
+    }
 	    
 	</script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDq8i_6xZ1RHvXHw0l0_Lrrwsyf4oI0SAs&callback=initMap"
@@ -301,8 +319,7 @@
     <section id="second-link">
       <div class="container-fluid">
         <ul>
-          <li>© 2016</li>
-          
+          <li>© 2016 THINKMARKET</li>
         </ul>
         <?php 
         	$args = array(
