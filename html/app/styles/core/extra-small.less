@@ -9,74 +9,134 @@
 /*-- .navbar --*/
 .main-nav{
     &.minimize .navbar .navbar-header .navbar-brand{
-        padding-top: 20px;
-        padding-bottom: 20px;
-        height: 75px;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        height: 60px;
     }
     .navbar{
-        .navbar-header{
-            .navbar-brand{
-                height: 75px;
-            }
-            button{
-                margin-top: 20px;
-                margin-bottom: 20px;
-                border: none;
-                background-color: @bleu;
-                &:hover,&:active,&:focus{
-                    background: @bleu;
-                    .icon-bar{
+        .container-fluid{
+            position: relative;
+            .navbar-header{
+                position: relative;
+                z-index: 2;
+                margin-left: -20px;
+                margin-right: -20px;
+                padding-left: 10px;
+                padding-right: 10px;
+                background-color: white;
+                box-shadow: 0 0 3px rgba(0,0,0,0.6);
+                .navbar-brand{
+                    padding-top: 16px;
+                    padding-bottom: 16px;
+                    height: 60px;
+                }
+                button{
+                    margin-top: 11px;
+                    margin-bottom: 11px;
+                    border: none;
+                    background-color: white;
+                    margin-right: 0;
+                    &:hover,&:active,&:focus{
                         background: white;
+                        .icon-bar{
+                            background: @bleu;
+                        }
                     }
-                }
-                &.collapsed{
+                    /*&.collapsed{
                     background: white;
                     .icon-bar{
-                        background: @bleu;
-                    }
-                    /*&:hover,&:active{
-                    background: white;
+                    background: @bleu;
+                }
                 }*/
-                }
-                .icon-bar{
-                    width: 37px;
-                    height: 5px;
-                    border-radius: 5px;
-                    background: white;
-                    margin-top: 6px;
-                }
-                .sr-only+.icon-bar{
-                    margin-top: 0;
-                }
-            }
-        }
-        #navbar{
-            ul{
-                padding-top: 0;
-                li{
-                    margin-bottom: 10px;
-                    &:first-child{
-                        margin-top: 5px;
+                    .icon-bar{
+                        width: 25px;
+                        height: 4px;
+                        border-radius: 4kpx;
+                        background: @bleu;
+                        margin-top: 3px;
                     }
-                    &.active a{
+                    .sr-only+.icon-bar{
+                        margin-top: 0;
+                    }
+                }
+            }     
+            #navbar{
+                background: white;
+                z-index: 1;
+                bottom: 0;
+                display: block;
+                height: auto !important;
+                position: fixed;
+                top: 0;
+                padding-top: 80px;
+                left: 25%;
+                right: 0;
+                transition: transform 300ms ease-out;
+                transform: translateX(100%);
+                &.bleu{
+                    background-color: @bleu;
+                    ul li{
+                        &.active{
+                            a{
+                                color: @rose;
+                            }
+                        }
+                        a{
+                            color: white;
+                        }
+                    }
+                }
+                &.rose{
+                    background-color: @rose;
+                    ul li{
+                        &.active{
+                            a{
+                                color: white;
+                            }
+                        }
+                        a{
+                            color: @bleu;
+                        }
+                    }
+                }
+                &.collasping,
+                &.in{
+                    transform: translateX(0%);
+                }
+                ul{
+                    padding-top: 0;
+                    li{
+                        margin-bottom: 0;
+                        margin-top: 0;
+                        /*&.active a{
                         background: @rose;
-                    }
-                    a{
-                        background-color: @bleu;
-                        display: block;
-                        text-align: center;
-                        text-decoration: none;
-                        color: white;
-                        padding-top: 15px;
-                        padding-bottom: 15px;
-                        border-radius: 5px;
-                        &:after{
-                            display: none;
+                    }*/
+                        &.active a{
+                            font-family: @wesfy_bold;
+                            background-color: transparent;
+                        }
+                        a{
+                            //                        background-color: @bleu;
+                            display: block;
+                            text-align: center;
+                            text-decoration: none;
+                            padding-top: 15px;
+                            padding-bottom: 15px;
+                            border-radius: 5px;
+                            font-size: 17px;
+                            font-family: @wesfy_medium;
+                            font-weight: normal;
+                            &:after{
+                                display: none;
+                            }
+                            &:hover{
+                                background-color: transparent;
+                            }
                         }
                     }
                 }
             }
-        }
+        } 
     }
 }
 /*-- end: .navbar --*/

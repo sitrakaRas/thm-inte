@@ -356,7 +356,27 @@ $(function(){
         
     });
 
+    //patch javascript
+
+    (function _0037156_0037171() { //correction retournement shift
+        var $contentBoxTypeOne = $("#block-top .content-box-type-one");
+        var $shift = $contentBoxTypeOne.find("a");
+        $shift.addClass('shift').wrapInner('<span>');
+
+        $shift.on('mouseenter mouseout',function(){
+            if(!$shift.hasClass('spinning')){
+                $shift.addClass('spinning')
+                setTimeout(function(){$shift.removeClass('spinning')},300)
+                $shift.toggleClass('spin');
+            }
+        });
+        
+        $contentBoxTypeOne.find("h1,h2").mouseleave(function(){
+            $shift.removeClass("spin");
+        })
+    })();
     
+    $("#navbar").addClass("bleu");
 
 
 });
