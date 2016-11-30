@@ -220,15 +220,15 @@ $(function(){
     //parralaxe slider
     (function(){
         var parallax = document.querySelectorAll("#block-top .item-top"),
-            speed = 0.5;
+            speed = 0.3;
 
         $(window).scroll(function(){
             [].slice.call(parallax).forEach(function(el,i){
 
                 var windowYOffset = $(window).scrollTop(),
-                    elBackgrounPos = "center " + (windowYOffset * speed) + "px";
+                    elBackgrounPos = "0px, " + (windowYOffset * speed) + "px, 0px";
 
-                el.style.backgroundPosition = elBackgrounPos;
+                el.style.transform = "translate3d("+elBackgrounPos+")";
 
             });
         });
@@ -245,11 +245,11 @@ $(function(){
         thinkmarket.resizeSlide($(".item-top"),arg_slide);
 
         // Init Skrollr
-        /*--28.11.2016
-        var s = skrollr.init();
-        // Refresh Skrollr after resizing our sections
-        s.refresh($('#block-top'));
-        */
+        // --28.11.2016
+        // var s = skrollr.init();
+        // // Refresh Skrollr after resizing our sections
+        // s.refresh($('#block-top'));
+        
 
 
         //same height #recute

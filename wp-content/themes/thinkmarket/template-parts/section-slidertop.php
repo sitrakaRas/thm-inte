@@ -5,25 +5,25 @@
   $type = get_field("type",$post->ID);
   if($type == "interne"){
     $class = "large";
+    $home_class = "";
   }else{
     $class="";
+    $home_class = "st-home";
   }
   
   if($post->ID == wp_get_post_by_template("template/template-rejoindre.php")){
-    $glob_class = "class='inverted'";
+    $glob_class = "inverted";
   }else{
     $glob_class ="";
   }
 ?>
 
-<section id="block-top" <?php echo $glob_class; ?>>
+<section id="block-top" class="<?php echo $glob_class; ?>">
   <!-- slider-top -->
   <div class="slider-top">
     <!-- item-top -->
-    <div class="item-top" style="background-image: url('<?php echo get_field("image",$post->ID) ?>')"  
-    data-center="background-position: 50% 30%;"
-    data-top-bottom="background-position: 50% -40%;"
-    data-anchor-target="#block-top">
+    <div class="item-top  <?php echo $home_class; ?>" style="background-image: url('<?php echo get_field("image",$post->ID) ?>')"  
+>
       <div class="content-box ">
         <div class="content-box-type-one <?php echo $class; ?>">
           <?php if($post->post_type == 'offre'): ?>
@@ -49,10 +49,14 @@
 
     <?php if( have_rows('items') ):
             while ( have_rows('items') ) : the_row(); ?>
+    <?php  
+      $fd = get_sub_field("type_fond");
+      $sh = get_sub_field("show_hide");
+      if( $sh[0] != "Hide"):
+    ?>
     <!-- item-top -->
     <div class="item-top" 
     <?php 
-      $fd = get_sub_field("type_fond");
 
       if( $fd == "Rose"){
         ?>
@@ -68,10 +72,7 @@
         style="background-image: url('<?php echo get_sub_field("image") ?>')"
         <?php 
       }
-    ?>
-    data-center="background-position: 50% 0px;"
-    data-top-bottom="background-position: 50% -200px;"
-    data-anchor-target="#block-top"> 
+    ?> > 
       <div class="content-box">
         <div class="content-box-type-two">
           <div class="actu-bloc">
@@ -90,8 +91,10 @@
     </div>
     <!-- ./item-top -->
 
-    <?php   endwhile;
-          endif; 
+    <?php
+          endif;  
+        endwhile;
+      endif; 
     ?>
 
   </div>

@@ -1098,13 +1098,11 @@ button{
         margin-bottom: 0;
         .item-top{
             display: table;
-            // background-position: center 50px;
             background-repeat: no-repeat;
             background-size: cover;
             width: 100%;
-            //background-image: url("../images/bounce.jpg");
             position: relative;
-            .content-box {
+            .content-box{
                 display: table-cell;
                 vertical-align: middle;
                 height: 100%;
@@ -1256,7 +1254,6 @@ button{
                     }
 
                 }
-
             }
             .bottom-link{
                 position: absolute;
@@ -1276,10 +1273,18 @@ button{
                         }
                     }
                 }
-
-
             }
-
+            &.st-home{
+                .content-box {
+                    .content-box-type-one{
+                        h2{
+                            &+p{
+                                margin-top: 10px;
+                            }
+                        }
+                    }
+                }
+            }       
         }
 
         .slick-prev,.slick-next{
