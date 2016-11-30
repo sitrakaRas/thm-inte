@@ -376,7 +376,4 @@ $(function(){
         })
     })();
     
-    $("#navbar").addClass("bleu");
-
-
 });
