@@ -1,3 +1,6 @@
+a,a:hover, a:active, a:focus {
+  outline: 0;
+}
 button{
     &.slick-prev::before,
     &.slick-next::before{
@@ -374,8 +377,8 @@ button{
     background-color: @bleu;
     .logo-wrapper{
         clear: both;
-        padding-top: 35px;
-        padding-bottom: 35px;	
+        // padding-top: 35px;
+        // padding-bottom: 35px;	
         overflow: hidden;
         .block-logo{
             text-align: center;
@@ -1124,23 +1127,22 @@ button{
                         font-family: @wesfy_bold;
                         margin-top: 0;
                         a{
-                            perspective: 200px;
+                            // perspective: 200px;
                             text-decoration: none;
                             display: inline-block;
                             color : @blanc;
-                            span{
-                                display: inline-block;
-                                transform : rotateY(0deg);
-                                .transition(transform 0.3s ease-out);
-                            }
+                            transform : rotateY(0deg);
+                            -webkit-transform : rotateY(0deg);
+
+                            .transition(transform 0.3s ease-out);
+                            z-index: 100;
+                            position: relative;
                             &:hover{
                                 color: @rose;
-                            }
-                            &.spin{
-                                span{
-                                    transform : rotateY(180deg);
-                                    .transition(transform 0.3s ease-out);
-                                }
+                                transform : rotateY(180deg);
+                                -webkit-transform : rotateY(180deg);
+                                .transition(transform 0.3s ease-out);
+
                             }
                         }
                     }
@@ -1747,7 +1749,7 @@ button{
                 display: none;
             }
             &:hover{
-                background-color: @rose;
+                border-color: @rose;
             }
 
         }
@@ -1755,7 +1757,8 @@ button{
             button{
                 background-color: @bleu;
                 &:hover{
-                    background-color: @rose;
+                    background-color: transparent;
+                    border-color: @rose;
                 }
             }
         }
@@ -1971,6 +1974,8 @@ button{
             display: inline-block;
             height: 100px;
             line-height: 100px;
+            pointer-events: none;
+            cursor: default;
             img{
                 display: inline-block;
             }
@@ -2190,7 +2195,7 @@ button{
                             font-size: 14px;
                             font-family: @wesfy;
                             margin-bottom: 15px;
-                            strong{
+                            & > strong{
                                 font-size: 16px;
                                 font-family: @wesfy_bold;
                             }
