@@ -1,12 +1,14 @@
  <!-- actu-bloc -->
-<?php  $actualites = CActualite::getAll(5); ?>
+<?php  
+$total = count(CActualite::getAll());
+$actualites = CActualite::getAll(5); ?>
 
 <?php $i = 0 ?>
 <?php foreach ($actualites as $key => $actu) {
   $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
   if($i != 2):
   ?>
-  <div class="col-md-4 all <?php echo $categ[0]->slug; ?>" data-offset="<?php echo $key; ?>">
+  <div class="col-md-4 all <?php echo $categ[0]->slug; ?>" data-offset="<?php echo $key; ?>" data-count="<?php echo $total; ?>">
       <div class="actu-bloc">
         <a href="<?php echo $actu->permalink; ?>">
           <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                
@@ -47,7 +49,7 @@
             </div>   
         </div>
         <!-- ./twitter block -->
-        <div class="col-md-4 all <?php echo $categ[0]->slug; ?>" data-offset="<?php echo $key; ?>">
+        <div class="col-md-4 all <?php echo $categ[0]->slug; ?>" data-offset="<?php echo $key; ?>" data-count="<?php echo $total; ?>">
             <div class="actu-bloc">
               <a href="<?php echo $actu->permalink; ?>">
                 <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                

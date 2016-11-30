@@ -39,13 +39,13 @@ class CActualite {
     return self::$_elements [ $pid ];
   }
 
-  public static function getAll($posts_per_page = -1, $paged = 1, $with_query = FALSE, $id_only = FALSE, $order = 'DESC', $orderby = 'date') {
+  public static function getAll($posts_per_page = -1, $offset = 0, $with_query = FALSE, $id_only = FALSE, $order = 'DESC', $orderby = 'date') {
 
     $args = array(
       'post_type' => 'actualite',
       'post_status' => 'publish',
       'posts_per_page' => $posts_per_page,
-      'paged' => $paged,
+      'offset' => $offset,
       'order' => $order,
       'orderby' => $orderby,
       'fields' => 'ids',

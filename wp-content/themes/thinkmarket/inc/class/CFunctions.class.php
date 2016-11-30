@@ -66,6 +66,55 @@ class CFunctions {
     remove_action('wp_head', 'wp_shortlink_wp_head');
     remove_action('wp_head', 'feed_links', 2);
     remove_action('wp_head', 'feed_links_extra', 3);
+
+    add_action( 'wp_ajax_get_item_article', array( $this, 'get_item_article' ), 1 );
+    add_action( 'wp_ajax_nopriv_get_item_article', array( $this, 'get_item_article' ), 1 );
+  }
+
+  function get_item_article(){
+    $offset = $_POST['offset'] + 1;
+    $total = CActualite::getAll();
+    $actus = CActualite::getAll(6,$offset);
+    if(count($actus) > 0 ){
+      $html = "";
+      foreach ($actus as  $actu) {
+        $html .= $this->render_item_article($actu,$offset,count($total));
+        $offset++;
+      }
+      echo $html;
+    }
+      
+      die();
+  }
+  function render_item_article($actu, $key = 0,$count){
+    $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+    $html = '';
+
+    $html .= '<div class="col-md-4 all ' . $categ[0]->slug . '" data-offset="' . $key . '" data-count="'. $count .'">
+      <div class="actu-bloc">
+        <a href="' . $actu->permalink . '">
+          <div class="img-block" style="background-image: url(\'' . get_the_post_thumbnail_url($actu->ID, "large") . '\');">
+          </div>
+        </a>
+        <div class="text-actu">
+          <h3>
+            <a href=".' . $categ[0]->slug . '">' . $categ[0]->name . '</a>
+          </h3>
+          <p>&Eacute;crit par ' . get_field('auteur_article', $actu->ID) . '</p>
+          <a href="' . $actu->permalink . '">' . $actu->titre . '</a>
+          <div class="summary">
+            <p>' . get_the_excerpt($actu->ID) . '</p>
+          </div>
+        </div>
+        <div class="bottom-link">
+          <div class="link-more">
+            <a href="' . $actu->permalink . '">lire la suite</a>
+          </div>
+        </div>
+      </div>
+    </div>';
+
+    return $html;
   }
 
   function custom_init() {
@@ -284,7 +333,8 @@ class CFunctions {
     wp_enqueue_style('custom-vendor-style', get_stylesheet_directory_uri() . '/styles/vendor.css?' . time());
     wp_enqueue_style('custom-front-style', get_stylesheet_directory_uri() . '/styles/main.css?' . time());
     wp_enqueue_script('custom-vendor-script', get_stylesheet_directory_uri() . '/scripts/vendor.js?' . time(), array(), FALSE, TRUE);
-    wp_enqueue_script('custom-front-script', get_stylesheet_directory_uri() . '/scripts/main.js?' . time(), array(), FALSE, TRUE);    
+    wp_enqueue_script('custom-front-script', get_stylesheet_directory_uri() . '/scripts/custom-script.js?' . time(), array(), FALSE, TRUE);    
+    wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/scripts/main.js?' . time(), array(), FALSE, TRUE);    
     wp_localize_script('custom-front-script', 'admin', array(
       'ajaxurl' => admin_url('admin-ajax.php')
     ));
