@@ -1,5 +1,5 @@
 a,a:hover, a:active, a:focus {
-  outline: 0;
+    outline: 0;
 }
 button{
     &.slick-prev::before,
@@ -1495,6 +1495,7 @@ button{
     height: 640px;
     padding: 45px 0px 30px 0px;
     background-size: cover;
+    background-position: center center;
     .titre{
         h2{
             text-align: center;
@@ -1511,6 +1512,8 @@ button{
             padding-top: 45px;
             width: 100%;
             overflow: hidden;
+            opacity: 0;
+            .transition(opacity 0.75s ease-in);
             .bloc{
                 height: 200px;
                 max-width: 540px;
@@ -1518,12 +1521,12 @@ button{
                 background-color: @blanc;
                 padding: 30px;
                 margin-bottom: 15px;
-                margin-left: 100%;
-                .transition(margin-left 0.75s ease-in-out);
+                margin-left: 8.3333%;
+                .transition(margin-left 0.75s ease-in);
 
                 &.bottom-block{
-                    margin-left: 110%;
-                    .transition(margin-left 0.95s ease-in-out);
+                    margin-left: 25%;
+                    .transition(margin-left 0.95s ease-in);
                 }
             }
             h3{
@@ -1544,8 +1547,9 @@ button{
 
             }
             &.slick-active,&.slick-current{
+                opacity: 1;
                 .top-block{
-                    margin-left: 8.3333%;
+                    //margin-left: 8.3333%;
                     .transition(margin-left 0.75s ease-in-out);
                 }
                 .bottom-block{
@@ -1571,7 +1575,7 @@ button{
             }
             &:hover{
                 &:before{
-                    .sprite(@left-slide);
+                    .sprite(@left-slide-b-h);
                 }
             }
         }
@@ -1582,7 +1586,7 @@ button{
             }
             &:hover{
                 &:before{
-                    .sprite(@right-slide);
+                    .sprite(@right-slide-b-h);
                 }
             }
         }
@@ -1779,7 +1783,11 @@ button{
     background-color: @bleu;
     padding: 40px 15px 65px;
 
+    &.slider,
     .slider{
+        background: #fff;
+        padding: 15px 80px 70px;
+
         .slick-arrow{
             display: block;
             position: absolute;
@@ -1790,14 +1798,28 @@ button{
             }
             &.slick-prev{
                 left: 30px;
+                width: auto;
+                height: auto;
                 &:before{
                     .sprite(@left-slide);
+                }
+                &:hover{
+                    &:before{
+                        .sprite(@left-slide-b-h);
+                    }
                 }
             }
             &.slick-next{
                 right: 30px;
+                width: auto;
+                height: auto;
                 &:before{
                     .sprite(@right-slide);
+                }
+                &:hover{
+                    &:before{
+                        .sprite(@right-slide-b-h);
+                    }
                 }
             }
         }
