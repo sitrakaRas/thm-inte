@@ -217,21 +217,23 @@ $(function(){
     thinkmarket.slider($(".slider-expertise"),arg_ex);
 
 
-    //parralaxe slider
+    //parallaxe slider
     (function(){
         var parallax = document.querySelectorAll("#block-top .item-top"),
             speed = 0.3;
 
-        $(window).scroll(function(){
-            [].slice.call(parallax).forEach(function(el,i){
+        if($(window).width()>767){  //désactivation parallaxe sur version mobile
+            $(window).scroll(function(){
+                [].slice.call(parallax).forEach(function(el,i){
 
-                var windowYOffset = $(window).scrollTop(),
-                    elBackgrounPos = "0px, " + (windowYOffset * speed) + "px, 0px";
+                    var windowYOffset = $(window).scrollTop(),
+                        elBackgrounPos = "0px, " + (windowYOffset * speed) + "px, 0px";
 
-                el.style.transform = "translate3d("+elBackgrounPos+")";
+                    el.style.transform = "translate3d("+elBackgrounPos+")";
 
+                });
             });
-        });
+        }
 
     })();
 
