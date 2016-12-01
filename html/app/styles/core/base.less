@@ -7,6 +7,17 @@ button{
         opacity: 1;
     }
 }
+
+.spinner{
+    display: block;
+}
+.spinner::before{
+    display: inline-block;
+    content: "";
+    .sprite(@spinner);
+    transform: rotate(0);
+    animation: spin 2s infinite linear;
+}
 .sect-wrap{
     padding-top: 45px;
     padding-bottom: 30px;
@@ -675,16 +686,6 @@ button{
     .spinnerWrapper{
         margin-top: 45px;
         margin-bottom: 35px;
-        .spinner{
-            display: block;
-        }
-        .spinner::before{
-            display: inline-block;
-            content: "";
-            .sprite(@spinner);
-            transform: rotate(0);
-            animation: spin 2s infinite linear;
-        }
     }
 
     .bottom-link{
@@ -1102,6 +1103,13 @@ button{
             background-size: cover;
             width: 100%;
             position: relative;
+            .spinner{
+                left: 50%;
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                z-index: -1;
+            }
             .content-box{
                 display: table-cell;
                 vertical-align: middle;
@@ -1285,7 +1293,10 @@ button{
                         }
                     }
                 }
-            }       
+            }
+            .spinner{
+
+            }
         }
 
         .slick-prev,.slick-next{
@@ -1834,9 +1845,16 @@ button{
                 &:before{
                     display: none;
                 }
+                &:hover{
+                    border-color: @rose; 
+                }
             }
             .slick-active button{
                 background:@bleu;
+                &:hover{
+                    border-color: @rose;
+                    background: @rose;
+                }
             }
         }
 
