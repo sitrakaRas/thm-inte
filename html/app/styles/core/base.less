@@ -1782,7 +1782,11 @@ button{
     background-color: @bleu;
     padding: 40px 15px 65px;
 
+    &.slider,
     .slider{
+        background: #fff;
+        padding: 15px 80px 70px;
+
         .slick-arrow{
             display: block;
             position: absolute;
@@ -1793,14 +1797,28 @@ button{
             }
             &.slick-prev{
                 left: 30px;
+                width: auto;
+                height: auto;
                 &:before{
                     .sprite(@left-slide);
+                }
+                &:hover{
+                    &:before{
+                        .sprite(@left-slide-b-h);
+                    }
                 }
             }
             &.slick-next{
                 right: 30px;
+                width: auto;
+                height: auto;
                 &:before{
                     .sprite(@right-slide);
+                }
+                &:hover{
+                    &:before{
+                        .sprite(@right-slide-b-h);
+                    }
                 }
             }
         }
