@@ -376,4 +376,8 @@ $(function(){
         })
     })();
     
+    
+    (function _0037167(){ //problème de chargement ajout loader
+        $('#block-top .item-top').append('<span class="spinner">');
+    })()
 });
