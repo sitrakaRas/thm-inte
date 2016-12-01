@@ -4,6 +4,7 @@
       $grid = "col-md-12";
     } else{
       $grid = "col-md-10 col-md-offset-1";
+      $class="";
     }
   ?>
 

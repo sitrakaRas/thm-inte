@@ -1,0 +1,15 @@
+.g_close{
+	display: inline-block;
+	height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-right.png");
+    background-repeat: no-repeat;
+}
+
+.g_open{
+	display: inline-block;
+	height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-left.png");
+    background-repeat: no-repeat;
+}

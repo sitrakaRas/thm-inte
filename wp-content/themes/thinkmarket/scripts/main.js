@@ -102,7 +102,7 @@ $(function () {
     var arg_cit = {
         dots: true
     };
-    thinkmarket.slider($("#citation.slider"), arg_cit);
+    thinkmarket.slider($("#citation .slider"), arg_cit);
 
     //menu fixe
     var menu_arg;

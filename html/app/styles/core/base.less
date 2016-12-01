@@ -1803,8 +1803,8 @@ button{
 
     &.slider,
     .slider{
-        background: #fff;
-        padding: 15px 80px 70px;
+        // background: #fff;
+        // padding: 15px 80px 70px;
 
         .slick-arrow{
             display: block;
@@ -1870,21 +1870,21 @@ button{
             overflow: hidden;
         }
         .contenu{
-            &:before{
-                .sprite(@quotation-blue-left);
-            }
+            // &:before{
+            //     .sprite(@quotation-blue-left);
+            // }
             p{
-                color: @bleu;
-                &:after{
-                    .sprite(@quotation-blue-right);
-                }
+                color: @blanc;
+                // &:after{
+                //     .sprite(@quotation-blue-right);
+                // }
             }
         }
     }
 
     &.blanc{
         background: @blanc;
-
+        
         .slider{
             padding: 15px 80px 0px;
 
@@ -1931,14 +1931,14 @@ button{
                 overflow: hidden;
             }
             .contenu{
-                &:before{
-                    .sprite(@quotation-blue-left);
-                }
+                // &:before{
+                //     .sprite(@quotation-blue-left);
+                // }
                 p{
                     color: @bleu;
-                    &:after{
-                        .sprite(@quotation-blue-right);
-                    }
+                    // &:after{
+                    //     .sprite(@quotation-blue-right);
+                    // }
                 }
             }
         }
@@ -1958,26 +1958,26 @@ button{
     }
     .contenu{
         padding-top: 45px;
-        &:before{
-            content:"";
-            .sprite(@quoteleft);
-            display: block;
-            margin-bottom: 20px;
-        }
+        // &:before{
+        //     content:"";
+        //     .sprite(@quoteleft);
+        //     display: block;
+        //     margin-bottom: 20px;
+        // }
         p{
             color: @blanc;
             font-family: @wesfy_medium;
             font-size: 28px;
             line-height: 37.5px;
             letter-spacing: 0.01em;
-            &:after{
-                content: "";
-                display: inline-block;
-                .sprite(@quoteright);
-                position: relative;
-                margin-left: 20px;
-                top:5px;
-            }
+            // &:after{
+            //     content: "";
+            //     display: inline-block;
+            //     .sprite(@quoteright);
+            //     position: relative;
+            //     margin-left: 20px;
+            //     top:5px;
+            // }
         }
     }
     .auteur{
@@ -1992,6 +1992,48 @@ button{
         }
     }
 }
+
+
+
+#citation .g_close{
+    display: inline-block;
+    height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-right.png");
+    background-repeat: no-repeat;
+    filter: brightness(0) invert(1);
+    margin-left: 20px;
+    position: relative;
+    top: 10px;
+}
+
+#citation .g_open{
+    display: inline-block;
+    height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-left.png");
+    background-repeat: no-repeat;
+    filter: brightness(0) invert(1);
+}
+
+#citation.blanc .g_close{
+    display: inline-block;
+    height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-right.png");
+    background-repeat: no-repeat;
+    filter : none;
+}
+
+#citation.blanc .g_open{
+    display: inline-block;
+    height: 34px;
+    width: 46px;
+    background-image: url("../images/origin/quotation-blue-left.png");
+    background-repeat: no-repeat;
+    filter : none;
+}
+
 
 // expertise-part
 #expertise-part{

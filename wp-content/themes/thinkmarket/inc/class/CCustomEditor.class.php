@@ -29,12 +29,13 @@ class CCustomEditor {
 
   function mce_external_plugins($plugin_array){
     $plugin_array['slideshare'] = get_stylesheet_directory_uri() . '/scripts/slideshare.js';
+    $plugin_array['guillemet_ouvert'] = get_stylesheet_directory_uri() . '/scripts/guillemet_ouvert.js';
+    $plugin_array['guillemet_fermer'] = get_stylesheet_directory_uri() . '/scripts/guillemet_fermer.js';
     return $plugin_array;
   }
 
   function mce_buttons($buttons) {
-    array_push($buttons, "slideshare");
-
+    array_push($buttons, "slideshare","guillemet_ouvert","guillemet_fermer");
     return $buttons;
   }
 } new CCustomEditor();
