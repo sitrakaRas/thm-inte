@@ -138,7 +138,7 @@ $(function () {
         dots: true,
         easing: 'easeOut',
         infinite: true,
-        fade: true,
+        //        fade: true,
         responsive: [{
             breakpoint: 768,
             settings: {
