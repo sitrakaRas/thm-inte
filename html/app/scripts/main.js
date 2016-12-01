@@ -147,7 +147,7 @@ $(function(){
         dots : true,
         easing : 'easeOut',
         infinite: true,
-//        fade: true,
+        //        fade: true,
         responsive:[
             {
                 breakpoint: 768,
@@ -217,26 +217,28 @@ $(function(){
     thinkmarket.slider($(".slider-expertise"),arg_ex);
 
 
-    //parralaxe slider
+    //parallaxe slider
     (function(){
         var parallax = document.querySelectorAll("#block-top .item-top"),
             speed = 0.3;
 
-        $(window).scroll(function(){
-            [].slice.call(parallax).forEach(function(el,i){
+        if($(window).width()>767){  //désactivation parallaxe sur version mobile
+            $(window).scroll(function(){
+                [].slice.call(parallax).forEach(function(el,i){
 
-                var windowYOffset = $(window).scrollTop(),
-                    elBackgrounPos = "0px, " + (windowYOffset * speed) + "px, 0px";
+                    var windowYOffset = $(window).scrollTop(),
+                        elBackgrounPos = "0px, " + (windowYOffset * speed) + "px, 0px";
 
-                el.style.transform = "translate3d("+elBackgrounPos+")";
+                    el.style.transform = "translate3d("+elBackgrounPos+")";
 
+                });
             });
-        });
+        }
 
     })();
 
     $(window).on("resize", function(){
-		var vw = $(window).width();  
+        var vw = $(window).width();  
 
         var arg_slide = {
             sub : 90
@@ -249,7 +251,7 @@ $(function(){
         // var s = skrollr.init();
         // // Refresh Skrollr after resizing our sections
         // s.refresh($('#block-top'));
-        
+
 
 
         //same height #recute
@@ -261,9 +263,9 @@ $(function(){
         //same height bloc associés
 
         if($("#associes").length > 0 && vw > 1024){
-        	thinkmarket.equalHeight(".mid-part");
+            thinkmarket.equalHeight(".mid-part");
         }else{
-        	$(".mid-part").removeAttr("style");
+            $(".mid-part").removeAttr("style");
         }
     });
 
@@ -313,7 +315,7 @@ $(function(){
     $("#block-top .to-next-btn a").on("click",function(e){
         e.preventDefault();
         var id = "#" + $("#block-top").next().attr("id");
-       
+
 
         if($('body.safari').length){
             $("body.safari").animate({scrollTop: $(id).offset().top - 50},1000);
@@ -343,17 +345,17 @@ $(function(){
     });
 
     $(".actu-inner .actu-bloc .text-actu h3 a").on("click",function(e){
-    	e.preventDefault();
+        e.preventDefault();
 
-    	thinkmarket.filterActu($(this).attr("href"));
-    	var that = $(this);
+        thinkmarket.filterActu($(this).attr("href"));
+        var that = $(this);
         $(".actu-inner .tabs li").removeClass("active");
         $(".actu-inner .tabs li").each(function(){
-        	if($(this).find("a").attr("href") == that.attr("href")){
-        		$(this).toggleClass("active");
-        	}
+            if($(this).find("a").attr("href") == that.attr("href")){
+                $(this).toggleClass("active");
+            }
         });
-        
+
     });
 
     //patch javascript
@@ -370,14 +372,29 @@ $(function(){
                 $shift.toggleClass('spin');
             }
         });
-        
+
         $contentBoxTypeOne.find("h1,h2").mouseleave(function(){
             $shift.removeClass("spin");
         })
     })();
-    
-    
+
+
     (function _0037167(){ //problème de chargement ajout loader
-        $('#block-top .item-top').append('<span class="spinner">');
+        /*var $itemTop = $('#block-top .item-top');
+        $itemTop.each(function(){
+            var $this = $(this);
+
+            if($this.css('background-image')!="none"){
+                $this.append('<span class="spinner">');
+                console.log($this.css('background-image'));
+            }
+
+        })*/
+        $("body").append('<div id="loader"><span class="spinner"></span></div>');
+        $(window).load(function(){
+            $("body > #loader").fadeOut(1000,function(){
+                $(this).remove();
+            });
+        })
     })()
 });

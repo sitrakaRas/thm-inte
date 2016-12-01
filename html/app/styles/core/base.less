@@ -686,7 +686,7 @@ button{
     .spinnerWrapper{
         margin-top: 45px;
         margin-bottom: 35px;
-       display: none;
+        display: none;
         .spinner{
             display: block;
         }
@@ -2831,4 +2831,22 @@ button{
         }
     }
 
+}
+
+#loader{
+    body > &{
+        background-color: white;
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        right: 0;
+        top: 0;
+        z-index: 99999;
+        .spinner{
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
 }
