@@ -199,20 +199,23 @@ $(function () {
 
     thinkmarket.slider($(".slider-expertise"), arg_ex);
 
-    //parralaxe slider
+    //parallaxe slider
     (function () {
         var parallax = document.querySelectorAll("#block-top .item-top"),
             speed = 0.3;
 
-        $(window).scroll(function () {
-            [].slice.call(parallax).forEach(function (el, i) {
+        if ($(window).width() > 767) {
+            //désactivation parallaxe sur version mobile
+            $(window).scroll(function () {
+                [].slice.call(parallax).forEach(function (el, i) {
 
-                var windowYOffset = $(window).scrollTop(),
-                    elBackgrounPos = "0px, " + windowYOffset * speed + "px, 0px";
+                    var windowYOffset = $(window).scrollTop(),
+                        elBackgrounPos = "0px, " + windowYOffset * speed + "px, 0px";
 
-                el.style.transform = "translate3d(" + elBackgrounPos + ")";
+                    el.style.transform = "translate3d(" + elBackgrounPos + ")";
+                });
             });
-        });
+        }
     })();
 
     $(window).on("resize", function () {
@@ -357,7 +360,20 @@ $(function () {
 
     (function _0037167() {
         //problème de chargement ajout loader
-        $('#block-top .item-top').append('<span class="spinner">');
+        /*var $itemTop = $('#block-top .item-top');
+        $itemTop.each(function(){
+            var $this = $(this);
+              if($this.css('background-image')!="none"){
+                $this.append('<span class="spinner">');
+                console.log($this.css('background-image'));
+            }
+          })*/
+        $("body").append('<div id="loader"><span class="spinner"></span></div>');
+        $(window).load(function () {
+            $("body > #loader").fadeOut(1000, function () {
+                $(this).remove();
+            });
+        });
     })();
 });
 //# sourceMappingURL=main.js.map
