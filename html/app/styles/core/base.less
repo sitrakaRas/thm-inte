@@ -573,6 +573,15 @@ button{
             display: table;
             clear: both;
         }
+        &>.col-md-4{
+            display: none;
+            &:first-child{
+                display: block;
+                &+.col-md-4{
+                    display: block;
+                }
+            }
+        }
         .actu-bloc{
             box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.1);
             width: 100%;
@@ -1888,7 +1897,7 @@ button{
 
     &.blanc{
         background: @blanc;
-        
+
         .slider{
             padding: 15px 80px 0px;
 
@@ -2858,15 +2867,15 @@ button{
 
 /*-- hide video button safari --*/
 *::-webkit-media-controls-panel {
-  display: none!important;
-  -webkit-appearance: none;
+    display: none!important;
+    -webkit-appearance: none;
 }
 
 /* Old shadow dom for play button */
 
 *::--webkit-media-controls-play-button {
-  display: none!important;
-  -webkit-appearance: none;
+    display: none!important;
+    -webkit-appearance: none;
 }
 
 /* New shadow dom for play button */
@@ -2874,7 +2883,7 @@ button{
 /* This one works */
 
 *::-webkit-media-controls-start-playback-button {
-  display: none!important;
-  -webkit-appearance: none;
+    display: none!important;
+    -webkit-appearance: none;
 }
 /*-- end: hide video button safari --*/

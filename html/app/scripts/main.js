@@ -180,9 +180,6 @@ $(function(){
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
-                    dots : false,
-                    arrows : false
-
                 }
             }
         ]
@@ -415,6 +412,7 @@ $(function(){
     })();
 
     (function(){ /*-- A SUPPRIMER : modification classes footer --*/
-        $footerLinkBloc = $("#footer-link .col-md-2").attr('class','col-md-2 col-xs-6 text-sm-left');
+        var $footerLinkBloc = $("#footer-link .col-md-2").attr('class','col-md-2 col-xs-6 text-sm-left');
+        var $logoWrapper = $('#nosclient-part .logo-wrapper .col-md-2').attr('class','col-md-2 col-xs-4 block-logo');
     })();
 });
