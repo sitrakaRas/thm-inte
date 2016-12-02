@@ -166,10 +166,7 @@ $(function () {
             breakpoint: 768,
             settings: {
                 slidesToShow: 1,
-                slidesToScroll: 1,
-                dots: false,
-                arrows: false
-
+                slidesToScroll: 1
             }
         }]
     };
