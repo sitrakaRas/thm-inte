@@ -1827,10 +1827,9 @@ button{
     background-color: @bleu;
     padding: 40px 15px 65px;
 
-    &.slider,
-    .slider{ //slider "citation" de l'espace client : ne pas supprimer !!!
-         background: #fff;
-         padding: 15px 80px 70px;
+    &.slider{ //ne pas supprimer : slider page client
+        background: #fff;
+        padding: 15px 80px 70px;
 
         .slick-arrow{
             display: block;
@@ -1842,28 +1841,14 @@ button{
             }
             &.slick-prev{
                 left: 30px;
-                width: auto;
-                height: auto;
                 &:before{
                     .sprite(@left-slide);
-                }
-                &:hover{
-                    &:before{
-                        .sprite(@left-slide-b-h);
-                    }
                 }
             }
             &.slick-next{
                 right: 30px;
-                width: auto;
-                height: auto;
                 &:before{
                     .sprite(@right-slide);
-                }
-                &:hover{
-                    &:before{
-                        .sprite(@right-slide-b-h);
-                    }
                 }
             }
         }
@@ -1879,16 +1864,9 @@ button{
                 &:before{
                     display: none;
                 }
-                &:hover{
-                    border-color: @rose; 
-                }
             }
             .slick-active button{
                 background:@bleu;
-                &:hover{
-                    border-color: @rose;
-                    background: @rose;
-                }
             }
         }
 
@@ -1896,14 +1874,14 @@ button{
             overflow: hidden;
         }
         .contenu{
-            // &:before{
-            //     .sprite(@quotation-blue-left);
-            // }
+            &:before{
+                .sprite(@quotation-blue-left);
+            }
             p{
-                color: @blanc;
-                // &:after{
-                //     .sprite(@quotation-blue-right);
-                // }
+                color: @bleu;
+                &:after{
+                    .sprite(@quotation-blue-right);
+                }
             }
         }
     }
@@ -2876,3 +2854,27 @@ button{
         }
     }
 }
+
+
+/*-- hide video button safari --*/
+*::-webkit-media-controls-panel {
+  display: none!important;
+  -webkit-appearance: none;
+}
+
+/* Old shadow dom for play button */
+
+*::--webkit-media-controls-play-button {
+  display: none!important;
+  -webkit-appearance: none;
+}
+
+/* New shadow dom for play button */
+
+/* This one works */
+
+*::-webkit-media-controls-start-playback-button {
+  display: none!important;
+  -webkit-appearance: none;
+}
+/*-- end: hide video button safari --*/

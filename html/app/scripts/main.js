@@ -400,7 +400,6 @@ $(function(){
     
     (function(){ //Correction problème de menu transparent au scroll
         $(window).scroll(function(){
-            console.log($(window).scrollTop());
             if($('#navbar').hasClass('in')){
                 $('.navbar-header button.navbar-toggle').trigger('click');
             }
@@ -409,7 +408,7 @@ $(function(){
     
     (function(){ //Auto load video
          $('#slidervideo video.video-play').each(function(){
-             //$(this)[0].play();
+             $(this)[0].play();
          })
     })
 });
