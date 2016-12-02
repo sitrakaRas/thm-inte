@@ -1867,11 +1867,21 @@ button{
                 &:before{
                     .sprite(@left-slide);
                 }
+                &:hover{
+                    &:before{
+                        .sprite(@left-slide-b-h);
+                    }
+                }
             }
             &.slick-next{
                 right: 30px;
                 &:before{
                     .sprite(@right-slide);
+                }
+                &:hover{
+                    &:before{
+                        .sprite(@right-slide-b-h);
+                    }
                 }
             }
         }
@@ -1887,9 +1897,17 @@ button{
                 &:before{
                     display: none;
                 }
+                &:hover{
+                    border-color: @rose;
+
+                }
             }
             .slick-active button{
                 background:@bleu;
+                &:hover{
+                    background: @rose;
+                    border-color: @rose;
+                }
             }
         }
 
@@ -1928,11 +1946,22 @@ button{
                     &:before{
                         .sprite(@left-slide);
                     }
+                    &:hover{
+                        &:before{
+                            .sprite(@left-slide-b-h);
+                        }
+                    }
+
                 }
                 &.slick-next{
                     right: 30px;
                     &:before{
                         .sprite(@right-slide);
+                    }
+                    &:hover{
+                        &:before{
+                            .sprite(@right-slide-b-h);
+                        }
                     }
                 }
             }
@@ -1948,9 +1977,16 @@ button{
                     &:before{
                         display: none;
                     }
+                    &:hover{
+                        border-color: @rose;
+                    }
                 }
                 .slick-active button{
                     background:@bleu;
+                    &:hover{
+                        background: @rose;
+                        border-color: @rose;
+                    }
                 }
             }
 

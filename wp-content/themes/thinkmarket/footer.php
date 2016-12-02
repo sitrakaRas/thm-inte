@@ -43,7 +43,7 @@
     <!-- ./section contact -->
     <!-- section map -->
     <section id="map">
-      <div id="map-wrapper" style="pointer-events : none;">
+      <div id="map-wrapper">
         <p>map</p>
       </div>
     </section>
@@ -56,9 +56,7 @@
 	          zoom: 15,
 	          center: uluru,
             scrollwheel: false,
-            draggable: false,
-            zoomControl: false,
-            disableDefaultUI: true,
+            draggable: true,
             styles : [
                       {
                           "featureType": "water",
