@@ -408,13 +408,8 @@ $(function(){
 
     (function(){ //Ajout poster video
         var $video = $('#slidervideo video');
-        $video.attr('poster','/images/CamilleRio.jpg');  /*<-- A SUPPRIMER --*/
         $video.each(function(){
             $(this).closest('.row').css({'backgroundImage':'url('+$(this).attr('poster')+')'});
         })
-    })();
-
-    (function(){ /*-- A SUPPRIMER : modification classes footer --*/
-        $footerLinkBloc = $("#footer-link .col-md-2").attr('class','col-md-2 col-xs-6 text-sm-left');
     })();
 });

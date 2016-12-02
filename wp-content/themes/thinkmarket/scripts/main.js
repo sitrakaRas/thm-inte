@@ -386,10 +386,11 @@ $(function () {
     })();
 
     (function () {
-        //Auto load video
-        $('#slidervideo video.video-play').each(function () {
-            $(this)[0].play();
+        //Ajout poster video
+        var $video = $('#slidervideo video');
+        $video.each(function () {
+            $(this).closest('.row').css({ 'backgroundImage': 'url(' + $(this).attr('poster') + ')' });
         });
-    });
+    })();
 });
 //# sourceMappingURL=main.js.map
