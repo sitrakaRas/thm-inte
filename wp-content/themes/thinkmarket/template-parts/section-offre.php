@@ -31,6 +31,7 @@
             <div class="block-shifter col-md-4 col-sm-6">
                 <a href="<?php echo get_the_permalink(); ?>" class="link-offre">
                   <img src="<?php echo get_field('logo'); ?>" alt="icone">
+                  <img src="<?php echo get_field('logo_hover'); ?>" alt="icone-hover">
                 </a>                  
                 <h3 style="<?php echo "font-size:".get_field('taille_titre')."px;"?>"><?php echo get_the_title(); ?></h3>
                 <p style="<?php echo "font-size:".get_field('taille_slogan')."px;"; ?>"><?php echo get_field('slogan'); ?></p>

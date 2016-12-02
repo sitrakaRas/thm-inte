@@ -12,7 +12,7 @@
 
       <?php
         $args = array(
-          'numberposts' => 2,
+          'numberposts' => 4,
           'post_type' => 'actualite',
           'post_status' => 'publish'
         );
@@ -22,26 +22,36 @@
 
       <!-- actu-wrapper -->
       <div class="actu-wrapper">
+        <div class="col-md-8">
+          <div class="row">
         <?php foreach ($recent_posts as $actu) {
           $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
          ?>
-        <!-- actu-bloc -->
-        <div class="col-md-4">
-          <div class="actu-bloc">
-            <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                
-            </div>
-            <div class="text-actu">
-              <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
-              <p>écrit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
-              <a href="<?php echo get_post_permalink($actu->ID); ?>"><?php echo $actu->post_title; ?></a>
-              <div class="link-more">
-                <a href="<?php echo get_post_permalink($actu->ID); ?>">lire la suite</a>
+       
+        
+          
+           <!-- actu-bloc -->
+            <div class="col-md-6">
+              <div class="actu-bloc">
+                <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                
+                </div>
+                <div class="text-actu">
+                  <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
+                  <p>écrit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
+                  <a href="<?php echo get_post_permalink($actu->ID); ?>"><?php echo $actu->post_title; ?></a>
+                  <div class="link-more">
+                    <a href="<?php echo get_post_permalink($actu->ID); ?>">lire la suite</a>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        <!-- ./actu-bloc -->
+            <!-- ./actu-bloc -->
+         
+        
+        
         <?php } ?>
+         </div>
+        </div>
         <!-- twitter block -->
         <div class="col-md-4">
           <div class="twitter-block">

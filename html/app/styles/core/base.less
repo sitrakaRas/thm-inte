@@ -155,6 +155,9 @@ button{
         .titre-part{
             a{
                 color: white;
+                &:hover{
+                    color : @rose;
+                }
             }
         }
         .slider-schifter{
@@ -190,6 +193,7 @@ button{
                             top: 50%;
                             left: 50%;
                             transform: translate(-50%,-50%);
+                            width: 100%;
                             a{
                                 img{
                                     height: auto;
@@ -229,11 +233,11 @@ button{
                         font-family: @wesfy ;
                         .hover-content{
                             position: absolute;
-                            top: 75px;
+                            top: 50%;
                             left: 50px;
-                            bottom: 65px;
+                            transform : translateY(-50%);
                             right: 50px;
-                            overflow: hidden;
+                            // overflow: hidden;
                         }
                         h4{
                             font-size: 16px;
@@ -295,6 +299,22 @@ button{
                 display: block;
                 &+img{
                     display: none;
+                }
+            }
+        }
+        &:hover{
+            .link-offre{
+                img:first-child{
+                    display: none;
+                    &+img{
+                        display: block;
+                    }
+                }
+            }
+            a:not(.link-offre){
+                color: @bleu-shifter;
+                &:after{
+                    .sprite(@link-arrow-h);
                 }
             }
         }
@@ -804,6 +824,11 @@ button{
 //contact-part
 #contact-part{
     background-color: @bleu-clair;
+    .titre-part {
+        a{
+            pointer-events: none;
+        }
+    }
     .contact-wrapper{
         width: 100%;
         display: block;
@@ -1114,6 +1139,7 @@ button{
             background-size: cover;
             width: 100%;
             position: relative;
+            background-position: center;
             .spinner{
                 left: 50%;
                 position: absolute;
