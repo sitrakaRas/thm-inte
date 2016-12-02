@@ -1667,6 +1667,29 @@ button{
 #slidervideo{
     width: 100%;
     position: relative;
+    .titre-part{
+        position: absolute;
+        left: 50%;
+        transform : translateX(-50%);
+        z-index: 200;
+        width: 100%;
+        text-align: center;
+        padding-top: 50px;
+        h2{
+            margin-top: 0;
+            font-size: 32px;
+            color: @rose;
+            text-transform: uppercase;
+            font-family: @wesfy_black;
+        }
+        p{
+            color: @bleu;
+            font-size: 20px;
+            line-height: 24px;
+            font-family: @wesfy_medium;
+            margin-bottom: 0;
+        }
+    }
     .slidervideoctnr{
         margin-bottom: 0;
         *{

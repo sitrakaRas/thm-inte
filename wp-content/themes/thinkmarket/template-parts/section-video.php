@@ -1,5 +1,9 @@
 <?php wp_reset_query(); ?>
 <section id="slidervideo">
+  <div class="titre-part">
+    <h2><?php echo get_field("titre_slider_video"); ?></h2>
+    <?php echo get_field("sous_titre_video"); ?>
+  </div>
   <div class="slidervideoctnr">
   <?php if(have_rows("slider_video")): ?>
   <?php   while(have_rows("slider_video")): the_row();?>

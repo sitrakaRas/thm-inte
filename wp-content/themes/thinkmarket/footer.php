@@ -288,7 +288,7 @@
 					}
 
           ?>
-          <div class="col-md-2 col-sm-6 text-sm-left text-xs-center">
+          <div class="col-md-2 col-xs-6 text-sm-left">
             <div class="bloc-footer <?php echo $class; ?>">
               <?php if(get_sub_field('type_adresse') == 1): ?>
               <h3><?php echo get_sub_field("titre_adresse"); ?></h3>

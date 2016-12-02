@@ -102,7 +102,7 @@ $(function () {
     var arg_cit = {
         dots: true
     };
-    thinkmarket.slider($("#citation .slider"), arg_cit);
+    thinkmarket.slider($("#citation.slider, #citation .slider"), arg_cit);
 
     //menu fixe
     var menu_arg;
@@ -335,7 +335,7 @@ $(function () {
         });
     });
 
-    //patch javascript
+    //patchs javascript
 
     (function _0037156_0037171() {
         //correction retournement shift
@@ -375,5 +375,21 @@ $(function () {
             });
         });
     })();
+
+    (function () {
+        //Correction problème de menu transparent au scroll
+        $(window).scroll(function () {
+            if ($('#navbar').hasClass('in')) {
+                $('.navbar-header button.navbar-toggle').trigger('click');
+            }
+        });
+    })();
+
+    (function () {
+        //Auto load video
+        $('#slidervideo video.video-play').each(function () {
+            $(this)[0].play();
+        });
+    });
 });
 //# sourceMappingURL=main.js.map
