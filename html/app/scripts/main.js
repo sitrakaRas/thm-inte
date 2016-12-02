@@ -397,7 +397,7 @@ $(function(){
             });
         })
     })();
-    
+
     (function(){ //Correction problème de menu transparent au scroll
         $(window).scroll(function(){
             if($('#navbar').hasClass('in')){
@@ -405,10 +405,16 @@ $(function(){
             }
         })
     })();
-    
-    (function(){ //Auto load video
-         $('#slidervideo video.video-play').each(function(){
-             $(this)[0].play();
-         })
-    })
+
+    (function(){ //Ajout poster video
+        var $video = $('#slidervideo video');
+        $video.attr('poster','/images/CamilleRio.jpg');  /*<-- A SUPPRIMER --*/
+        $video.each(function(){
+            $(this).closest('.row').css({'backgroundImage':'url('+$(this).attr('poster')+')'});
+        })
+    })();
+
+    (function(){ /*-- A SUPPRIMER : modification classes footer --*/
+        $footerLinkBloc = $("#footer-link .col-md-2").attr('class','col-md-2 col-xs-6 text-sm-left');
+    })();
 });
