@@ -58,7 +58,10 @@
                             <?php next_post_link( '%link','Article suivant' ); ?>
                         </li>
                         <li class="nav-all col-md-4 col-sm-12 text-center readmore">
-                            <a href="#" title="Toutes nos actus" >Toutes nos actus</a>
+                        <?php 
+                            $id = wp_get_post_by_template('template/template-actualite.php');
+                        ?>
+                            <a href="<?php echo get_the_permalink($id); ?>" title="Toutes nos actus" >Toutes nos actus</a>
 
                         </li>
                     </ul>
