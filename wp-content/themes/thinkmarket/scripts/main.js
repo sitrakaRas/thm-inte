@@ -111,7 +111,7 @@ $(function () {
 
     //menu fixe
     var menu_arg;
-    thinkmarket.headfixe($(".main-nav"), menu_arg);
+    thinkmarket.headfixe($(".main-nav").not(".iphone .main-nav"), menu_arg);
 
     $(window).on("scroll", function () {
         if ($(".main-nav").offset().top > 10) {
@@ -454,6 +454,22 @@ $(function () {
                     $(".logo-wrapper .block-logo").matchHeight();
                 }
             }
+        }
+    })();
+
+    (function () {
+
+        if ($('body.iphone').length) {
+            adjustMainNav();
+            $(window).resize(function () {
+                adjustMainNav();
+            });
+        }
+
+        function adjustMainNav() {
+
+            //alert('adjust :'+$('body').attr('class'));
+            $('body').css({ 'padding-top': $('.main-nav').height() });
         }
     })();
 });

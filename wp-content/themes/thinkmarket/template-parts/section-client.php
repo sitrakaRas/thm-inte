@@ -26,7 +26,7 @@ if($post->ID == wp_get_post_by_template("template/template-client.php")){
       <div class="logo-wrapper">
         <?php  while ( $loop->have_posts() ) : $loop->the_post();  ?>
         <!-- logo-block -->
-        <div class="col-md-2 col-xs-4 block-logo">
+        <div class="col-md-2 col-xs-6 block-logo">
           <a href="#">               
             <img src="<?php the_post_thumbnail_url(); ?>" alt="logo">
           </a>             

@@ -4,18 +4,23 @@
 }
 
 /*-- #block-top  --*/
-#block-top .slider-top .item-top .content-box{
-    .content-box-type-one{
-        width: auto;
-        margin-right: 8.3333%;
-        h1,h2{
-            font-size: 95px;
-            line-height: 130%;
-        }
+#block-top .slider-top .item-top{
+    &[style*="apropos.jpg"]{
+        background-position: 85% center!important;
     }
+    .content-box{
+        .content-box-type-one{
+            width: auto;
+            margin-right: 8.3333%;
+            h1,h2{
+                font-size: 95px;
+                line-height: 130%;
+            }
+        }
 
-    .content-box-type-two{
-        width: 55%;
+        .content-box-type-two{
+            width: 55%;
+        }
     }
 }
 /*-- end: #block-top  --*/

@@ -164,6 +164,7 @@
                     //margin-top: 60px;
                     margin-left: 4.333%;
                     margin-right: 5.333%;
+                    padding-top: 50px;
                     width: auto;
                     h1, h2{
                         font-size: 60px;
@@ -191,6 +192,10 @@
 
 /*-- #slidervideo --*/
 #slidervideo{
+    .titre-part{
+        position: relative;
+        padding-bottom: 10px;
+    }
     .items{
         .row{
             background-size: cover;
@@ -238,6 +243,25 @@
         }
     }
 
+    &.blanc .slider {
+        padding-left: 0;
+        padding-right: 0;
+        .slick-arrow.slick-prev{
+            width: auto;
+            height: auto;
+            left: -15px;
+        }
+        .slick-arrow.slick-next{
+            width: auto;
+            height: auto;
+            right: -15px;
+        }
+        
+        .slick-dots{
+            bottom: -35px;
+        }
+    }
+
     .contenu{
         padding-top: 15px;
         &:before{
@@ -268,6 +292,9 @@
 #bussiness-case{
     .titre h2{
         font-size: 22px;
+        padding-left: 10px;
+        padding-right: 10px;
+        width: auto;
     }
 
     .slider-bc{
@@ -322,6 +349,7 @@
     .slider-schifter{
         padding: 35px 0 15px;  
         .slick-dots{
+            margin: 0;
             left: auto;
             transform: none;
             width: 100%;
