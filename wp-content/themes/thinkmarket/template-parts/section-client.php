@@ -40,7 +40,7 @@ if($post->ID == wp_get_post_by_template("template/template-client.php")){
       <!-- bottom-link -->
       <div class="col-md-12 bottom-link blanc <?php echo $class; ?>">
         <div class="link-ctnr">
-          <a href="#">tous nos client</a>
+          <a href="<?php echo the_field('lien_page_client', 'option') ?>">tous nos client</a>
         </div>
       </div>
       <!-- ./bottom-link -->
