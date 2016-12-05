@@ -20,7 +20,7 @@
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define('DB_NAME', 'thmarket');
+define('DB_NAME', 'th_thinkmarket');
 
 /** MySQL database username */
 define('DB_USER', 'root');
