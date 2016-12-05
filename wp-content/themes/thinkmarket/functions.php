@@ -159,3 +159,17 @@ function wpse_139269_term_radio_checklist( $args ) {
 }
 
 add_filter( 'wp_terms_checklist_args', 'wpse_139269_term_radio_checklist' );
+
+add_filter('nav_menu_css_class','add_active_menu',10,4);
+
+function add_active_menu( $classes,  $item, $args, $depth){
+  global $post;
+  if($post->post_type == "offre"){ 
+    if($args->theme_location == 'primary'){
+      if($item->object_id == wp_get_post_by_template('template/template-offre.php')){
+        $classes[] = 'active';
+      }
+    }
+  }
+  return  $classes;
+}

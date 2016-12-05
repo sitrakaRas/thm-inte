@@ -1,6 +1,10 @@
 a,a:hover, a:active, a:focus {
-    outline: 0;
+    outline: none !important;
 }
+:focus,:active,:hover{
+    outline: none !important;
+}
+
 button{
     &.slick-prev::before,
     &.slick-next::before{
