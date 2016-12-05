@@ -287,6 +287,9 @@ button{
             font-family: @wesfy_medium;
             font-size: 16px;
             line-height: 1.3;
+            &:first-letter{
+                text-transform: uppercase;
+            }
         }
         .link-offre{
             display: inline-block;
@@ -370,6 +373,11 @@ button{
             &:before{
                 .sprite(@left-slide);
             }
+            &:hover{
+                &:before{
+                    .sprite(@left-slide-b-h);
+                }
+            }
         }
         .slick-next{
             right: 5px;
@@ -377,6 +385,11 @@ button{
             height: auto;
             &:before{
                 .sprite(@right-slide);
+            }
+            &:hover{
+                &:before{
+                    .sprite(@right-slide-b-h);
+                }
             }
         }
         .slick-dots{
@@ -393,6 +406,9 @@ button{
                 &:before{
                     display: none;
                 }
+                &:hover{
+                    border-color : @rose;
+                }
             }
             li:not(.slick-active) button:hover{
                 border-color: @rose;
@@ -400,6 +416,9 @@ button{
             .slick-active{
                 button{
                     background-color: @bleu;
+                    &:hover{
+                        background-color: @rose;
+                    }
                 }
             }
 
@@ -1039,6 +1058,9 @@ button{
         }
         .logo{
             margin-bottom: 15px;
+            a{
+                pointer-events: none;
+            }
         }
         ul{
             list-style: none;
@@ -2433,8 +2455,8 @@ button{
     background-image:  url("../images/bounce-png.png");
     background-repeat: no-repeat;
     background-position: left 180px;
-    min-height: 710px;
-    padding: 75px;
+    min-height: 650px;
+    padding: 40px;
 
     .titre-part{
         h2{
@@ -2686,7 +2708,7 @@ button{
                         right: 25px;
                         line-height: 130%;
                         max-height: 14.3em;
-                        overflow: hidden;
+                        overflow: auto;
                         &:before{
                             content: "";
                             .sprite(@quotetop);
@@ -2764,7 +2786,7 @@ button{
                     .content{
                         background-color: @rose;
                         p{
-                            font-size: 21px;
+                            //font-size: 21px;
                             //#line-height: unset;
                         }
                         ul{

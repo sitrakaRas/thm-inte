@@ -36,7 +36,7 @@
                 <div class="img-block" style="background-image: url('<?php echo get_the_post_thumbnail_url($actu->ID,"large") ?>');">                
                 </div>
                 <div class="text-actu">
-                  <h3><a href="#"><?php echo $categ[0]->name; ?></a></h3>
+                  <h3><a href="<?php echo get_the_permalink(wp_get_post_by_template('template/template-actualite.php')).'?term_id='.$categ[0]->term_id; ?>"><?php echo $categ[0]->name; ?></a></h3>
                   <p>écrit par <?php echo get_field('auteur_article',$actu->ID); ?></p>
                   <a href="<?php echo get_post_permalink($actu->ID); ?>"><?php echo wp_trim_words( $actu->post_title , $num_words = 8, $more = '… ' ); ?></a>
                   <div class="link-more">

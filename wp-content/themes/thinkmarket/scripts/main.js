@@ -262,6 +262,7 @@ $(function () {
         dots: true,
         easing: 'easeOut',
         lazyLoad: 'ondemand',
+        adaptiveHeight: true,
         responsive: [{
             breakpoint: 768,
             settings: {
