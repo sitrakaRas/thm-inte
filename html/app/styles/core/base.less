@@ -575,6 +575,9 @@ button{
         }
         &>.col-md-4{
             display: none;
+            &.bltw{
+                display: block;
+            }
             &:first-child{
                 display: block;
                 &+.col-md-4{
@@ -1149,6 +1152,9 @@ button{
             width: 100%;
             position: relative;
             background-position: center;
+            &[style*="apropos.jpg"]{
+                background-position: 85% center!important;
+            }
             .spinner{
                 left: 50%;
                 position: absolute;

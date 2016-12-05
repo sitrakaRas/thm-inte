@@ -137,15 +137,7 @@ $(function () {
     var arg_bc = {
         dots: true,
         easing: 'easeOut',
-        infinite: true,
-        //        fade: true,
-        responsive: [{
-            breakpoint: 768,
-            settings: {
-                arrows: false,
-                dots: false
-            }
-        }]
+        infinite: true
     };
     thinkmarket.slider($(".slider-bc"), arg_bc);
 
@@ -182,14 +174,14 @@ $(function () {
         responsive: [{
             breakpoint: 1024,
             settings: {
+                slidesToScroll: 2,
                 slidesToShow: 2
             }
         }, {
             breakpoint: 768,
             settings: {
-                slidesToShow: 1,
-                arrows: false,
-                dots: false
+                slidesToScroll: 1,
+                slidesToShow: 1
             }
         }]
     };
@@ -388,6 +380,11 @@ $(function () {
         $video.each(function () {
             $(this).closest('.row').css({ 'backgroundImage': 'url(' + $(this).attr('poster') + ')' });
         });
+    })();
+
+    (function () {//Groupement "nos clients"
+
+
     })();
 });
 //# sourceMappingURL=main.js.map

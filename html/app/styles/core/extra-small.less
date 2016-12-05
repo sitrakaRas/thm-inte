@@ -147,6 +147,7 @@
         transform: scale(0.5);
         left: 2.333%;
         bottom: 10px;
+        display: none;
     }
     .slider-top{
         .item-top{
@@ -269,16 +270,24 @@
         font-size: 22px;
     }
 
-    .slider-bc .item{
-        h3{
-            font-size: 17px;
-            font-family: @wesfy_bold;
+    .slider-bc{
+        .slick-prev{
+            left: 5px;
         }
+        .slick-next{
+            right: 5px;
+        }
+        .item{
+            h3{
+                font-size: 17px;
+                font-family: @wesfy_bold;
+            }
 
-        p{
-            line-height: 130%;
-            height: 2.6em;
-            overflow: hidden;
+            p{
+                line-height: 130%;
+                height: 2.6em;
+                overflow: hidden;
+            }
         }
     }
 }
@@ -296,6 +305,14 @@
 
     .block-expertise{
         padding: 30px 0;
+    }
+
+    .slick-dots{
+        bottom: 0;
+        width: 100%;
+        li{
+            margin: 0;
+        }
     }
 }
 /*-- end: #expertise-part --*/
@@ -345,6 +362,7 @@
 
 /*-- #bounce --*/
 #bounce{
+    display: none;
     padding: 30px 8.333% 20px;
 }
 /*-- end: #bounce --*/
@@ -360,19 +378,13 @@
 /*-- end: #associes --*/
 
 
-/*-- #joins_us --*/
-#joins_us .bloc-join p{
-    font-size: 26px;
-}
-/*-- end: #joins_us --*/
-
-
 #processus .processus-wrapper .the-bl .block{
 
     padding: 10px;
-    padding-right: 30px;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
     &::after{
-        right: 10px;
+        display: none !important;
     }
 }
 
@@ -397,3 +409,22 @@
     }
 }
 /*-- end: #footer-link --*/
+
+
+/*-- #single-ctn --*/
+#single-ctn .offre-row{
+    display: block;
+    .dtc-l{
+        display: block;
+        margin-bottom: 20px;
+        padding: 0;
+        text-align: center;
+        width: auto;
+    }
+    .dtc-r{
+        display: block;
+        width: auto;
+        padding-left: 8.3333%;
+    }
+}
+/*-- end: #single-ctn --*/
