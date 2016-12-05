@@ -78,6 +78,7 @@ $(function(){
     //slider partenaire
     var arg = {
         slidesToShow : 4,
+        slidesToScroll: 4,
         dots : true,
         infinite: true,
         easing: 'easeOut',
@@ -85,19 +86,22 @@ $(function(){
             {
                 breakpoint : 1024,
                 settings: {
-                    slidesToShow: 3
+                    slidesToShow: 3,
+                    slidesToScroll: 3,
                 }
             },
             {
                 breakpoint : 768,
                 settings: {
-                    slidesToShow: 2
+                    slidesToShow: 2,
+                    slidesToScroll: 2,
                 }
             },
             {
                 breakpoint : 480,
                 settings: {
-                    slidesToShow: 1
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
                 }
             }
         ]
@@ -402,8 +406,76 @@ $(function(){
         })
     })();
 
+    (function(){ //deplacement nos tweets
+        var $tweets = $("#last-actu.actu-inner .bltw");
+        var $prevSibling = $tweets.prev('div');
+
+        $(document).ready(function(){
+            moveTwitter();
+        })
+
+        $(window).resize(function(){
+            moveTwitter();
+        })
+
+        function moveTwitter(){
+            if($(window).width() <= 992){
+
+                if($("#last-actu.actu-inner .bltw").prev('div').length){
+                    $tweets.parent().prepend($tweets);
+                }
+
+            }else{
+
+                if($("#last-actu.actu-inner .actu-wrapper > .bltw:first-child").length){
+                    $prevSibling.after($tweets);
+                }
+            }
+        }
+
+    })();
+
     (function(){ //Groupement "nos clients"
-       
-        
+        var $blockLogo = $('.logo-wrapper .block-logo');
+        $(document).ready(function(){
+            reinitLogo();
+        })
+
+        $(window).resize(function(){
+            reinitLogo();
+        })
+
+        function reinitLogo(){
+            if($(window).width() <= 768){
+
+                if($('.logo-wrapper > .block-logo').length){
+                    var divs = $('.logo-wrapper > .block-logo');
+                    for(var i = 0; i < divs.length; i+=6) {
+                        divs.slice(i, i+6).wrapAll("<div class='logoGroup'></div>");
+                    }
+                    //slider partenaire
+                    var arg = {
+                        slidesToShow : 1,
+                        slidesToScroll: 1,
+                        dots : true,
+                        infinite: true,
+                        easing: 'easeOut'
+
+                    };
+                    thinkmarket.slider($("#nosclient-part .logo-wrapper"),arg);
+                    $(".logo-wrapper .block-logo").matchHeight();
+                }
+
+            }else{
+
+                if(('.logo-wrapper > .logoGroup').length){
+                    $('#nosclient-part .logo-wrapper').slick('unslick');
+                    $('.logo-wrapper').html('').append($blockLogo);
+                    $(".logo-wrapper .block-logo").matchHeight();
+                }
+
+            }
+        }
+
     })()
 });
