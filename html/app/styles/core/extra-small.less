@@ -4,6 +4,7 @@
         height: auto !important;
     }
     &.realisations{
+        padding-bottom: 30px;
         .slider-schifter{
             .block-shifter .shifter-inner{
                 padding-top: 130%;
@@ -218,12 +219,16 @@
                 visibility: hidden;
             }
             .content{
+                margin-left: 48.333%;
                 h3{
                     margin-bottom: 10px;
                 }
                 p{
                     font-size: 16px;
                     line-height: 100%;
+                }
+                span{
+                    font-size: 16px;
                 }
             }
         }
@@ -319,9 +324,14 @@
             right: 5px;
         }
         .item{
+            padding-top: 0;
             h3{
                 font-size: 17px;
                 font-family: @wesfy_bold;
+            }
+            
+            .bloc{
+                height: auto;
             }
 
             p{
@@ -361,6 +371,7 @@
 /*-- #shifter-part --*/
 #shifter-part.sect-wrap{
     .slider-schifter{
+        margin-bottom: 0;
         padding: 35px 0 15px;  
         .slick-dots{
             margin: 0;
