@@ -202,6 +202,7 @@ $(function(){
                 settings: {
                     slidesToScroll: 1,
                     slidesToShow: 1,
+                    dots : false
                 }
             }
         ]
@@ -411,9 +412,7 @@ $(function(){
         var $tweets = $("#last-actu.actu-inner .bltw");
         var $prevSibling = $tweets.prev('div');
 
-        $(document).ready(function(){
-            moveTwitter();
-        })
+        $(document).ready(moveTwitter).ajaxComplete(moveTwitter);
 
         $(window).resize(function(){
             moveTwitter();
@@ -423,7 +422,7 @@ $(function(){
             if($(window).width() <= 992){
 
                 if($("#last-actu.actu-inner .bltw").prev('div').length){
-                    $tweets.parent().prepend($tweets);
+                    $tweets.parent().append($tweets);
                 }
 
             }else{
@@ -460,7 +459,14 @@ $(function(){
                         slidesToScroll: 1,
                         dots : true,
                         infinite: true,
-                        easing: 'easeOut'
+                        easing: 'easeOut',
+                        responsive : [
+                            {
+                                breakpoint : 768,
+                                settings: {
+                                    dots : false
+                                }
+                            }]
 
                     };
                     thinkmarket.slider($("#nosclient-part .logo-wrapper"),arg);
