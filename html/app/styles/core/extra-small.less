@@ -259,14 +259,14 @@
         .slick-arrow.slick-prev{
             width: auto;
             height: auto;
-            left: -15px;
+            left: -25px;
         }
         .slick-arrow.slick-next{
             width: auto;
             height: auto;
-            right: -15px;
+            right: -25px;
         }
-        
+
         .slick-dots{
             bottom: -35px;
         }
@@ -428,10 +428,18 @@
 
 /*-- #nosclient-part --*/
 #nosclient-part{
-    .logo-wrapper .col-md-2{
-        img{
-            width: 100%;
-            height: auto;
+    .logo-wrapper{
+        .slick-next{
+            right:-15px;
+        }
+        .slick-prev{
+           left:-15px; 
+        }
+        .col-md-2{
+            img{
+                width: 100%;
+                height: auto;
+            }
         }
     }
 }
