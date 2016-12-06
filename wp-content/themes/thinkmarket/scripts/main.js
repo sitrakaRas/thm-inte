@@ -105,7 +105,13 @@ $(function () {
 
     //slider citation
     var arg_cit = {
-        dots: true
+        dots: true,
+        responsive: [{
+            breakpoint: 480,
+            settings: {
+                dots: false
+            }
+        }]
     };
     thinkmarket.slider($("#citation.slider, #citation .slider"), arg_cit);
 
@@ -142,7 +148,14 @@ $(function () {
     var arg_bc = {
         dots: true,
         easing: 'easeOut',
-        infinite: true
+        infinite: true,
+        //        fade: true,
+        responsive: [{
+            breakpoint: 768,
+            settings: {
+                dots: false
+            }
+        }]
     };
     thinkmarket.slider($(".slider-bc"), arg_bc);
 
@@ -163,7 +176,8 @@ $(function () {
             breakpoint: 768,
             settings: {
                 slidesToShow: 1,
-                slidesToScroll: 1
+                slidesToScroll: 1,
+                dots: false
             }
         }]
     };
@@ -186,7 +200,8 @@ $(function () {
             breakpoint: 768,
             settings: {
                 slidesToScroll: 1,
-                slidesToShow: 1
+                slidesToShow: 1,
+                dots: false
             }
         }]
     };

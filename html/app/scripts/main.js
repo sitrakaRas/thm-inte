@@ -111,7 +111,15 @@ $(function(){
 
     //slider citation
     var arg_cit = {
-        dots: true
+        dots: true,
+        responsive : [
+            {
+                breakpoint : 480,
+                settings: {
+                    dots: false,
+                }
+            }
+        ]
     }
     thinkmarket.slider($("#citation.slider, #citation .slider"),arg_cit);
 
@@ -153,6 +161,14 @@ $(function(){
         easing : 'easeOut',
         infinite: true,
         //        fade: true,
+        responsive : [
+            {
+                breakpoint : 768,
+                settings: {
+                    dots : false
+                }
+            }
+        ]
     };
     thinkmarket.slider($(".slider-bc"),arg_bc);
 
@@ -176,6 +192,7 @@ $(function(){
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
+                    dots : false
                 }
             }
         ]
@@ -486,7 +503,7 @@ $(function(){
 
     })();
 
-    (function(){
+    /*(function(){
 
         if($('body.iphone').length){
             adjustMainNav();
@@ -501,5 +518,5 @@ $(function(){
             //alert('adjust :'+$('body').attr('class'));
             $('body').css({'padding-top':$('.main-nav').height()});
         }
-    })()
+    })()*/
 });
