@@ -202,6 +202,7 @@ $(function(){
                 settings: {
                     slidesToScroll: 1,
                     slidesToShow: 1,
+                    dots : false
                 }
             }
         ]
@@ -458,7 +459,14 @@ $(function(){
                         slidesToScroll: 1,
                         dots : true,
                         infinite: true,
-                        easing: 'easeOut'
+                        easing: 'easeOut',
+                        responsive : [
+                            {
+                                breakpoint : 768,
+                                settings: {
+                                    dots : false
+                                }
+                            }]
 
                     };
                     thinkmarket.slider($("#nosclient-part .logo-wrapper"),arg);
