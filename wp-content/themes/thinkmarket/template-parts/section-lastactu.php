@@ -61,7 +61,7 @@
              <a class="twitter-timeline" href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" data-show-replies="false"  data-aria-polite="assertive"data-chrome="nofooter noborders noheader transparent" data-tweet-limit="4"><?php the_field('id_twitter', 'option'); ?></a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
             </div>
             <div class="link-more">
-              <a href="#">twitter</a>
+              <a href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>">twitter</a>
             </div>
           </div>             
         </div>
