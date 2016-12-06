@@ -186,7 +186,8 @@ $(function () {
             breakpoint: 768,
             settings: {
                 slidesToScroll: 1,
-                slidesToShow: 1
+                slidesToShow: 1,
+                dots: false
             }
         }]
     };
