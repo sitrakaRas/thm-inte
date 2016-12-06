@@ -93,7 +93,7 @@
       <!-- bottom-link -->
       <div class="col-md-12 bottom-link bleu ">
         <div class="link-ctnr">
-          <a href="#">Nos offres</a>
+          <a href="<?php the_field('lien_page_offre', 'option'); ?>">Nos offres</a>
         </div>
       </div>
       <!-- ./bottom-link -->

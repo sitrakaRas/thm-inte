@@ -72,22 +72,60 @@ class CFunctions {
   }
 
   function get_item_article(){
+    $term_id = $_POST['term_id'];
     $offset = $_POST['offset'] + 1;
     $total = CActualite::getAll();
     $actus = CActualite::getAll(6,$offset);
-    if(count($actus) > 0 ){
+    $fin = false;
+    if(count($actus) > 1 ){
       $html = "";
-      foreach ($actus as  $actu) {
-        $html .= $this->render_item_article($actu,$offset,count($total));
-        $offset++;
+
+      if(isset($_POST['term_id'])){
+        foreach ($actus as  $actu) {
+          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+          if($term_id == $categ[0]->term_id):
+            $html .= $this->render_item_article($actu,$offset,count($total),$categ);
+            $offset++;
+          endif;
+        }
+      }else{
+        foreach ($actus as  $actu) {
+          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+          $html .= $this->render_item_article($actu,$offset,count($total),$categ);
+        }
       }
-      echo $html;
-    }
       
-      die();
+    }else{
+      $html = "";
+
+      if(isset($_POST['term_id'])){
+        foreach ($actus as  $actu) {
+          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+          if($term_id == $categ[0]->term_id):
+            $html .= $this->render_item_article($actu,$offset,count($total),$categ);
+            $offset++;
+          endif;
+        }
+      }else{
+        foreach ($actus as  $actu) {
+          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+          $html .= $this->render_item_article($actu,$offset,count($total),$categ);
+        }
+      }
+
+      $fin = true;
+    }
+
+    echo json_encode(array('html' => $html,
+      'fin' => $fin,
+      'offset' => $offset,
+      'term_id' => $term_id,
+      'count' => count($actus)
+    ));
+    die();
   }
-  function render_item_article($actu, $key = 0,$count){
-    $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+  function render_item_article($actu, $key = 0,$count,$categ){
+    $link_actu = get_the_permalink(wp_get_post_by_template("template/template-actualite.php"));
     $html = '';
 
     $html .= '<div class="col-md-4 all ' . $categ[0]->slug . '" data-offset="' . $key . '" data-count="'. $count .'">
@@ -98,7 +136,7 @@ class CFunctions {
         </a>
         <div class="text-actu">
           <h3>
-            <a href=".' . $categ[0]->slug . '">' . $categ[0]->name . '</a>
+            <a href=".' .$link_actu.'?term_id='.$categ[0]->term_id. '">' . $categ[0]->name . '</a>
           </h3>
           <p>&Eacute;crit par ' . get_field('auteur_article', $actu->ID) . '</p>
           <a href="' . $actu->permalink . '">' . $actu->titre . '</a>

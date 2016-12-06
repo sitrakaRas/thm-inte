@@ -2,6 +2,14 @@
 
 <?php
 global $post;
+
+if(isset($_GET["term_id"])){
+  $term_id = $_GET["term_id"];
+  $filtre = true;
+}
+
+$link_actu = get_the_permalink(wp_get_post_by_template("template/template-actualite.php"));
+
 ?>
 <?php get_header(); ?>
 <?php get_template_part( 'template-parts/section', 'slidertop' ); ?>
@@ -10,19 +18,18 @@ global $post;
     <div class="container-fluid">
         <div class="row">
         <?php $terms = get_terms('category'); ?>
-  
+            
 
             <!-- tabs-part -->
             <nav class="tabs">
                 <ul class="text-center">
 
-
-                    <li class="active"><a href=".all" title="Toute notre actualité">Toute notre actualité</a></li>
+                    <li <?php if($filtre != true){echo 'class="active"';} ?>><a href="<?php echo $link_actu; ?>" title="Toute notre actualité">Toute notre actualité</a></li>
                     <?php 
                     	foreach ($terms as $term) {
 	                    	if($term->slug != 'non-classe'):
 	                    	?>
-	                    	<li><a href=".<?php echo $term->slug ?>" title="<?php echo $term->name ?>"><?php echo $term->name ?></a></li>
+	                    	<li <?php if($term_id == $term->term_id){ echo "class='active'";}?>><a href="<?php echo $link_actu.'?term_id='.$term->term_id; ?>" title="<?php echo $term->name ?>"><?php echo $term->name ?></a></li>
 	                    	<?php
 	                    	endif;
 	                    }

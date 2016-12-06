@@ -309,26 +309,27 @@ $(function () {
 
     //tab filter actu
 
-    $(".actu-inner .tabs li a").on("click", function (e) {
-        e.preventDefault();
+    // $(".actu-inner .tabs li a").on("click",function(e){
+    //     e.preventDefault();
 
-        thinkmarket.filterActu($(this).attr("href"));
-        $(".actu-inner .tabs li").removeClass("active");
-        $(this).parent().toggleClass("active");
-    });
+    //     thinkmarket.filterActu($(this).attr("href"));
+    //     $(".actu-inner .tabs li").removeClass("active");
+    //     $(this).parent().toggleClass("active");
+    // });
 
-    $(".actu-inner .actu-bloc .text-actu h3 a").on("click", function (e) {
-        e.preventDefault();
+    // $(".actu-inner .actu-bloc .text-actu h3 a").on("click",function(e){
+    //     e.preventDefault();
 
-        thinkmarket.filterActu($(this).attr("href"));
-        var that = $(this);
-        $(".actu-inner .tabs li").removeClass("active");
-        $(".actu-inner .tabs li").each(function () {
-            if ($(this).find("a").attr("href") == that.attr("href")) {
-                $(this).toggleClass("active");
-            }
-        });
-    });
+    //     thinkmarket.filterActu($(this).attr("href"));
+    //     var that = $(this);
+    //     $(".actu-inner .tabs li").removeClass("active");
+    //     $(".actu-inner .tabs li").each(function(){
+    //         if($(this).find("a").attr("href") == that.attr("href")){
+    //             $(this).toggleClass("active");
+    //         }
+    //     });
+
+    // });
 
     //patchs javascript
 

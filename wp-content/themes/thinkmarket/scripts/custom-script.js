@@ -1,27 +1,32 @@
 (function ($) {
   "use strict";
   var test = true;
+  var stop = false;
   infiniteScrollActus();
     
   function infiniteScrollActus() {
-    if( $('.actu-inner').length > 0 ) {
-        $(window).scroll(function(e) {
-          e.stopPropagation();
-          var spinTop = $(".spinnerWrapper").offset().top;
-          if($(window).scrollTop() >= spinTop - $(window).height() && test == true) {
-            test = false;
-            var params =  {
-                action : 'get_item_article',
-                offset : $('.actu-inner .actu-wrapper .all:last-child').data('offset'),
-            };
+      if( $('.actu-inner').length > 0 ) {
+          $(window).scroll(function(e) {
+            e.stopPropagation();
+            var spinTop = $(".spinnerWrapper").offset().top;
+            if($(window).scrollTop() >= spinTop - $(window).height() && test == true) {
+              test = false;
+              if(stop != true){
+                var params =  {
+                    action : 'get_item_article',
+                    offset : $('.actu-inner .actu-wrapper .all:last-child').data('offset'),
+                    term_id: $(".term_id").val()
+                };
 
-            var dataType = 'text';
-            if($('.actu-inner .actu-wrapper .all:last-child').data('offset') != $('.actu-inner .actu-wrapper .all:last-child').data('count') - 1){
-              do_ajax( params, 'html', 'loader', callback_get_item_article );
-            }
-          }               
-        });
-    }
+                var dataType = 'text';
+                if($('.actu-inner .actu-wrapper .all:last-child').data('offset') != $('.actu-inner .actu-wrapper .all:last-child').data('count') - 1){
+                  do_ajax( params, 'json', 'loader', callback_get_item_article );
+                }
+              }
+            }               
+          });
+      }
+    
   }
 
   function callback_get_item_article(resp){
@@ -50,7 +55,10 @@
       data: params,
       dataType: dataType,
       success: function (rep) {
-        callback_response(rep)
+        callback_response(rep.html);
+        if(rep.fin == true){
+          stop = true;
+        }
       },
       complete: function () {
         switch (typeLoader) {

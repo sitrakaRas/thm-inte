@@ -27,7 +27,7 @@ if($post->ID == wp_get_post_by_template("template/template-client.php")){
         <?php  while ( $loop->have_posts() ) : $loop->the_post();  ?>
         <!-- logo-block -->
         <div class="col-md-2 col-xs-6 block-logo">
-          <a href="#">               
+          <a href="<?php echo the_field('lien_page_client', 'option') ?>">               
             <img src="<?php the_post_thumbnail_url(); ?>" alt="logo">
           </a>             
         </div>
