@@ -25,7 +25,7 @@
 					 	// loop through the rows of data
 					    while ( have_rows('reseau_sociaux') ) : the_row();
 							?>
-							<li><a href="http://<?php echo get_sub_field('lien_reseau_sociaux'); ?>" target="_blank"><img src="<?php echo get_sub_field('icone_reseau_sociaux') ?>" alt=""></a></li>
+							<li><a href="<?php echo get_sub_field('lien_reseau_sociaux'); ?>" target="_blank"><img src="<?php echo get_sub_field('icone_reseau_sociaux') ?>" alt=""></a></li>
 							<?php
 
 					    endwhile;
