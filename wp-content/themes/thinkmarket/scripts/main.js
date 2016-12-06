@@ -479,6 +479,7 @@ $(function () {
 
     (function () {
 
+        $('body').addClass('iphone');
         if ($('body.iphone').length) {
             adjustMainNav();
             $(window).resize(function () {
