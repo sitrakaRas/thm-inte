@@ -117,7 +117,8 @@ $(function () {
 
     //menu fixe
     var menu_arg;
-    thinkmarket.headfixe($(".main-nav").not(".iphone .main-nav"), menu_arg);
+    //thinkmarket.headfixe($(".main-nav").not(".iphone .main-nav"),menu_arg);
+    thinkmarket.headfixe($(".main-nav"), menu_arg);
 
     $(window).on("scroll", function () {
         if ($(".main-nav").offset().top > 10) {
@@ -415,16 +416,16 @@ $(function () {
         });
 
         function moveTwitter() {
+            var $avPdv = $("#last-actu.actu-inner .avis-et-points-de-vue");
             if ($(window).width() <= 992) {
 
                 if ($("#last-actu.actu-inner .bltw").prev('div').length) {
-                    $tweets.parent().append($tweets);
+                    $tweets.parent().prepend($avPdv);
                 }
             } else {
-
-                if ($("#last-actu.actu-inner .actu-wrapper > .bltw:first-child").length) {
-                    $prevSibling.after($tweets);
-                }
+                $tweets.parent().prepend($avPdv.slice(0, 2));
+                //$tweets.after($avPdv.slice(2,$avPdv.length));
+                //$prevSibling.after($tweets);
             }
         }
     })();
@@ -479,7 +480,6 @@ $(function () {
 
     (function () {
 
-        $('body').addClass('iphone');
         if ($('body.iphone').length) {
             adjustMainNav();
             $(window).resize(function () {
