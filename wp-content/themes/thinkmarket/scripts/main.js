@@ -90,13 +90,15 @@ $(function () {
             breakpoint: 768,
             settings: {
                 slidesToShow: 2,
-                slidesToScroll: 2
+                slidesToScroll: 2,
+                dots: false
             }
         }, {
             breakpoint: 480,
             settings: {
                 slidesToShow: 1,
-                slidesToScroll: 1
+                slidesToScroll: 1,
+                dots: false
             }
         }]
 
@@ -416,16 +418,16 @@ $(function () {
         });
 
         function moveTwitter() {
-            var $avPdv = $("#last-actu.actu-inner .avis-et-points-de-vue");
             if ($(window).width() <= 992) {
 
                 if ($("#last-actu.actu-inner .bltw").prev('div').length) {
-                    $tweets.parent().prepend($avPdv);
+                    $tweets.parent().append($tweets);
                 }
             } else {
-                $tweets.parent().prepend($avPdv.slice(0, 2));
-                //$tweets.after($avPdv.slice(2,$avPdv.length));
-                //$prevSibling.after($tweets);
+
+                if ($("#last-actu.actu-inner .actu-wrapper > .bltw:first-child").length) {
+                    $prevSibling.after($tweets);
+                }
             }
         }
     })();

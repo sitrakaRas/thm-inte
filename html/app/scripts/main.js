@@ -95,6 +95,7 @@ $(function(){
                 settings: {
                     slidesToShow: 2,
                     slidesToScroll: 2,
+                    dots : false,
                 }
             },
             {
@@ -102,6 +103,7 @@ $(function(){
                 settings: {
                     slidesToShow: 1,
                     slidesToScroll: 1,
+                    dots : false,
                 }
             }
         ]
