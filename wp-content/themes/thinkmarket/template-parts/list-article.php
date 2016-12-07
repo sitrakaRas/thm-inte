@@ -9,13 +9,17 @@ $link_actu = get_the_permalink(wp_get_post_by_template("template/template-actual
 
 $total = count(CActualite::getAll());
  ?>
-
+<input type="hidden" class="old_number" value="0">
 <?php 
   if($filtre):
   $actualites = CActualite::getAll();
 ?>
   <input type="hidden" class="term_id" value="<?php echo $term_id; ?>">
-    <?php $i = 0 ?>
+  
+    <?php 
+      $i = 0;
+      $true_total = 0;
+    ?>
     <?php foreach ($actualites as $key => $actu) {
       $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
             if($term_id == $categ[0]->term_id):
@@ -48,7 +52,7 @@ $total = count(CActualite::getAll());
               else :
             ?>
             <!-- twitter block -->
-                    <div class="col-md-4 bltw">
+                    <div class="col-md-4 bltw desktop-tweet">
                         <div class="twitter-block">
                             <h3><a href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" target="_blank">nos tweets</a></h3>
                             <div class="listing">
@@ -89,9 +93,9 @@ $total = count(CActualite::getAll());
               endif;
               $i++;
             endif;
-            if($i == 4):
-              break;
-            endif;
+            // if($i == 4):
+            //   break;
+            // endif;
           } ?>
 
 <?php 
@@ -131,7 +135,7 @@ $total = count(CActualite::getAll());
       else :
     ?>
     <!-- twitter block -->
-            <div class="col-md-4 bltw">
+            <div class="col-md-4 bltw desktop-tweet">
                 <div class="twitter-block">
                     <h3><a href="https://twitter.com/<?php the_field('id_twitter', 'option'); ?>" target="_blank">nos tweets</a></h3>
                     <div class="listing">

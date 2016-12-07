@@ -73,54 +73,106 @@ class CFunctions {
 
   function get_item_article(){
     $term_id = $_POST['term_id'];
-    $offset = $_POST['offset'] + 1;
+    $offset = $_POST['offset'];
+    $old_number = $_POST['old_number'];
     $total = CActualite::getAll();
-    $actus = CActualite::getAll(6,$offset);
-    $fin = false;
-    if(count($actus) > 1 ){
-      $html = "";
 
-      if(isset($_POST['term_id'])){
-        foreach ($actus as  $actu) {
-          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
-          if($term_id == $categ[0]->term_id):
-            $html .= $this->render_item_article($actu,$offset,count($total),$categ);
-            $offset++;
-          endif;
+    if(isset($term_id) && $term_id != null){
+      //si term id defini
+      //calcul nbre actu meme categ
+      $total_actu = 0;
+      foreach ($total as  $actu) {
+        $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+        if($term_id == $categ[0]->term_id){
+          $total_actu++;
+        }
+      }
+
+      $total = $total_actu;
+      //si total plus que l' offset
+      if($total > (int)$offset ){
+        if( $total - ($old_number + 6)  > 0){
+          $actus = CActualite::getAll(6,$offset);
+          $fin = false;         
+          $html = "";
+          foreach ($actus as  $actu) {
+            $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+            if($term_id == $categ[0]->term_id):
+              $html .= $this->render_item_article($actu,$offset,$total,$categ);
+              (int)$offset++;
+            endif;
+          }                   
+            //$html .= $this->render_tweeter_block();
+
+        }else{
+          //le nombre restant par rapport au total 
+
+          $nbr = $total - $old_number ;
+          if($nbr > 0){      
+            $actus = CActualite::getAll($nbr,$offset);
+            foreach ($actus as  $actu) {
+              $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+              if($term_id == $categ[0]->term_id):
+                $html .= $this->render_item_article($actu,$offset,$total,$categ);
+                (int)$offset++;
+              endif;
+            }
+          }
+          $fin = true;
+          $html .= $this->render_tweeter_block();
         }
       }else{
-        foreach ($actus as  $actu) {
-          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
-          $html .= $this->render_item_article($actu,$offset,count($total),$categ);
-        }
+        $fin = true;
+        $html .= $this->render_tweeter_block();
       }
       
-    }else{
-      $html = "";
 
-      if(isset($_POST['term_id'])){
-        foreach ($actus as  $actu) {
-          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
-          if($term_id == $categ[0]->term_id):
-            $html .= $this->render_item_article($actu,$offset,count($total),$categ);
-            $offset++;
-          endif;
+    }else{
+      //si pas de term id defini
+      if(count($total) > (int)$offset ){
+        if( count($total) - ($old_number + 6)  > 0){
+          $actus = CActualite::getAll(6,$offset);
+          $fin = false;       
+            $html = ""; 
+            foreach ($actus as  $actu) {
+              $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+              $html .= $this->render_item_article($actu,$offset,count($total),$categ);
+              (int)$offset++;
+            }                   
+        }else{
+          $nbr = count($total) - $old_number ;
+          if(  $nbr > 0){
+            $actus = CActualite::getAll($nbr,$offset);
+          
+            foreach ($actus as  $actu) {
+              $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
+              $html .= $this->render_item_article($actu,(int)$offset,count($total),$categ);
+              (int)$offset++;
+            }
+          }
+          $html .= $this->render_tweeter_block();
+          $fin = true;
+          
         }
       }else{
-        foreach ($actus as  $actu) {
-          $categ = wp_get_post_terms($actu->ID, 'category', array("fields" => "all"));
-          $html .= $this->render_item_article($actu,$offset,count($total),$categ);
-        }
+          $html .= $this->render_tweeter_block();
+         $fin = true;
+         
       }
-
-      $fin = true;
+     
     }
 
+    $html .= $this->render_tweeter_block();
+    
     echo json_encode(array('html' => $html,
       'fin' => $fin,
-      'offset' => $offset,
+      'offset' => (int)$offset,
       'term_id' => $term_id,
-      'count' => count($actus)
+      'total' => count($total),
+      'old_number' => $old_number + count($actus),
+      'nbr' => $nbr,
+      'total_actu' => $total_actu,
+      "test" => $test
     ));
     die();
   }
@@ -153,6 +205,24 @@ class CFunctions {
     </div>';
 
     return $html;
+  }
+
+  function render_tweeter_block(){
+    $html ='';
+      $html .= '<div class="col-md-4 bltw twitter-mobile">
+                <div class="twitter-block">
+                    <h3><a href="https://twitter.com/' . get_field('id_twitter', 'option') . '" target="_blank">nos tweets</a></h3>
+                    <div class="listing">
+                       <a class="twitter-timeline" href="https://twitter.com/' . get_field('id_twitter', 'option') . '" data-show-replies="false"  data-aria-polite="assertive" data-chrome="nofooter noborders noheader transparent" data-tweet-limit="5">' . get_field('id_twitter', 'option') . '</a> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+                    </div>
+                </div>     
+                <div class="bottom-link">
+                  <div class="link-more">
+                        <a href="https://twitter.com/' . get_field('id_twitter', 'option') . '" target="_blank">tweet</a>
+                    </div> 
+                </div>   
+            </div>';
+      return $html;
   }
 
   function custom_init() {

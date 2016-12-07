@@ -14,11 +14,11 @@
               if(stop != true){
                 var params =  {
                     action : 'get_item_article',
-                    offset : $('.actu-inner .actu-wrapper .all:last-child').data('offset'),
-                    term_id: $(".term_id").val()
+                    offset : $('.actu-inner .actu-wrapper .all:last-child').data('offset') + 1,
+                    term_id: $(".term_id").val(),
+                    old_number: $(".old_number").val()
                 };
 
-                var dataType = 'text';
                 if($('.actu-inner .actu-wrapper .all:last-child').data('offset') != $('.actu-inner .actu-wrapper .all:last-child').data('count') - 1){
                   do_ajax( params, 'json', 'loader', callback_get_item_article );
                 }
@@ -59,6 +59,7 @@
         if(rep.fin == true){
           stop = true;
         }
+        $(".old_number").val(rep.old_number);
       },
       complete: function () {
         switch (typeLoader) {

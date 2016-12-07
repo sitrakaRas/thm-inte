@@ -388,32 +388,6 @@ $(function () {
     })();
 
     (function () {
-        //deplacement nos tweets
-        var $tweets = $("#last-actu.actu-inner .bltw");
-        var $prevSibling = $tweets.prev('div');
-
-        $(document).ready(moveTwitter).ajaxComplete(moveTwitter);
-
-        $(window).resize(function () {
-            moveTwitter();
-        });
-
-        function moveTwitter() {
-            var $avPdv = $("#last-actu.actu-inner .avis-et-points-de-vue");
-            if ($(window).width() <= 992) {
-
-                if ($("#last-actu.actu-inner .bltw").prev('div').length) {
-                    $tweets.parent().prepend($avPdv);
-                }
-            } else {
-                $tweets.parent().prepend($avPdv.slice(0, 2));
-                //$tweets.after($avPdv.slice(2,$avPdv.length));
-                //$prevSibling.after($tweets);
-            }
-        }
-    })();
-
-    (function () {
         //Groupement "nos clients"
         var $blockLogo = $('.logo-wrapper .block-logo');
         $(document).ready(function () {
