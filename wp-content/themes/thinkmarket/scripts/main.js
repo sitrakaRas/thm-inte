@@ -390,35 +390,6 @@ $(function () {
     })();
 
     (function () {
-<<<<<<< HEAD
-=======
-        //deplacement nos tweets
-        var $tweets = $("#last-actu.actu-inner .bltw");
-        var $prevSibling = $tweets.prev('div');
-
-        $(document).ready(moveTwitter).ajaxComplete(moveTwitter);
-
-        $(window).resize(function () {
-            moveTwitter();
-        });
-
-        function moveTwitter() {
-            if ($(window).width() <= 992) {
-
-                if ($("#last-actu.actu-inner .bltw").prev('div').length) {
-                    $tweets.parent().append($tweets);
-                }
-            } else {
-
-                if ($("#last-actu.actu-inner .actu-wrapper > .bltw:first-child").length) {
-                    $prevSibling.after($tweets);
-                }
-            }
-        }
-    })();
-
-    (function () {
->>>>>>> origin/feature/feat-rocky
         //Groupement "nos clients"
         var $blockLogo = $('.logo-wrapper .block-logo');
         $(document).ready(function () {
