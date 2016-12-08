@@ -354,23 +354,15 @@ $(function () {
         });
     })();
 
-    (function _0037167() {
-        //problème de chargement ajout loader
-        /*var $itemTop = $('#block-top .item-top');
-        $itemTop.each(function(){
-            var $this = $(this);
-              if($this.css('background-image')!="none"){
-                $this.append('<span class="spinner">');
-                console.log($this.css('background-image'));
-            }
-          })*/
-        $("body").append('<div id="loader"><span class="spinner"></span></div>');
-        $(window).load(function () {
-            $("body > #loader").fadeOut(1000, function () {
-                $(this).remove();
-            });
-        });
-    })();
+    // (function _0037167(){ //problème de chargement ajout loader
+
+    //     $("body").append('<div id="loader"><span class="spinner"></span></div>');
+    //     $(window).load(function(){
+    //         $("body > #loader").fadeOut(1000,function(){
+    //             $(this).remove();
+    //         });
+    //     })
+    // })();
 
     (function () {
         //Correction problème de menu transparent au scroll
